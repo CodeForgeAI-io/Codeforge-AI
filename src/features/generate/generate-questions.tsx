@@ -1,19 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  ArrowRight,
-  CheckCircle2,
-  Lightbulb,
-  Loader2,
-  Sparkles,
-  XCircle,
-} from "lucide-react";
+import { Lightbulb, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -30,8 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DifficultyBadge } from "@/components/shared/difficulty-badge";
 import { DIFFICULTIES, QUESTION_CATEGORIES } from "@/lib/constants";
+import {
+  GenerationResults,
+  type GenerateResult,
+} from "./generation-results";
 
 const ANY = "any";
 
@@ -41,18 +35,6 @@ const EXAMPLE_PROMPTS = [
   "String manipulation questions asked at Google",
   "Beginner-friendly recursion warm-ups",
 ];
-
-interface CreatedQuestion {
-  slug: string;
-  title: string;
-  category: string;
-  difficulty: string;
-}
-
-interface GenerateResult {
-  created: CreatedQuestion[];
-  rejected: { title: string; reason: string }[];
-}
 
 export function GenerateQuestions() {
   const [prompt, setPrompt] = useState("");
@@ -91,18 +73,7 @@ export function GenerateQuestions() {
   });
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <div className="mb-6">
-        <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-          <Sparkles className="size-6 text-primary" />
-          Generate Questions
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Describe what you want to practice — the AI writes complete questions
-          with test cases, hints and editorials, and publishes them to Problems.
-        </p>
-      </div>
-
+    <div className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">What do you want to practice?</CardTitle>
@@ -201,60 +172,7 @@ export function GenerateQuestions() {
         </CardContent>
       </Card>
 
-      {result && (
-        <div className="mt-6 space-y-3">
-          {result.created.length > 0 && (
-            <>
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold">
-                  Fresh from the forge ({result.created.length})
-                </h2>
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/problems">
-                    View all problems <ArrowRight className="size-3.5" />
-                  </Link>
-                </Button>
-              </div>
-              <div className="overflow-hidden rounded-xl border">
-                {result.created.map((question, index) => (
-                  <Link
-                    key={question.slug}
-                    href={`/problems/${question.slug}`}
-                    className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/50 ${
-                      index % 2 === 1 ? "bg-muted/30" : ""
-                    }`}
-                  >
-                    <CheckCircle2 className="size-4 shrink-0 text-success" />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                      {question.title}
-                    </span>
-                    <Badge variant="secondary" className="text-[10px]">
-                      {question.category}
-                    </Badge>
-                    <DifficultyBadge difficulty={question.difficulty} />
-                    <span className="text-xs font-medium text-primary">
-                      Solve now
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </>
-          )}
-          {result.rejected.length > 0 && (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3">
-              <p className="mb-1.5 text-xs font-semibold text-destructive">
-                Skipped ({result.rejected.length})
-              </p>
-              {result.rejected.map((rejection, index) => (
-                <p key={index} className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                  <XCircle className="mt-0.5 size-3 shrink-0 text-destructive" />
-                  {rejection.title}: {rejection.reason}
-                </p>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {result && <GenerationResults result={result} />}
     </div>
   );
 }

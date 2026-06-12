@@ -9,6 +9,8 @@ const PUBLIC_PREFIXES = [
   "/register",
   "/api/auth",
   "/profile", // public profiles
+  "/problems", // browsing problems is public; solving requires auth
+  "/api/questions", // public question listing/search APIs
   "/_next",
   "/favicon",
 ];

@@ -1,6 +1,15 @@
 import mongoose, { Schema, type Model, type Types } from "mongoose";
 import type { Difficulty, FrontendTech } from "@/lib/constants";
 
+/**
+ * Stored as an array because Mongoose Maps reject keys containing "."
+ * (every file path has one). Services convert to a path->code record.
+ */
+export interface ChallengeFile {
+  path: string;
+  code: string;
+}
+
 export interface FrontendChallengeDoc {
   _id: Types.ObjectId;
   slug: string;
@@ -14,8 +23,7 @@ export interface FrontendChallengeDoc {
   description: string;
   /** Design / behavior spec the AI reviewer grades against */
   designSpec: string;
-  /** file path -> starter code, e.g. "/index.html" or "/App.js" */
-  starterFiles: Map<string, string>;
+  starterFiles: ChallengeFile[];
   checklist: string[];
   isPublished: boolean;
   createdBy?: Types.ObjectId;
@@ -44,7 +52,12 @@ const frontendChallengeSchema = new Schema<FrontendChallengeDoc>(
     brief: { type: String, required: true, maxlength: 300 },
     description: { type: String, required: true },
     designSpec: { type: String, required: true },
-    starterFiles: { type: Map, of: String, default: {} },
+    starterFiles: [
+      {
+        path: { type: String, required: true },
+        code: { type: String, default: "" },
+      },
+    ],
     checklist: { type: [String], default: [] },
     isPublished: { type: Boolean, default: false, index: true },
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },

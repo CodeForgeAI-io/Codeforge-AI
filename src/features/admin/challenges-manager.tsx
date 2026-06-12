@@ -244,7 +244,7 @@ function ChallengeDialog({
         <Button onClick={openDialog}>New challenge</Button>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85svh] sm:max-w-2xl">
+        <DialogContent className="flex max-h-[85svh] flex-col overflow-hidden sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {isEdit ? "Edit challenge" : "Create challenge"}
@@ -262,8 +262,7 @@ function ChallengeDialog({
             <Textarea
               value={json}
               onChange={(event) => setJson(event.target.value)}
-              rows={18}
-              className="font-mono text-xs"
+              className="min-h-[45svh] flex-1 resize-none font-mono text-xs"
             />
           )}
           <DialogFooter>

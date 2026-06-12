@@ -66,9 +66,11 @@ interface SubmitResponse {
 export function Workspace({
   question,
   contestSlug,
+  signedIn = true,
 }: {
   question: QuestionDetail;
   contestSlug?: string;
+  signedIn?: boolean;
 }) {
   const store = useWorkspaceStore();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -286,28 +288,38 @@ export function Workspace({
         </Button>
 
         <div className="ml-auto flex items-center gap-1.5">
-          <Button
-            variant={aiOpen ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setAiOpen((open) => !open)}
-          >
-            <Bot className="size-4" /> AI Mentor
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={busy}
-            onClick={() => runMutation.mutate(false)}
-          >
-            <Play className="size-4" /> Run
-          </Button>
-          <Button
-            size="sm"
-            disabled={busy}
-            onClick={() => submitMutation.mutate()}
-          >
-            <CloudUpload className="size-4" /> Submit
-          </Button>
+          {signedIn ? (
+            <>
+              <Button
+                variant={aiOpen ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setAiOpen((open) => !open)}
+              >
+                <Bot className="size-4" /> AI Mentor
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={busy}
+                onClick={() => runMutation.mutate(false)}
+              >
+                <Play className="size-4" /> Run
+              </Button>
+              <Button
+                size="sm"
+                disabled={busy}
+                onClick={() => submitMutation.mutate()}
+              >
+                <CloudUpload className="size-4" /> Submit
+              </Button>
+            </>
+          ) : (
+            <Button asChild size="sm">
+              <a href={`/login?callbackUrl=/problems/${question.slug}`}>
+                Sign in to run code
+              </a>
+            </Button>
+          )}
         </div>
       </div>
       <div className="min-h-0 flex-1">
@@ -404,7 +416,7 @@ export function Workspace({
           <TabsList className="m-2 w-fit self-center">
             <TabsTrigger value="problem">Problem</TabsTrigger>
             <TabsTrigger value="code">Code</TabsTrigger>
-            <TabsTrigger value="ai">AI</TabsTrigger>
+            {signedIn && <TabsTrigger value="ai">AI</TabsTrigger>}
           </TabsList>
           <TabsContent value="problem" className="min-h-0 flex-1">
             <QuestionPanel question={question} />
@@ -420,15 +432,17 @@ export function Workspace({
               </ResizablePanel>
             </ResizablePanelGroup>
           </TabsContent>
-          <TabsContent value="ai" className="min-h-0 flex-1">
-            <MentorPanel
-              context="question"
-              questionId={question.id}
-              code={code}
-              language={language}
-              failureContext={lastFailure}
-            />
-          </TabsContent>
+          {signedIn && (
+            <TabsContent value="ai" className="min-h-0 flex-1">
+              <MentorPanel
+                context="question"
+                questionId={question.id}
+                code={code}
+                language={language}
+                failureContext={lastFailure}
+              />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

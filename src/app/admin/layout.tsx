@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth";
 import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { AdminNav } from "@/features/admin/admin-nav";
+import { AdminSidebar, AdminMobileNav } from "@/features/admin/admin-nav";
 
 export default async function AdminLayout({
   children,
@@ -19,7 +19,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-svh">
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b px-4 glass-strong">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background px-4">
         <Logo href="/admin" />
         <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
           Admin
@@ -28,14 +28,18 @@ export default async function AdminLayout({
           <ThemeToggle />
           <Button asChild variant="outline" size="sm">
             <Link href="/dashboard">
-              <ArrowLeft className="size-4" /> Back to app
+              <ArrowLeft className="size-4" />
+              <span className="hidden sm:inline">Back to app</span>
             </Link>
           </Button>
         </div>
       </header>
-      <div className="mx-auto max-w-6xl px-4 py-6">
-        <AdminNav />
-        <div className="mt-6">{children}</div>
+      <div className="flex">
+        <AdminSidebar />
+        <main className="min-w-0 flex-1 px-4 py-5">
+          <AdminMobileNav />
+          <div className="mx-auto mt-4 max-w-5xl md:mt-0">{children}</div>
+        </main>
       </div>
     </div>
   );

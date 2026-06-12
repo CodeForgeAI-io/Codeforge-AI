@@ -165,6 +165,7 @@ export const DIFFICULTY_COLORS: Record<Difficulty, string> = {
 };
 
 export const QUESTION_CATEGORIES = [
+  // DSA
   "Arrays",
   "Strings",
   "HashMaps",
@@ -185,6 +186,30 @@ export const QUESTION_CATEGORIES = [
   "Tries",
   "Bit Manipulation",
   "Math",
+  // JavaScript
+  "JavaScript Basics",
+  "ES6+ Features",
+  "Closures & Scope",
+  "Arrays & Objects",
+  "Async & Promises",
+  "DOM & Events",
+  "Error Handling",
+  "Modules",
+  // React
+  "React Components",
+  "JSX & Rendering",
+  "Props & State",
+  "React Events",
+  "Conditional Rendering",
+  "Lists & Keys",
+  "Forms & Controlled Components",
+  "React Hooks",
+  "Component Lifecycle",
+  "React Router",
+  "API Integration",
+  "Context & State Management",
+  "React Best Practices",
+  "Debugging & Performance",
 ] as const;
 
 export const FRONTEND_TECHS = [

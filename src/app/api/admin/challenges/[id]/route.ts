@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { Types } from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { mapToObject } from "@/lib/utils";
 import { FrontendChallenge, Submission } from "@/models";
 import { challengeInputSchema } from "@/schemas/challenge";
+import { filesToRecord, recordToFiles } from "@/services/challenges";
 
 const patchSchema = challengeInputSchema.partial();
 
@@ -37,7 +37,7 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
       brief: challenge.brief,
       description: challenge.description,
       designSpec: challenge.designSpec,
-      starterFiles: mapToObject(challenge.starterFiles),
+      starterFiles: filesToRecord(challenge.starterFiles),
       checklist: challenge.checklist,
       isPublished: challenge.isPublished,
     },
@@ -72,15 +72,36 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   }
 
   await connectDB();
-  const updated = await FrontendChallenge.findByIdAndUpdate(
-    id,
-    { $set: parsed.data },
-    { new: true },
+  // zod's .partial() still fills .default() values for absent fields —
+  // only update keys the client actually sent or we'd wipe data
+  const sentKeys = new Set(Object.keys(body as object));
+  const { starterFiles, ...rest } = parsed.data;
+  const update: Record<string, unknown> = Object.fromEntries(
+    Object.entries(rest).filter(([key]) => sentKeys.has(key)),
   );
-  if (!updated) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (starterFiles && sentKeys.has("starterFiles")) {
+    update.starterFiles = recordToFiles(starterFiles);
   }
-  return NextResponse.json({ ok: true, slug: updated.slug });
+
+  try {
+    const updated = await FrontendChallenge.findByIdAndUpdate(
+      id,
+      { $set: update },
+      { new: true },
+    );
+    if (!updated) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    return NextResponse.json({ ok: true, slug: updated.slug });
+  } catch (saveError) {
+    return NextResponse.json(
+      {
+        error:
+          saveError instanceof Error ? saveError.message : "Failed to save",
+      },
+      { status: 500 },
+    );
+  }
 }
 
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {

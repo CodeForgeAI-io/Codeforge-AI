@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
 import { Question } from "@/models";
-import { questionImportSchema } from "@/schemas/question";
+import {
+  questionImportSchema,
+  normalizeQuestionImport,
+} from "@/schemas/question";
 import { saveQuestionDraft } from "@/services/ai/generate-questions";
 
 /** Admin: list ALL questions including unpublished drafts */
@@ -51,30 +54,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  // Convenience: accept `expected` written as `output` in test cases
-  function normalize(input: unknown): unknown {
-    if (Array.isArray(input)) return input.map(normalize);
-    if (input && typeof input === "object") {
-      const obj = { ...(input as Record<string, unknown>) };
-      if (Array.isArray(obj.testCases)) {
-        obj.testCases = obj.testCases.map((testCase) => {
-          if (testCase && typeof testCase === "object") {
-            const tc = { ...(testCase as Record<string, unknown>) };
-            if (tc.expected === undefined && tc.output !== undefined) {
-              tc.expected = tc.output;
-              delete tc.output;
-            }
-            return tc;
-          }
-          return testCase;
-        });
-      }
-      return obj;
-    }
-    return input;
-  }
-
-  const parsed = questionImportSchema.safeParse(normalize(body));
+  const parsed = questionImportSchema.safeParse(normalizeQuestionImport(body));
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
     return NextResponse.json(

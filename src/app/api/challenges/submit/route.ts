@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/api-auth";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { FrontendChallenge, Submission } from "@/models";
 import { challengeSubmitSchema } from "@/schemas/challenge";
+import { recordToFiles } from "@/services/challenges";
 import { complete, isAiConfigured } from "@/services/ai/groq";
 import { getPrompt } from "@/services/ai/prompts";
 import {
@@ -124,7 +125,7 @@ export async function POST(req: NextRequest) {
     user: new Types.ObjectId(session.user.id),
     kind: "frontend",
     challenge: challenge._id,
-    files: parsed.data.files,
+    files: recordToFiles(parsed.data.files),
     status: accepted ? "Accepted" : "Wrong Answer",
     passedCount: accepted ? 1 : 0,
     totalCount: 1,

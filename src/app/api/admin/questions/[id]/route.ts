@@ -86,9 +86,16 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   }
 
   await connectDB();
+  // zod's .partial() still fills .default() values for absent fields —
+  // only update keys the client actually sent or we'd wipe data
+  const sentKeys = new Set(Object.keys(body as object));
+  const update = Object.fromEntries(
+    Object.entries(parsed.data).filter(([key]) => sentKeys.has(key)),
+  );
+
   const updated = await Question.findByIdAndUpdate(
     id,
-    { $set: parsed.data },
+    { $set: update },
     { new: true },
   );
   if (!updated) {

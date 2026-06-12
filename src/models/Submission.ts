@@ -20,8 +20,8 @@ export interface SubmissionDoc {
   contest?: Types.ObjectId;
   language?: string;
   code?: string;
-  /** frontend submissions: file path -> code */
-  files?: Map<string, string>;
+  /** frontend submissions (array because Map keys can't contain ".") */
+  files?: { path: string; code: string }[];
   status: SubmissionStatus;
   testResults: SubmissionTestResult[];
   passedCount: number;
@@ -52,7 +52,12 @@ const submissionSchema = new Schema<SubmissionDoc>(
     contest: { type: Schema.Types.ObjectId, ref: "Contest", index: true },
     language: String,
     code: String,
-    files: { type: Map, of: String },
+    files: [
+      {
+        path: { type: String, required: true },
+        code: { type: String, default: "" },
+      },
+    ],
     status: {
       type: String,
       enum: [

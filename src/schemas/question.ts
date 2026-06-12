@@ -45,6 +45,32 @@ export const questionImportSchema = z.union([
   z.array(questionInputSchema).min(1).max(100),
 ]);
 
+/**
+ * Convenience normalization for JSON imports: accepts `testCases[].expected`
+ * written as `output`. Run before validating with questionImportSchema.
+ */
+export function normalizeQuestionImport(input: unknown): unknown {
+  if (Array.isArray(input)) return input.map(normalizeQuestionImport);
+  if (input && typeof input === "object") {
+    const obj = { ...(input as Record<string, unknown>) };
+    if (Array.isArray(obj.testCases)) {
+      obj.testCases = obj.testCases.map((testCase) => {
+        if (testCase && typeof testCase === "object") {
+          const tc = { ...(testCase as Record<string, unknown>) };
+          if (tc.expected === undefined && tc.output !== undefined) {
+            tc.expected = tc.output;
+            delete tc.output;
+          }
+          return tc;
+        }
+        return testCase;
+      });
+    }
+    return obj;
+  }
+  return input;
+}
+
 export const questionFilterSchema = z.object({
   q: z.string().max(120).optional(),
   difficulty: z.enum(DIFFICULTIES).optional(),

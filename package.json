@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "seed": "node scripts/seed-questions.mjs"
   },
   "dependencies": {
     "@codesandbox/sandpack-react": "^2.20.0",

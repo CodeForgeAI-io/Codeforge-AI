@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
 import { FrontendChallenge } from "@/models";
 import { challengeInputSchema } from "@/schemas/challenge";
+import { recordToFiles } from "@/services/challenges";
 import { uniqueSlug } from "@/lib/slug";
 
 export async function GET() {
@@ -53,17 +54,28 @@ export async function POST(req: NextRequest) {
   }
 
   await connectDB();
-  const slug = await uniqueSlug(parsed.data.title, async (candidate) =>
-    Boolean(await FrontendChallenge.exists({ slug: candidate })),
-  );
-  const challenge = await FrontendChallenge.create({
-    ...parsed.data,
-    slug,
-    createdBy: session.user.id,
-  });
+  try {
+    const slug = await uniqueSlug(parsed.data.title, async (candidate) =>
+      Boolean(await FrontendChallenge.exists({ slug: candidate })),
+    );
+    const challenge = await FrontendChallenge.create({
+      ...parsed.data,
+      starterFiles: recordToFiles(parsed.data.starterFiles),
+      slug,
+      createdBy: session.user.id,
+    });
 
-  return NextResponse.json(
-    { id: challenge._id.toString(), slug: challenge.slug },
-    { status: 201 },
-  );
+    return NextResponse.json(
+      { id: challenge._id.toString(), slug: challenge.slug },
+      { status: 201 },
+    );
+  } catch (saveError) {
+    return NextResponse.json(
+      {
+        error:
+          saveError instanceof Error ? saveError.message : "Failed to save",
+      },
+      { status: 500 },
+    );
+  }
 }

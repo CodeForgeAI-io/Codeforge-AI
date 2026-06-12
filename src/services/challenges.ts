@@ -1,7 +1,20 @@
 import { Types } from "mongoose";
 import { connectDB } from "@/lib/mongodb";
-import { mapToObject } from "@/lib/utils";
 import { FrontendChallenge, Submission } from "@/models";
+
+/** Stored file array -> path->code record used by the sandbox/admin UIs */
+export function filesToRecord(
+  files: { path: string; code: string }[] | undefined,
+): Record<string, string> {
+  return Object.fromEntries((files ?? []).map((file) => [file.path, file.code]));
+}
+
+/** path->code record (authoring format) -> stored file array */
+export function recordToFiles(
+  record: Record<string, string>,
+): { path: string; code: string }[] {
+  return Object.entries(record).map(([path, code]) => ({ path, code }));
+}
 
 export interface ChallengeListItem {
   id: string;
@@ -69,7 +82,7 @@ export async function getChallengeBySlug(slug: string) {
     brief: doc.brief,
     description: doc.description,
     checklist: doc.checklist,
-    starterFiles: mapToObject(doc.starterFiles),
+    starterFiles: filesToRecord(doc.starterFiles),
   };
 }
 

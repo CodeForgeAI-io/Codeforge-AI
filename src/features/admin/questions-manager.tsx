@@ -4,6 +4,9 @@ import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
+  Download,
+  Eye,
+  EyeOff,
   FileUp,
   Loader2,
   Pencil,
@@ -12,6 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -89,6 +93,7 @@ const JSON_TEMPLATE = `{
 export function QuestionsManager() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data, isLoading } = useQuery<{ questions: AdminQuestion[] }>({
@@ -104,7 +109,26 @@ export function QuestionsManager() {
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: ["admin-questions"] });
+    setSelected(new Set());
   }
+
+  const bulkAction = useMutation({
+    mutationFn: async (action: "publish" | "unpublish" | "delete") => {
+      const res = await fetch("/api/admin/questions/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [...selected], action }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error ?? "Bulk action failed");
+      return result as { affected: number };
+    },
+    onSuccess: (result, action) => {
+      toast.success(`${action} applied to ${result.affected} question(s)`);
+      invalidate();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   async function uploadJson(file: File) {
     try {
@@ -162,7 +186,7 @@ export function QuestionsManager() {
             className="h-9 pl-8"
           />
         </div>
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex flex-wrap gap-2">
           <input
             ref={fileInputRef}
             type="file"
@@ -177,10 +201,53 @@ export function QuestionsManager() {
           <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
             <FileUp className="size-4" /> Upload JSON
           </Button>
+          <Button asChild variant="outline">
+            <a href="/api/admin/questions/export" download>
+              <Download className="size-4" /> Export
+            </a>
+          </Button>
           <GenerateDialog onDone={invalidate} />
           <CreateEditDialog onDone={invalidate} />
         </div>
       </div>
+
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2">
+          <span className="text-sm font-medium">
+            {selected.size} selected
+          </span>
+          <div className="ml-auto flex flex-wrap gap-1.5">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={bulkAction.isPending}
+              onClick={() => bulkAction.mutate("publish")}
+            >
+              <Eye className="size-3.5" /> Publish
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={bulkAction.isPending}
+              onClick={() => bulkAction.mutate("unpublish")}
+            >
+              <EyeOff className="size-3.5" /> Unpublish
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={bulkAction.isPending}
+              onClick={() => {
+                if (confirm(`Delete ${selected.size} question(s) and their submissions? This cannot be undone.`)) {
+                  bulkAction.mutate("delete");
+                }
+              }}
+            >
+              <Trash2 className="size-3.5" /> Delete
+            </Button>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex justify-center py-16">
@@ -195,6 +262,22 @@ export function QuestionsManager() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={
+                      data.questions.length > 0 &&
+                      selected.size === data.questions.length
+                    }
+                    onCheckedChange={(checked) =>
+                      setSelected(
+                        checked
+                          ? new Set(data.questions.map((q) => q.id))
+                          : new Set(),
+                      )
+                    }
+                    aria-label="Select all"
+                  />
+                </TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Difficulty</TableHead>
                 <TableHead>Category</TableHead>
@@ -206,7 +289,24 @@ export function QuestionsManager() {
             </TableHeader>
             <TableBody>
               {data.questions.map((question) => (
-                <TableRow key={question.id}>
+                <TableRow
+                  key={question.id}
+                  className={selected.has(question.id) ? "bg-primary/5" : ""}
+                >
+                  <TableCell>
+                    <Checkbox
+                      checked={selected.has(question.id)}
+                      onCheckedChange={(checked) =>
+                        setSelected((prev) => {
+                          const next = new Set(prev);
+                          if (checked) next.add(question.id);
+                          else next.delete(question.id);
+                          return next;
+                        })
+                      }
+                      aria-label={`Select ${question.title}`}
+                    />
+                  </TableCell>
                   <TableCell className="max-w-64 truncate font-medium">
                     {question.title}
                   </TableCell>
@@ -416,7 +516,7 @@ function CreateEditDialog({
         <Button onClick={openDialog}>New question</Button>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85svh] sm:max-w-2xl">
+        <DialogContent className="flex max-h-[85svh] flex-col overflow-hidden sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {isEdit ? "Edit question" : "Create question"}
@@ -434,8 +534,7 @@ function CreateEditDialog({
             <Textarea
               value={json}
               onChange={(event) => setJson(event.target.value)}
-              rows={18}
-              className="font-mono text-xs"
+              className="min-h-[45svh] flex-1 resize-none font-mono text-xs"
             />
           )}
           <DialogFooter>
