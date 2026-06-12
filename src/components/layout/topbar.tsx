@@ -32,22 +32,33 @@ export function Topbar() {
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b px-4 glass-strong">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b px-3 glass-strong sm:gap-3 sm:px-4">
       <div className="md:hidden">
         <Logo href="/dashboard" compact />
       </div>
+      {/* desktop: wide search field */}
       <Button
         variant="outline"
-        className="h-9 w-full max-w-xs justify-start gap-2 text-muted-foreground sm:w-64"
+        className="hidden h-9 w-64 justify-start gap-2 text-muted-foreground sm:flex"
         onClick={() => setOpen(true)}
       >
         <Search className="size-4" />
         <span className="text-sm">Search...</span>
-        <kbd className="pointer-events-none ml-auto hidden rounded border bg-muted px-1.5 font-mono text-[10px] sm:inline-block">
+        <kbd className="pointer-events-none ml-auto rounded border bg-muted px-1.5 font-mono text-[10px]">
           ⌘K
         </kbd>
       </Button>
-      <div className="ml-auto flex items-center gap-1">
+      {/* mobile: icon-only search */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="ml-auto sm:hidden"
+        aria-label="Search"
+        onClick={() => setOpen(true)}
+      >
+        <Search className="size-4" />
+      </Button>
+      <div className="flex items-center gap-1 sm:ml-auto">
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

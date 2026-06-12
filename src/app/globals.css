@@ -162,6 +162,71 @@
   @apply bg-background border;
 }
 
+/* ── marketing page helpers ──────────────────────────────────────── */
+
+/* dotted grid backdrop */
+@utility bg-dots {
+  background-image: radial-gradient(
+    color-mix(in oklch, var(--foreground) 12%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+/* infinite horizontal marquee (content duplicated once → -50%) */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@utility animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+
+/* slow-spinning 3D cube */
+@keyframes spin-cube {
+  from {
+    transform: rotateX(-22deg) rotateY(0deg);
+  }
+  to {
+    transform: rotateX(-22deg) rotateY(360deg);
+  }
+}
+.cube-3d {
+  transform-style: preserve-3d;
+  animation: spin-cube 14s linear infinite;
+}
+.cube-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--primary);
+  background: color-mix(in oklch, var(--primary) 12%, var(--background));
+  color: var(--primary);
+  font-family: var(--font-geist-mono), monospace;
+  font-weight: 700;
+  backface-visibility: visible;
+}
+
+/* gentle vertical float for decorative elements */
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@utility animate-float {
+  animation: float-y 5s ease-in-out infinite;
+}
+
 /* Thin scrollbars across the app */
 * {
   scrollbar-width: thin;

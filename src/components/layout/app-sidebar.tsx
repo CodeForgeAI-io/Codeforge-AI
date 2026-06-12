@@ -63,7 +63,7 @@ export function MobileBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t glass-strong md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden">
       {MOBILE_NAV_ITEMS.map((item) => {
         const active =
           pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -72,11 +72,18 @@ export function MobileBottomNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-1 flex-col items-center gap-1 py-2 text-[10px]",
+              "flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium",
               active ? "text-primary" : "text-muted-foreground",
             )}
           >
-            <item.icon className="size-5" />
+            <span
+              className={cn(
+                "flex h-6 w-12 items-center justify-center rounded-full transition-colors",
+                active && "bg-primary/10",
+              )}
+            >
+              <item.icon className="size-4.5" />
+            </span>
             {item.title}
           </Link>
         );

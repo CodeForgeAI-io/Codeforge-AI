@@ -39,7 +39,7 @@ export default async function CompanyPage({ params }: PageProps) {
   );
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
+    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-6 flex items-center gap-3">
         <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10">
           <Building2 className="size-6 text-primary" />
