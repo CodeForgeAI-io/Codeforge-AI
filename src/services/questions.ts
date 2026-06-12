@@ -137,7 +137,12 @@ export async function getQuestionBySlug(slug: string) {
     tags: doc.tags,
     companies: doc.companies,
     description: doc.description,
-    examples: doc.examples,
+    // strip subdocument _id ObjectIds — they can't serialize to client components
+    examples: doc.examples.map((example) => ({
+      input: example.input,
+      output: example.output,
+      explanation: example.explanation ?? null,
+    })),
     constraints: doc.constraints,
     starterCode: mapToObject(doc.starterCode),
     sampleTests: doc.testCases

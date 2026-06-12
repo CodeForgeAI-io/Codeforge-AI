@@ -52,7 +52,11 @@ export async function GET(req: NextRequest) {
       difficulty: doc.difficulty,
       category: doc.category,
       description: doc.description,
-      examples: doc.examples,
+      examples: doc.examples.map((example) => ({
+        input: example.input,
+        output: example.output,
+        explanation: example.explanation,
+      })),
       constraints: doc.constraints,
       starterCode: doc.starterCode ?? {},
       sampleTests: doc.testCases
