@@ -6,6 +6,7 @@ export interface DiscussionReply {
   content: string;
   upvotes: Types.ObjectId[];
   downvotes: Types.ObjectId[];
+  parentReply?: Types.ObjectId | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +38,7 @@ const replySchema = new Schema<DiscussionReply>(
     content: { type: String, required: true, maxlength: 5000 },
     upvotes: [{ type: Schema.Types.ObjectId, ref: "User" }],
     downvotes: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    parentReply: { type: Schema.Types.ObjectId, default: null },
   },
   { timestamps: true },
 );

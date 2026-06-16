@@ -11,7 +11,7 @@ export async function POST(
   if (error) return error;
 
   const { id } = await params;
-  const { content } = await req.json();
+  const { content, parentReplyId } = await req.json();
   if (!content?.trim()) {
     return NextResponse.json({ error: "Content required" }, { status: 400 });
   }
@@ -20,7 +20,11 @@ export async function POST(
   const discussion = await Discussion.findById(id);
   if (!discussion) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  discussion.replies.push({ author: session.user.id, content: content.trim() } as never);
+  discussion.replies.push({
+    author: session.user.id,
+    content: content.trim(),
+    ...(parentReplyId ? { parentReply: parentReplyId } : {}),
+  } as never);
   await discussion.save();
   await discussion.populate("replies.author", "username name image");
 

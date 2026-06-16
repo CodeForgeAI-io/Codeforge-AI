@@ -45,6 +45,7 @@ export default async function DiscussionPage({
       <DiscussionDetail
         discussion={JSON.parse(JSON.stringify(discussion))}
         userId={session?.user?.id}
+        userRole={session?.user?.role}
       />
     </div>
   );

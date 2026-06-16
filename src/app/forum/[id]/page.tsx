@@ -55,6 +55,7 @@ export default async function ForumThreadPage({
         <ForumDetail
           discussion={JSON.parse(JSON.stringify(discussion))}
           userId={session?.user?.id}
+          userRole={session?.user?.role}
           signedIn={!!session?.user}
         />
       </div>
