@@ -120,8 +120,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async jwt({ token, user, trigger }) {
-      // On sign-in (or profile update) refresh role/username from the DB
       if (user || trigger === "update") {
+        // Full refresh on sign-in or explicit update()
         const email = (user?.email ?? token.email)?.toLowerCase();
         if (email) {
           await connectDB();
@@ -135,6 +135,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             token.onboardingComplete = dbUser.onboarding?.completed ?? false;
             token.plan = dbUser.plan ?? "free";
           }
+        }
+      } else if (token.id && token.onboardingComplete !== true) {
+        // Heal stale JWTs: token pre-dates the onboardingComplete field or was
+        // issued before onboarding finished. One lightweight DB check — once the
+        // token is updated to true, this branch never runs again.
+        await connectDB();
+        const dbUser = await User.findById(token.id)
+          .select("onboarding plan")
+          .lean();
+        if (dbUser) {
+          token.onboardingComplete = dbUser.onboarding?.completed ?? false;
+          if (!token.plan) token.plan = dbUser.plan ?? "free";
         }
       }
       return token;
