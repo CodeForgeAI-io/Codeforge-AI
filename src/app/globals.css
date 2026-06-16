@@ -253,6 +253,12 @@
 }
 
 @utility text-gradient-white {
+  background: linear-gradient(180deg, #111827 60%, rgba(17,24,39,0.6) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.dark .text-gradient-white {
   background: linear-gradient(180deg, #ffffff 60%, rgba(255,255,255,0.5) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

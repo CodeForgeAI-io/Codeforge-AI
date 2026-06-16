@@ -355,13 +355,13 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
 
   return (
     /* force dark mode for consistent dark landing aesthetic */
-    <div className="dark min-h-svh bg-[#06060a] text-white">
+    <div className="min-h-svh bg-white text-gray-900 dark:bg-white dark:bg-[#06060a] dark:text-white">
 
       {/* ── HEADER ─────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 border-b border-white/5 bg-[#06060a]/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-gray-100 dark:border-white/5 bg-white/95 dark:bg-white dark:bg-[#06060a]/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
           <Logo />
-          <nav className="hidden items-center gap-7 text-sm font-medium text-white/50 md:flex">
+          <nav className="hidden items-center gap-7 text-sm font-medium text-gray-500 dark:text-white/50 md:flex">
             {[
               ["Problems", "/problems"],
               ["Features", "#features"],
@@ -369,7 +369,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               ["Pricing", "#pricing"],
               ["Forum", "/forum"],
             ].map(([label, href]) => (
-              <a key={label} href={href} className="transition-colors hover:text-white">
+              <a key={label} href={href} className="transition-colors hover:text-gray-900 dark:hover:text-white">
                 {label}
                 {label === "Problems" && totalProblems > 0 && (
                   <span className="ml-1.5 rounded-full bg-orange-500/20 px-1.5 py-0.5 text-[10px] font-bold text-orange-400">{totalProblems}</span>
@@ -379,20 +379,20 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
           </nav>
           <div className="flex items-center gap-3">
             {signedIn ? (
-              <Button asChild size="sm" className="bg-orange-500 text-white hover:bg-orange-600">
+              <Button asChild size="sm" className="bg-orange-500 text-gray-900 dark:text-white hover:bg-orange-600">
                 <Link href="/dashboard">Dashboard <ArrowRight className="size-4" /></Link>
               </Button>
             ) : (
               <>
-                <Button asChild variant="ghost" size="sm" className="hidden text-white/70 hover:text-white sm:inline-flex">
+                <Button asChild variant="ghost" size="sm" className="hidden text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white sm:inline-flex">
                   <Link href="/login">Sign in</Link>
                 </Button>
-                <Button asChild size="sm" className="bg-orange-500 text-white hover:bg-orange-600 shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+                <Button asChild size="sm" className="bg-orange-500 text-gray-900 dark:text-white hover:bg-orange-600 shadow-[0_0_20px_rgba(249,115,22,0.4)]">
                   <Link href="/register">Get started free</Link>
                 </Button>
               </>
             )}
-            <button className="md:hidden text-white/60 hover:text-white" onClick={() => setMobileMenu(!mobileMenu)}>
+            <button className="md:hidden text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white" onClick={() => setMobileMenu(!mobileMenu)}>
               {mobileMenu ? <X className="size-5" /> : <Menu className="size-5" />}
             </button>
           </div>
@@ -401,11 +401,11 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
           {mobileMenu && (
             <motion.div
               initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-              className="border-t border-white/5 md:hidden"
+              className="border-t border-gray-100 dark:border-white/5 md:hidden"
             >
               <nav className="flex flex-col gap-1 px-4 py-4">
                 {[["Problems", "/problems"], ["Forum", "/forum"], ["Pricing", "#pricing"]].map(([label, href]) => (
-                  <a key={label} href={href} onClick={() => setMobileMenu(false)} className="rounded-lg px-3 py-2.5 text-sm text-white/70 hover:bg-white/5 hover:text-white">
+                  <a key={label} href={href} onClick={() => setMobileMenu(false)} className="rounded-lg px-3 py-2.5 text-sm text-gray-700 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white">
                     {label}
                   </a>
                 ))}
@@ -421,7 +421,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
           {/* Background */}
           <div className="absolute inset-0">
             <div className="bg-grid absolute inset-0 opacity-100" />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#06060a]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-[#06060a]" />
           </div>
 
           {/* Glow orbs */}
@@ -464,28 +464,28 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                 </span>
               </h1>
 
-              <p className="mt-6 max-w-lg text-pretty text-lg text-white/50 leading-relaxed">
+              <p className="mt-6 max-w-lg text-pretty text-lg text-gray-500 dark:text-white/50 leading-relaxed">
                 The{" "}
-                <span className="text-white/80 font-medium">
+                <span className="text-gray-800 dark:text-white/80 font-medium">
                   <TypingText texts={["only platform", "smartest tool", "best way"]} />
                 </span>{" "}
                 that combines LeetCode-style problems, AI pair programming, spaced repetition and skill analytics — all free.
               </p>
 
               <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Button asChild size="lg" className="h-12 px-7 text-base bg-orange-500 hover:bg-orange-600 text-white shadow-[0_0_30px_rgba(249,115,22,0.45)] hover:shadow-[0_0_50px_rgba(249,115,22,0.6)] transition-all duration-300">
+                <Button asChild size="lg" className="h-12 px-7 text-base bg-orange-500 hover:bg-orange-600 text-gray-900 dark:text-white shadow-[0_0_30px_rgba(249,115,22,0.45)] hover:shadow-[0_0_50px_rgba(249,115,22,0.6)] transition-all duration-300">
                   <Link href={ctaHref}>
                     Start for free <ArrowRight className="size-4" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="h-12 gap-2 border-white/10 text-white/70 bg-white/5 hover:bg-white/10 hover:text-white">
+                <Button asChild variant="outline" size="lg" className="h-12 gap-2 border-gray-200 dark:border-white/10 text-gray-700 dark:text-white/70 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white">
                   <a href="#ai">
                     <Play className="size-4 fill-current" /> See AI in action
                   </a>
                 </Button>
               </div>
 
-              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/40">
+              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500 dark:text-white/40">
                 {["No credit card", "12 languages", "9 AI tools", "Community forum"].map((item) => (
                   <span key={item} className="flex items-center gap-1.5">
                     <CheckCircle2 className="size-4 text-orange-400" /> {item}
@@ -505,17 +505,17 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               <div className="absolute inset-0 rounded-2xl bg-orange-500/15 blur-3xl" />
 
               <TiltCard max={6}>
-                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d12] shadow-[0_0_60px_rgba(0,0,0,0.8)]">
+                <div className="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0d0d12] shadow-[0_0_60px_rgba(0,0,0,0.8)]">
                   {/* Shimmer overlay */}
                   <div className="animate-shimmer pointer-events-none absolute inset-0 z-10" />
                   {/* Editor chrome */}
-                  <div className="flex items-center gap-1.5 border-b border-white/5 bg-[#0a0a0e] px-4 py-3">
+                  <div className="flex items-center gap-1.5 border-b border-gray-100 dark:border-white/5 bg-gray-100 dark:bg-[#0a0a0e] px-4 py-3">
                     <span className="size-2.5 rounded-full bg-[#ff5f57]" />
                     <span className="size-2.5 rounded-full bg-[#ffbd2e]" />
                     <span className="size-2.5 rounded-full bg-[#28c840]" />
                     <div className="ml-3 flex gap-2">
                       {["two-sum.js", "binary-search.py"].map((tab, i) => (
-                        <span key={tab} className={cn("rounded px-3 py-1 font-mono text-xs", i === 0 ? "bg-[#1a1a22] text-white/80" : "text-white/30")}>
+                        <span key={tab} className={cn("rounded px-3 py-1 font-mono text-xs", i === 0 ? "bg-gray-200 dark:bg-[#1a1a22] text-gray-800 dark:text-white/80" : "text-gray-400 dark:text-white/30")}>
                           {tab}
                         </span>
                       ))}
@@ -534,7 +534,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                     <code>
                       <span className="text-purple-400">function</span>{" "}
                       <span className="text-blue-400">twoSum</span>
-                      <span className="text-white/60">{"(nums, target) {"}</span>{"\n"}
+                      <span className="text-gray-600 dark:text-white/60">{"(nums, target) {"}</span>{"\n"}
                       {"  "}<span className="text-purple-400">const</span>{" seen = "}
                       <span className="text-purple-400">new</span>{" Map();\n"}
                       {"  "}<span className="text-orange-400">for</span>
@@ -545,15 +545,15 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                       {"      "}<span className="text-orange-400">return</span>{" [seen."}
                       <span className="text-blue-400">get</span>{"(need), i];\n"}
                       {"    seen."}<span className="text-blue-400">set</span>{"(nums[i], i);\n"}
-                      {"  }\n"}<span className="text-white/60">{"}"}</span>{"\n\n"}
-                      <span className="text-white/25">{"// ✓ 12/12 tests · O(n) time · O(n) space"}</span>
+                      {"  }\n"}<span className="text-gray-600 dark:text-white/60">{"}"}</span>{"\n\n"}
+                      <span className="text-gray-400 dark:text-white/25">{"// ✓ 12/12 tests · O(n) time · O(n) space"}</span>
                     </code>
                   </pre>
                   {/* Bottom bar */}
-                  <div className="flex items-center gap-4 border-t border-white/5 bg-[#0a0a0e] px-4 py-2.5">
-                    <span className="flex items-center gap-1.5 text-[11px] text-white/30"><span className="size-1.5 rounded-full bg-green-400" /> JavaScript</span>
-                    <span className="text-[11px] text-white/30">Ln 8, Col 1</span>
-                    <span className="ml-auto text-[11px] text-white/30">UTF-8</span>
+                  <div className="flex items-center gap-4 border-t border-gray-100 dark:border-white/5 bg-gray-100 dark:bg-[#0a0a0e] px-4 py-2.5">
+                    <span className="flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-white/30"><span className="size-1.5 rounded-full bg-green-400" /> JavaScript</span>
+                    <span className="text-[11px] text-gray-400 dark:text-white/30">Ln 8, Col 1</span>
+                    <span className="ml-auto text-[11px] text-gray-400 dark:text-white/30">UTF-8</span>
                   </div>
                 </div>
               </TiltCard>
@@ -561,33 +561,33 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               {/* Floating notification cards */}
               <motion.div style={{ y: y2 }} className="absolute -left-4 -top-5 sm:-left-12">
                 <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-                  className="flex items-center gap-2.5 rounded-xl border border-orange-500/20 bg-[#0d0d12]/90 px-3.5 py-2.5 shadow-[0_0_30px_rgba(249,115,22,0.2)] backdrop-blur-sm">
+                  className="flex items-center gap-2.5 rounded-xl border border-orange-500/20 bg-gray-50/95 dark:bg-gray-50 dark:bg-[#0d0d12]/90 px-3.5 py-2.5 shadow-[0_0_30px_rgba(249,115,22,0.2)] backdrop-blur-sm">
                   <Zap className="size-4 text-orange-400" />
                   <div>
-                    <p className="text-xs font-bold text-white">+25 XP earned</p>
-                    <p className="text-[10px] text-white/40">Two Sum solved</p>
+                    <p className="text-xs font-bold text-gray-900 dark:text-white">+25 XP earned</p>
+                    <p className="text-[10px] text-gray-500 dark:text-white/40">Two Sum solved</p>
                   </div>
                 </motion.div>
               </motion.div>
 
               <motion.div style={{ y: y1 }} className="absolute -bottom-5 -right-3 sm:-right-10">
                 <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
-                  className="flex items-center gap-2.5 rounded-xl border border-orange-500/20 bg-[#0d0d12]/90 px-3.5 py-2.5 shadow-[0_0_30px_rgba(249,115,22,0.2)] backdrop-blur-sm">
+                  className="flex items-center gap-2.5 rounded-xl border border-orange-500/20 bg-gray-50/95 dark:bg-gray-50 dark:bg-[#0d0d12]/90 px-3.5 py-2.5 shadow-[0_0_30px_rgba(249,115,22,0.2)] backdrop-blur-sm">
                   <Flame className="size-4 text-orange-400" />
                   <div>
-                    <p className="text-xs font-bold text-white">🔥 14-day streak</p>
-                    <p className="text-[10px] text-white/40">Keep it going!</p>
+                    <p className="text-xs font-bold text-gray-900 dark:text-white">🔥 14-day streak</p>
+                    <p className="text-[10px] text-gray-500 dark:text-white/40">Keep it going!</p>
                   </div>
                 </motion.div>
               </motion.div>
 
               <motion.div style={{ y: y2 }} className="absolute right-0 top-1/3 hidden sm:block lg:-right-14">
                 <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.3 }}
-                  className="flex items-center gap-2.5 rounded-xl border border-purple-500/30 bg-[#0d0d12]/90 px-3.5 py-2.5 shadow-[0_0_30px_rgba(168,85,247,0.2)] backdrop-blur-sm">
+                  className="flex items-center gap-2.5 rounded-xl border border-purple-500/30 bg-gray-50/95 dark:bg-gray-50 dark:bg-[#0d0d12]/90 px-3.5 py-2.5 shadow-[0_0_30px_rgba(168,85,247,0.2)] backdrop-blur-sm">
                   <Award className="size-4 text-purple-400" />
                   <div>
-                    <p className="text-xs font-bold text-white">Badge unlocked!</p>
-                    <p className="text-[10px] text-white/40">Speed Solver 🏅</p>
+                    <p className="text-xs font-bold text-gray-900 dark:text-white">Badge unlocked!</p>
+                    <p className="text-[10px] text-gray-500 dark:text-white/40">Speed Solver 🏅</p>
                   </div>
                 </motion.div>
               </motion.div>
@@ -596,12 +596,12 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
 
           {/* Language marquee */}
           <motion.div style={{ opacity }} className="absolute bottom-0 left-0 right-0">
-            <div className="border-t border-white/5 bg-white/[0.02] py-3">
+            <div className="border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] py-3">
               <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
                 <div className="animate-marquee flex w-max gap-3">
                   {[...LANGUAGES, ...LANGUAGES].map((lang, i) => (
-                    <span key={`${lang.id}-${i}`} className="flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-white/50">
-                      <span className="flex size-5 items-center justify-center rounded bg-white/10 font-mono text-[9px] font-black">{lang.extension.slice(0, 2).toUpperCase()}</span>
+                    <span key={`${lang.id}-${i}`} className="flex shrink-0 items-center gap-2 rounded-full border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-gray-500 dark:text-white/50">
+                      <span className="flex size-5 items-center justify-center rounded bg-gray-100 dark:bg-white/10 font-mono text-[9px] font-black">{lang.extension.slice(0, 2).toUpperCase()}</span>
                       {lang.label}
                     </span>
                   ))}
@@ -612,9 +612,9 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         </section>
 
         {/* ── COMPANY TRUST ─────────────────────────────────────────── */}
-        <section className="border-b border-white/5 py-14">
+        <section className="border-b border-gray-100 dark:border-white/5 py-14">
           <div className="mx-auto max-w-7xl px-4">
-            <motion.p {...fadeUp} className="mb-8 text-center text-xs font-semibold uppercase tracking-widest text-white/25">
+            <motion.p {...fadeUp} className="mb-8 text-center text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-white/25">
               Engineers at world-class companies practice here
             </motion.p>
             <motion.div {...fadeUp} className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
@@ -625,7 +625,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.06 }}
-                  className="text-sm font-bold tracking-wide text-white/20 hover:text-white/50 transition-colors cursor-default"
+                  className="text-sm font-bold tracking-wide text-gray-300 dark:text-white/20 hover:text-gray-500 dark:hover:text-gray-500 dark:text-white/50 transition-colors cursor-default"
                 >
                   {name}
                 </motion.span>
@@ -635,7 +635,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         </section>
 
         {/* ── STATS ─────────────────────────────────────────────────── */}
-        <section className="border-b border-white/5 py-20">
+        <section className="border-b border-gray-100 dark:border-white/5 py-20">
           <div className="mx-auto max-w-7xl px-4">
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               {STATS.map((stat, i) => (
@@ -646,13 +646,13 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ scale: 1.03 }}
-                  className="group relative overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03] p-6 text-center"
+                  className="group relative overflow-hidden rounded-2xl border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/[0.03] p-6 text-center"
                 >
                   <div className="animate-shimmer pointer-events-none absolute inset-0" />
                   <p className="text-4xl font-black text-gradient-orange sm:text-5xl">
                     <CountUp value={stat.value} suffix={stat.suffix} />
                   </p>
-                  <p className="mt-2 text-xs text-white/40 uppercase tracking-wide">{stat.label}</p>
+                  <p className="mt-2 text-xs text-gray-500 dark:text-white/40 uppercase tracking-wide">{stat.label}</p>
                 </motion.div>
               ))}
             </div>
@@ -660,14 +660,14 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         </section>
 
         {/* ── FEATURES BENTO GRID ───────────────────────────────────── */}
-        <section id="features" className="border-b border-white/5 py-24">
+        <section id="features" className="border-b border-gray-100 dark:border-white/5 py-24">
           <div className="mx-auto max-w-7xl px-4">
             <motion.div {...fadeUp} className="mx-auto mb-16 max-w-2xl text-center">
               <SectionLabel text="Features" />
               <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-white">
                 26+ features.<br />Zero paywalls.
               </h2>
-              <p className="mt-4 text-white/40 text-lg">
+              <p className="mt-4 text-gray-500 dark:text-white/40 text-lg">
                 One platform for algorithms, frontend, AI tools, community and analytics.
               </p>
             </motion.div>
@@ -676,21 +676,21 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               {/* Large card — code editor */}
               <motion.div {...fadeUp} className="sm:col-span-2 sm:row-span-2">
                 <TiltCard max={4} className="h-full">
-                  <div className="group relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d12] p-6">
+                  <div className="group relative h-full overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0d0d12] p-6">
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-transparent" />
                     <div className="absolute -right-8 -top-8 size-40 rounded-full bg-orange-500/10 blur-3xl group-hover:bg-orange-500/15 transition-all duration-700" />
                     <Code2 className="mb-4 size-8 text-orange-400" />
                     <h3 className="text-xl font-bold">VS Code–style Editor</h3>
-                    <p className="mt-2 text-sm text-white/40 max-w-sm">Full IntelliSense, multi-tab editing, 12 languages, hidden test cases and instant verdicts — everything your local setup has, zero config.</p>
-                    <div className="mt-6 overflow-hidden rounded-xl border border-white/5 bg-[#080810]">
-                      <div className="flex items-center gap-1.5 border-b border-white/5 px-3 py-2">
+                    <p className="mt-2 text-sm text-gray-500 dark:text-white/40 max-w-sm">Full IntelliSense, multi-tab editing, 12 languages, hidden test cases and instant verdicts — everything your local setup has, zero config.</p>
+                    <div className="mt-6 overflow-hidden rounded-xl border border-gray-100 dark:border-white/5 bg-slate-100 dark:bg-[#080810]">
+                      <div className="flex items-center gap-1.5 border-b border-gray-100 dark:border-white/5 px-3 py-2">
                         <span className="size-2 rounded-full bg-[#ff5f57]" /><span className="size-2 rounded-full bg-[#ffbd2e]" /><span className="size-2 rounded-full bg-[#28c840]" />
-                        <span className="ml-2 font-mono text-[10px] text-white/25">solution.py</span>
+                        <span className="ml-2 font-mono text-[10px] text-gray-400 dark:text-white/25">solution.py</span>
                       </div>
-                      <pre className="p-3 font-mono text-[11px] leading-relaxed text-white/60">
+                      <pre className="p-3 font-mono text-[11px] leading-relaxed text-gray-600 dark:text-white/60">
                         <span className="text-purple-400">def</span> <span className="text-blue-400">maxProfit</span>(prices):{"\n"}
-                        {"    "}<span className="text-white/30">min_price = float("inf")</span>{"\n"}
-                        {"    "}<span className="text-white/30">max_profit = 0</span>{"\n"}
+                        {"    "}<span className="text-gray-400 dark:text-white/30">min_price = float("inf")</span>{"\n"}
+                        {"    "}<span className="text-gray-400 dark:text-white/30">max_profit = 0</span>{"\n"}
                         {"    "}<span className="text-orange-400">for</span> price <span className="text-orange-400">in</span> prices:{"\n"}
                         {"        "}min_price = <span className="text-blue-400">min</span>(min_price, price){"\n"}
                         {"        "}max_profit = <span className="text-blue-400">max</span>(max_profit, price - min_price){"\n"}
@@ -704,14 +704,14 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               {/* Medium card — AI mentor */}
               <motion.div {...fadeUp} transition={{ delay: 0.1 }} className="sm:col-span-1">
                 <TiltCard max={6} className="h-full">
-                  <div className="group relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d12] p-5">
+                  <div className="group relative h-full overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0d0d12] p-5">
                     <div className="absolute -left-4 -top-4 size-24 rounded-full bg-purple-500/10 blur-2xl" />
                     <Bot className="mb-3 size-7 text-purple-400" />
                     <h3 className="font-bold">AI Mentor</h3>
-                    <p className="mt-1.5 text-xs text-white/40">Progressive hints without spoiling. Nudges you to the pattern.</p>
+                    <p className="mt-1.5 text-xs text-gray-500 dark:text-white/40">Progressive hints without spoiling. Nudges you to the pattern.</p>
                     <div className="mt-4 space-y-2">
-                      <div className="ml-6 rounded-lg bg-purple-500/15 px-2.5 py-1.5 text-xs text-white/70">Why is this O(n²)?</div>
-                      <div className="rounded-lg border border-white/5 bg-white/3 px-2.5 py-1.5 text-xs text-white/50">Use a hash map — O(n) ✓</div>
+                      <div className="ml-6 rounded-lg bg-purple-500/15 px-2.5 py-1.5 text-xs text-gray-700 dark:text-white/70">Why is this O(n²)?</div>
+                      <div className="rounded-lg border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/3 px-2.5 py-1.5 text-xs text-gray-500 dark:text-white/50">Use a hash map — O(n) ✓</div>
                     </div>
                   </div>
                 </TiltCard>
@@ -720,13 +720,13 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               {/* Small card — streaks */}
               <motion.div {...fadeUp} transition={{ delay: 0.15 }}>
                 <TiltCard max={8} className="h-full">
-                  <div className="group relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d12] p-5">
+                  <div className="group relative h-full overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0d0d12] p-5">
                     <div className="absolute right-0 top-0 size-20 rounded-full bg-orange-500/10 blur-2xl" />
                     <Flame className="mb-2 size-6 text-orange-400" />
                     <h3 className="font-bold">Daily Streaks</h3>
                     <div className="mt-3 flex gap-1">
                       {[1,1,1,1,1,0,1].map((active, i) => (
-                        <div key={i} className={cn("h-7 flex-1 rounded-sm", active ? "bg-orange-500" : "bg-white/10")} />
+                        <div key={i} className={cn("h-7 flex-1 rounded-sm", active ? "bg-orange-500" : "bg-gray-100 dark:bg-white/10")} />
                       ))}
                     </div>
                     <p className="mt-2 text-xs font-bold text-orange-400">🔥 94-day streak</p>
@@ -737,16 +737,16 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               {/* Small card — spaced repetition */}
               <motion.div {...fadeUp} transition={{ delay: 0.2 }}>
                 <TiltCard max={8} className="h-full">
-                  <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d12] p-5">
+                  <div className="relative h-full overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0d0d12] p-5">
                     <div className="absolute left-0 bottom-0 size-20 rounded-full bg-blue-500/10 blur-2xl" />
                     <Brain className="mb-2 size-6 text-blue-400" />
                     <h3 className="font-bold">Spaced Repetition</h3>
-                    <p className="mt-1 text-xs text-white/40">SM-2 algorithm. Review at the perfect moment.</p>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-white/40">SM-2 algorithm. Review at the perfect moment.</p>
                     <div className="mt-2 space-y-1">
                       {[["Two Sum", "Today", true], ["Binary Search", "Day 6", false], ["Merge K Lists", "Day 14", false]].map(([t, d, u]) => (
                         <div key={t as string} className="flex items-center justify-between text-[10px]">
-                          <span className="text-white/50">{t}</span>
-                          <span className={cn("font-semibold", u ? "text-orange-400" : "text-white/25")}>{d}</span>
+                          <span className="text-gray-500 dark:text-white/50">{t}</span>
+                          <span className={cn("font-semibold", u ? "text-orange-400" : "text-gray-400 dark:text-white/25")}>{d}</span>
                         </div>
                       ))}
                     </div>
@@ -757,15 +757,15 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               {/* Small card — skill analytics */}
               <motion.div {...fadeUp} transition={{ delay: 0.25 }}>
                 <TiltCard max={8} className="h-full">
-                  <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d12] p-5">
+                  <div className="relative h-full overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0d0d12] p-5">
                     <div className="absolute right-0 bottom-0 size-20 rounded-full bg-green-500/10 blur-2xl" />
                     <BarChart3 className="mb-2 size-6 text-green-400" />
                     <h3 className="font-bold">Skill Analytics</h3>
                     <div className="mt-2 space-y-1.5">
                       {[["Arrays", 91, "bg-green-400"], ["Strings", 84, "bg-green-400"], ["DP", 32, "bg-orange-400"], ["Graphs", 18, "bg-red-400"]].map(([c, v, col]) => (
                         <div key={c as string} className="space-y-0.5">
-                          <div className="flex justify-between text-[9px] text-white/40"><span>{c}</span><span>{v}%</span></div>
-                          <div className="h-1 rounded-full bg-white/5"><div className={cn("h-full rounded-full", col)} style={{ width: `${v}%` }} /></div>
+                          <div className="flex justify-between text-[9px] text-gray-500 dark:text-white/40"><span>{c}</span><span>{v}%</span></div>
+                          <div className="h-1 rounded-full bg-gray-100 dark:bg-white/5"><div className={cn("h-full rounded-full", col)} style={{ width: `${v}%` }} /></div>
                         </div>
                       ))}
                     </div>
@@ -775,7 +775,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
 
               {/* Wide card — gamification */}
               <motion.div {...fadeUp} transition={{ delay: 0.2 }} className="sm:col-span-2 lg:col-span-1">
-                <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d12] p-5">
+                <div className="relative h-full overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0d0d12] p-5">
                   <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent" />
                   <Trophy className="mb-3 size-6 text-orange-400" />
                   <h3 className="font-bold">Gamification System</h3>
@@ -786,10 +786,10 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                       { icon: Trophy, label: "Leaderboard", value: "Top 3%", color: "text-green-400" },
                       { icon: Target, label: "Accuracy", value: "82%", color: "text-blue-400" },
                     ].map((item) => (
-                      <div key={item.label} className="rounded-lg border border-white/5 bg-white/3 p-2.5">
+                      <div key={item.label} className="rounded-lg border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/3 p-2.5">
                         <item.icon className={cn("mb-1 size-4", item.color)} />
                         <p className={cn("text-sm font-bold", item.color)}>{item.value}</p>
-                        <p className="text-[10px] text-white/30">{item.label}</p>
+                        <p className="text-[10px] text-gray-400 dark:text-white/30">{item.label}</p>
                       </div>
                     ))}
                   </div>
@@ -800,7 +800,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         </section>
 
         {/* ── AI SUITE ──────────────────────────────────────────────── */}
-        <section id="ai" className="relative border-b border-white/5 py-24 overflow-hidden">
+        <section id="ai" className="relative border-b border-gray-100 dark:border-white/5 py-24 overflow-hidden">
           <GlowOrb color="#a855f7" size={500} className="top-0 left-0 -translate-x-1/2" />
           <GlowOrb color="#f97316" size={400} className="bottom-0 right-0 translate-x-1/3" />
           <div className="relative mx-auto max-w-7xl px-4">
@@ -809,7 +809,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-white">
                 9 AI tools.<br />One platform.
               </h2>
-              <p className="mt-4 text-white/40 text-lg">
+              <p className="mt-4 text-gray-500 dark:text-white/40 text-lg">
                 From personalized coaching to pair programming — AI is woven into every part of your practice.
               </p>
             </motion.div>
@@ -818,13 +818,13 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               {AI_FEATURES.map((feat, i) => (
                 <motion.div key={feat.title} {...fadeUp} transition={{ delay: i * 0.12 }}>
                   <TiltCard max={5} className="h-full">
-                    <div className="group relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d12]">
+                    <div className="group relative h-full overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0d0d12]">
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20" />
                       <div className="absolute -top-10 right-0 size-32 rounded-full opacity-20 blur-3xl transition-opacity duration-700 group-hover:opacity-30" style={{ background: feat.color }} />
 
                       <div className="relative p-5">
                         <div className="mb-4 flex items-center gap-2.5">
-                          <div className="flex size-9 items-center justify-center rounded-xl border border-white/10" style={{ background: `${feat.color}20` }}>
+                          <div className="flex size-9 items-center justify-center rounded-xl border border-gray-200 dark:border-white/10" style={{ background: `${feat.color}20` }}>
                             <feat.icon className="size-5" style={{ color: feat.color }} />
                           </div>
                           <span className="font-bold text-sm">{feat.title}</span>
@@ -840,7 +840,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.3 + mi * 0.2 }}
-                                className={cn("rounded-xl px-3 py-2 text-xs leading-relaxed", msg.role === "user" ? "ml-8 text-white/80" : "mr-2 border border-white/5 bg-white/5 text-white/60")}
+                                className={cn("rounded-xl px-3 py-2 text-xs leading-relaxed", msg.role === "user" ? "ml-8 text-gray-800 dark:text-white/80" : "mr-2 border border-gray-100 dark:border-white/5 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-white/60")}
                                 style={msg.role === "user" ? { background: `${feat.color}25`, border: `1px solid ${feat.color}40` } : {}}
                               >
                                 {msg.text}
@@ -851,7 +851,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                             ))}
                             <div className="flex flex-wrap gap-1.5 pt-1">
                               {feat.chips?.map((c) => (
-                                <span key={c} className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-white/30 hover:border-white/20 hover:text-white/50 transition-colors cursor-pointer">{c}</span>
+                                <span key={c} className="rounded-full border border-gray-200 dark:border-white/10 px-2 py-0.5 text-[10px] text-gray-400 dark:text-white/30 hover:border-gray-300 dark:hover:border-white/20 hover:text-gray-500 dark:hover:text-gray-500 dark:text-white/50 transition-colors cursor-pointer">{c}</span>
                               ))}
                             </div>
                           </div>
@@ -862,10 +862,10 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                             <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-3.5 py-3">
                               <p className="text-xs font-semibold text-blue-400">Interview Readiness</p>
                               <div className="mt-1 flex items-end gap-2">
-                                <span className="text-3xl font-black text-white">{feat.stats.score}</span>
-                                <span className="mb-0.5 text-xs text-white/40">/100 · Intermediate</span>
+                                <span className="text-3xl font-black text-gray-900 dark:text-white">{feat.stats.score}</span>
+                                <span className="mb-0.5 text-xs text-gray-500 dark:text-white/40">/100 · Intermediate</span>
                               </div>
-                              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
                                 <motion.div
                                   className="h-full rounded-full bg-blue-400"
                                   initial={{ width: 0 }}
@@ -875,7 +875,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                                 />
                               </div>
                             </div>
-                            <div className="space-y-1.5 text-xs text-white/40">
+                            <div className="space-y-1.5 text-xs text-gray-500 dark:text-white/40">
                               <p>🎯 Focus: {feat.stats.focus}</p>
                               <p>📅 Ready in: {feat.stats.ready}</p>
                               <p>💪 Strong: {feat.stats.strong}</p>
@@ -906,12 +906,12 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.07 }}
                   whileHover={{ y: -3, scale: 1.02 }}
-                  className="rounded-xl border border-white/5 bg-white/[0.03] p-3.5 text-center hover:border-white/10 transition-all"
+                  className="rounded-xl border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/[0.03] p-3.5 text-center hover:border-gray-200 dark:hover:border-white/10 transition-all"
                 >
                   <div className="mx-auto mb-2 flex size-9 items-center justify-center rounded-lg" style={{ background: `${tool.color}20` }}>
                     <tool.icon className="size-4.5" style={{ color: tool.color }} />
                   </div>
-                  <p className="text-xs font-medium text-white/60">{tool.label}</p>
+                  <p className="text-xs font-medium text-gray-600 dark:text-white/60">{tool.label}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -919,7 +919,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         </section>
 
         {/* ── HOW IT WORKS ──────────────────────────────────────────── */}
-        <section className="border-b border-white/5 py-24">
+        <section className="border-b border-gray-100 dark:border-white/5 py-24">
           <div className="mx-auto max-w-7xl px-4">
             <motion.div {...fadeUp} className="mx-auto mb-16 max-w-2xl text-center">
               <SectionLabel text="How it works" />
@@ -937,14 +937,14 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                   transition={{ delay: i * 0.13 }}
                 >
                   <TiltCard max={5} className="h-full">
-                    <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d12] p-7">
+                    <div className="relative h-full overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0d0d12] p-7">
                       <div className="absolute -right-8 -top-8 size-32 rounded-full blur-3xl opacity-20" style={{ background: step.color }} />
                       <div className="absolute right-4 top-4 font-mono text-6xl font-black text-white/[0.03] select-none">{step.n}</div>
-                      <div className="mb-5 flex size-12 items-center justify-center rounded-2xl border border-white/10" style={{ background: `${step.color}20` }}>
+                      <div className="mb-5 flex size-12 items-center justify-center rounded-2xl border border-gray-200 dark:border-white/10" style={{ background: `${step.color}20` }}>
                         <step.icon className="size-6" style={{ color: step.color }} />
                       </div>
                       <h3 className="mb-2.5 text-lg font-bold">{step.title}</h3>
-                      <p className="text-sm text-white/40 leading-relaxed">{step.description}</p>
+                      <p className="text-sm text-gray-500 dark:text-white/40 leading-relaxed">{step.description}</p>
                       <div className="mt-5 h-0.5 w-12 rounded-full" style={{ background: step.color }} />
                     </div>
                   </TiltCard>
@@ -956,7 +956,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
 
         {/* ── PROBLEMS PREVIEW ──────────────────────────────────────── */}
         {problems.length > 0 && (
-          <section className="border-b border-white/5 py-24">
+          <section className="border-b border-gray-100 dark:border-white/5 py-24">
             <div className="mx-auto max-w-7xl px-4">
               <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.4fr]">
                 <motion.div {...fadeUp}>
@@ -964,12 +964,12 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                   <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-white">
                     {totalProblems}+ real interview<br />questions, ready to run.
                   </h2>
-                  <p className="mt-4 text-white/40">DSA classics, JavaScript deep-dives and React pattern exercises — every problem executes against hidden test cases in the cloud.</p>
-                  <Button asChild size="lg" className="mt-7 bg-orange-500 hover:bg-orange-600 text-white shadow-[0_0_24px_rgba(249,115,22,0.35)]">
+                  <p className="mt-4 text-gray-500 dark:text-white/40">DSA classics, JavaScript deep-dives and React pattern exercises — every problem executes against hidden test cases in the cloud.</p>
+                  <Button asChild size="lg" className="mt-7 bg-orange-500 hover:bg-orange-600 text-gray-900 dark:text-white shadow-[0_0_24px_rgba(249,115,22,0.35)]">
                     <Link href="/problems">Browse all problems <ArrowRight className="size-4" /></Link>
                   </Button>
                 </motion.div>
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d12]">
+                <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0d0d12]">
                   {problems.map((problem, index) => (
                     <motion.div
                       key={problem.slug}
@@ -978,14 +978,14 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                       viewport={{ once: true }}
                       transition={{ delay: index * 0.07 }}
                     >
-                      <Link href={`/problems/${problem.slug}`} className={cn("group flex items-center gap-3 px-5 py-4 transition-colors hover:bg-orange-500/5", index !== 0 && "border-t border-white/5")}>
-                        <span className="font-mono text-xs text-white/20">{String(index + 1).padStart(2, "0")}</span>
+                      <Link href={`/problems/${problem.slug}`} className={cn("group flex items-center gap-3 px-5 py-4 transition-colors hover:bg-orange-500/5", index !== 0 && "border-t border-gray-100 dark:border-white/5")}>
+                        <span className="font-mono text-xs text-gray-300 dark:text-white/20">{String(index + 1).padStart(2, "0")}</span>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-white/80 group-hover:text-white">{problem.title}</p>
-                          <p className="text-xs text-white/30">{problem.category}</p>
+                          <p className="truncate text-sm font-semibold text-gray-800 dark:text-white/80 group-hover:text-gray-900 dark:hover:text-white">{problem.title}</p>
+                          <p className="text-xs text-gray-400 dark:text-white/30">{problem.category}</p>
                         </div>
                         <DifficultyBadge difficulty={problem.difficulty} />
-                        <ArrowUpRight className="size-4 text-white/20 transition-all group-hover:text-orange-400 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                        <ArrowUpRight className="size-4 text-gray-300 dark:text-white/20 transition-all group-hover:text-orange-400 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                       </Link>
                     </motion.div>
                   ))}
@@ -996,7 +996,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         )}
 
         {/* ── TESTIMONIALS ──────────────────────────────────────────── */}
-        <section className="border-b border-white/5 py-24">
+        <section className="border-b border-gray-100 dark:border-white/5 py-24">
           <div className="mx-auto max-w-7xl px-4">
             <motion.div {...fadeUp} className="mx-auto mb-16 max-w-2xl text-center">
               <SectionLabel text="Testimonials" />
@@ -1013,23 +1013,23 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                   viewport={{ once: true }}
                   transition={{ delay: (i % 3) * 0.1 }}
                   whileHover={{ y: -5, scale: 1.01 }}
-                  className="group flex h-full flex-col rounded-2xl border border-white/5 bg-white/[0.03] p-6 hover:border-orange-500/20 hover:bg-orange-500/[0.03] transition-all duration-300"
+                  className="group flex h-full flex-col rounded-2xl border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/[0.03] p-6 hover:border-orange-500/20 hover:bg-orange-500/[0.03] transition-all duration-300"
                 >
                   <div className="mb-3 flex gap-0.5">
                     {Array(t.stars).fill(0).map((_, si) => (
                       <Star key={si} className="size-3.5 fill-orange-400 text-orange-400" />
                     ))}
                   </div>
-                  <blockquote className="flex-1 text-sm leading-relaxed text-white/60">
+                  <blockquote className="flex-1 text-sm leading-relaxed text-gray-600 dark:text-white/60">
                     &ldquo;{t.quote}&rdquo;
                   </blockquote>
-                  <figcaption className="mt-5 flex items-center gap-3 border-t border-white/5 pt-4">
+                  <figcaption className="mt-5 flex items-center gap-3 border-t border-gray-100 dark:border-white/5 pt-4">
                     <span className="flex size-9 items-center justify-center rounded-full bg-orange-500/20 text-sm font-black text-orange-400">
                       {t.avatar}
                     </span>
                     <span>
-                      <span className="block text-sm font-bold text-white/80">{t.name}</span>
-                      <span className="block text-xs text-white/30">{t.role}</span>
+                      <span className="block text-sm font-bold text-gray-800 dark:text-white/80">{t.name}</span>
+                      <span className="block text-xs text-gray-400 dark:text-white/30">{t.role}</span>
                     </span>
                   </figcaption>
                 </motion.figure>
@@ -1039,14 +1039,14 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         </section>
 
         {/* ── PRICING ───────────────────────────────────────────────── */}
-        <section id="pricing" className="border-b border-white/5 py-24">
+        <section id="pricing" className="border-b border-gray-100 dark:border-white/5 py-24">
           <div className="mx-auto max-w-5xl px-4">
             <motion.div {...fadeUp} className="mx-auto mb-12 max-w-2xl text-center">
               <SectionLabel text="Pricing" />
               <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-white">
                 Start free,<br />level up fast.
               </h2>
-              <p className="mt-4 text-white/40">7-day free trial on all paid plans. No credit card required.</p>
+              <p className="mt-4 text-gray-500 dark:text-white/40">7-day free trial on all paid plans. No credit card required.</p>
             </motion.div>
             <motion.div {...fadeUp} transition={{ delay: 0.15 }}>
               <PricingCards />
@@ -1055,7 +1055,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         </section>
 
         {/* ── FAQ ───────────────────────────────────────────────────── */}
-        <section id="faq" className="border-b border-white/5 py-24">
+        <section id="faq" className="border-b border-gray-100 dark:border-white/5 py-24">
           <div className="mx-auto max-w-3xl px-4">
             <motion.div {...fadeUp} className="mb-12 text-center">
               <SectionLabel text="FAQ" />
@@ -1069,15 +1069,15 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.06 }}
-                  className={cn("overflow-hidden rounded-xl border bg-white/[0.03] transition-all", openFaq === i ? "border-orange-500/30" : "border-white/5")}
+                  className={cn("overflow-hidden rounded-xl border bg-gray-50 dark:bg-white/[0.03] transition-all", openFaq === i ? "border-orange-500/30" : "border-gray-100 dark:border-white/5")}
                 >
                   <button
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-sm font-semibold text-white/80 hover:text-white"
+                    className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-sm font-semibold text-gray-800 dark:text-white/80 hover:text-gray-900 dark:hover:text-white"
                   >
                     {faq.q}
                     <motion.div animate={{ rotate: openFaq === i ? 180 : 0 }} transition={{ duration: 0.25 }}>
-                      <ChevronDown className="size-4 shrink-0 text-white/30" />
+                      <ChevronDown className="size-4 shrink-0 text-gray-400 dark:text-white/30" />
                     </motion.div>
                   </button>
                   <AnimatePresence>
@@ -1088,7 +1088,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <p className="border-t border-white/5 px-5 py-4 text-sm text-white/40 leading-relaxed">
+                        <p className="border-t border-gray-100 dark:border-white/5 px-5 py-4 text-sm text-gray-500 dark:text-white/40 leading-relaxed">
                           {faq.a}
                         </p>
                       </motion.div>
@@ -1122,36 +1122,36 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               <h2 className="text-5xl font-black tracking-tight sm:text-6xl lg:text-7xl text-gradient-white leading-[1.02]">
                 Your next offer<br />starts now.
               </h2>
-              <p className="mx-auto mt-6 max-w-lg text-lg text-white/40">
+              <p className="mx-auto mt-6 max-w-lg text-lg text-gray-500 dark:text-white/40">
                 Free forever. 26+ features. 9 AI tools. No credit card. Just you, the editor, and an AI mentor that never sleeps.
               </p>
               <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-                <Button asChild size="lg" className="h-14 px-10 text-lg bg-orange-500 hover:bg-orange-600 text-white shadow-[0_0_50px_rgba(249,115,22,0.5)] hover:shadow-[0_0_70px_rgba(249,115,22,0.7)] transition-all duration-300 animate-glow">
+                <Button asChild size="lg" className="h-14 px-10 text-lg bg-orange-500 hover:bg-orange-600 text-gray-900 dark:text-white shadow-[0_0_50px_rgba(249,115,22,0.5)] hover:shadow-[0_0_70px_rgba(249,115,22,0.7)] transition-all duration-300 animate-glow">
                   <Link href={ctaHref}>Create free account <ArrowRight className="size-5" /></Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="h-14 border-white/10 text-white/60 hover:text-white hover:bg-white/5 hover:border-white/20">
+                <Button asChild variant="outline" size="lg" className="h-14 border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 hover:border-gray-300 dark:hover:border-white/20">
                   <Link href="/problems">Browse problems</Link>
                 </Button>
               </div>
-              <p className="mt-6 text-sm text-white/25">No credit card · 12 languages · 9 AI tools</p>
+              <p className="mt-6 text-sm text-gray-400 dark:text-white/25">No credit card · 12 languages · 9 AI tools</p>
             </motion.div>
           </div>
         </section>
       </main>
 
       {/* ── FOOTER ────────────────────────────────────────────────────── */}
-      <footer className="border-t border-white/5">
+      <footer className="border-t border-gray-100 dark:border-white/5">
         <div className="mx-auto max-w-7xl px-4 py-16">
           <div className="grid gap-12 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
             <div>
               <Logo />
-              <p className="mt-4 max-w-xs text-sm text-white/30 leading-relaxed">
+              <p className="mt-4 max-w-xs text-sm text-gray-400 dark:text-white/30 leading-relaxed">
                 The AI-powered platform for mastering data structures, algorithms and frontend engineering — built for your next interview.
               </p>
               <div className="mt-6 flex gap-2">
                 {[{ label: "GitHub", icon: GithubIcon }, { label: "Twitter", icon: XIcon }, { label: "YouTube", icon: YoutubeIcon }].map(({ label, icon: Icon }) => (
                   <a key={label} href="#" aria-label={label}
-                    className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/30 hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-400 transition-all">
+                    className="flex size-9 items-center justify-center rounded-lg border border-gray-200 dark:border-white/10 text-gray-400 dark:text-white/30 hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-400 transition-all">
                     <Icon className="size-4" />
                   </a>
                 ))}
@@ -1159,11 +1159,11 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
             </div>
             {FOOTER_COLS.map((col) => (
               <nav key={col.heading}>
-                <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-white/30">{col.heading}</h3>
+                <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-white/30">{col.heading}</h3>
                 <ul className="space-y-3">
                   {col.links.map((link) => (
                     <li key={link.label}>
-                      <Link href={link.href} className="text-sm text-white/40 hover:text-orange-400 transition-colors">{link.label}</Link>
+                      <Link href={link.href} className="text-sm text-gray-500 dark:text-white/40 hover:text-orange-400 transition-colors">{link.label}</Link>
                     </li>
                   ))}
                 </ul>
@@ -1171,8 +1171,8 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
             ))}
           </div>
         </div>
-        <div className="border-t border-white/5">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-5 text-xs text-white/20">
+        <div className="border-t border-gray-100 dark:border-white/5">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-5 text-xs text-gray-300 dark:text-white/20">
             <p>© {new Date().getFullYear()} {APP_NAME}. Built by Setups Works.</p>
             <p>26+ features · 9 AI tools · 100% free ⚡</p>
           </div>
