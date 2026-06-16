@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/api-auth";
 import { complete } from "@/services/ai/groq";
 
 export async function POST(req: NextRequest) {
-  const { session, error } = await requireUser();
+  const { error } = await requireUser();
   if (error) return error;
 
   const { theme, difficulty = "Mixed", numQuestions = 4, duration = 90 } = await req.json();

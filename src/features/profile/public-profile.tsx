@@ -91,7 +91,7 @@ interface Props {
   targetUserId?: string;
 }
 
-export function PublicProfile({ data, isOwner, signedIn, viewerUserId, isFollowing = false, targetUserId }: Props) {
+export function PublicProfile({ data, isOwner, signedIn, viewerUserId: _viewerUserId, isFollowing = false, targetUserId }: Props) {
   const [tab, setTab] = useState<Tab>("Overview");
 
   const initials = data.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();

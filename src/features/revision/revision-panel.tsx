@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Brain, CheckCircle2, XCircle, Clock, RotateCcw } from "lucide-react";
+import { Brain, CheckCircle2, Clock, RotateCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { DifficultyBadge } from "@/components/shared/difficulty-badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";

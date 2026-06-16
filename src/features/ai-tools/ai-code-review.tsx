@@ -104,7 +104,7 @@ export function AiCodeReview({ initialCode, initialLanguage }: { initialCode?: s
 
           {review.positives?.length > 0 && (
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm text-easy">What's Good</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm text-easy">What&apos;s Good</CardTitle></CardHeader>
               <CardContent className="space-y-1">
                 {review.positives.map((p, i) => <p key={i} className="text-xs text-muted-foreground">✓ {p}</p>)}
               </CardContent>

@@ -63,7 +63,7 @@ export function AiLearningCoach() {
                 </div>
               </div>
               <Progress value={coaching.readinessScore} className="mt-3 h-2" />
-              <p className="mt-3 text-sm italic text-muted-foreground">"{coaching.motivationalMessage}"</p>
+              <p className="mt-3 text-sm italic text-muted-foreground">&ldquo;{coaching.motivationalMessage}&rdquo;</p>
             </CardContent>
           </Card>
 
@@ -83,7 +83,7 @@ export function AiLearningCoach() {
           </div>
 
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">This Week's Goal</CardTitle></CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">This Week&apos;s Goal</CardTitle></CardHeader>
             <CardContent><p className="text-sm text-muted-foreground">{coaching.weeklyGoal}</p></CardContent>
           </Card>
 

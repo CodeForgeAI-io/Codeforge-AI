@@ -514,7 +514,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                     </div>
                     <div className="space-y-3 p-4 text-sm">
                       <div className="ml-8 rounded-lg bg-primary px-3 py-2 text-primary-foreground text-xs">My DFS keeps timing out on large graphs</div>
-                      <div className="mr-4 rounded-lg border bg-muted/50 px-3 py-2 text-xs">You're creating a new visited Set inside each call. Move it outside and pass it as a parameter — that's O(n²) → O(n) right there<span className="inline-block w-1 h-3 bg-foreground animate-pulse ml-0.5 align-middle" /></div>
+                      <div className="mr-4 rounded-lg border bg-muted/50 px-3 py-2 text-xs">You&apos;re creating a new visited Set inside each call. Move it outside and pass it as a parameter — that&apos;s O(n²) → O(n) right there<span className="inline-block w-1 h-3 bg-foreground animate-pulse ml-0.5 align-middle" /></div>
                     </div>
                   </div>
                 </TiltCard>
@@ -691,7 +691,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               {TESTIMONIALS.map((t, index) => (
                 <motion.figure key={t.name} {...fadeUp} transition={{ duration: 0.4, delay: (index % 3) * 0.1 }} whileHover={{ y: -4 }} className="flex h-full flex-col rounded-xl border bg-card p-6">
                   <MessageSquareText className="mb-4 size-5 text-primary" />
-                  <blockquote className="flex-1 text-sm leading-relaxed text-foreground/90">"{t.quote}"</blockquote>
+                  <blockquote className="flex-1 text-sm leading-relaxed text-foreground/90">&ldquo;{t.quote}&rdquo;</blockquote>
                   <figcaption className="mt-5 flex items-center gap-3 border-t pt-4">
                     <span className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">{t.name[0]}</span>
                     <span>

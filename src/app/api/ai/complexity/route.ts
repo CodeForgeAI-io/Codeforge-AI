@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/api-auth";
 import { complete } from "@/services/ai/groq";
 
 export async function POST(req: NextRequest) {
-  const { session, error } = await requireUser();
+  const { error } = await requireUser();
   if (error) return error;
 
   const { code, language } = await req.json();

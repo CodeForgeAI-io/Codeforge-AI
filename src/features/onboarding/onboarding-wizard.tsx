@@ -229,7 +229,7 @@ function StepWelcome({ name, onNext }: { name: string; onNext: () => void }) {
           Welcome, {name.split(" ")[0]}! 👋
         </h1>
         <p className="mt-3 text-muted-foreground text-base max-w-md mx-auto">
-          Let's take 2 minutes to personalise your CodeForge AI experience so you hit your goals faster.
+          Let&apos;s take 2 minutes to personalise your CodeForge AI experience so you hit your goals faster.
         </p>
       </div>
       <div className="flex flex-wrap justify-center gap-2 mt-1">
@@ -534,7 +534,7 @@ function StepDone({
       </div>
 
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">You're all set, {name.split(" ")[0]}!</h1>
+        <h1 className="text-3xl font-bold tracking-tight">You&apos;re all set, {name.split(" ")[0]}!</h1>
         <p className="mt-2 text-muted-foreground">Your personalised CodeForge AI experience is ready.</p>
       </div>
 
