@@ -38,7 +38,7 @@ function LevelRing({ level, percent }: { level: number; percent: number }) {
   const dash = circumference * Math.min(Math.max(percent, 0), 100) / 100;
 
   return (
-    <div className="relative size-[76px] shrink-0">
+    <div className="relative size-19 shrink-0">
       <svg viewBox="0 0 76 76" className="size-full -rotate-90">
         <circle cx="38" cy="38" r={radius} fill="none" strokeWidth="6" className="stroke-muted" />
         <circle

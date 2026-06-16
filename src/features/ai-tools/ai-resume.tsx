@@ -74,7 +74,7 @@ export function AiResume() {
             value={resumeText}
             onChange={(e) => setResumeText(e.target.value)}
             placeholder="Paste the full text content of your resume here..."
-            className="min-h-[200px] font-mono text-xs"
+            className="min-h-50 font-mono text-xs"
           />
         </div>
         <Button onClick={analyze} disabled={loading || !resumeText.trim()} className="w-full">

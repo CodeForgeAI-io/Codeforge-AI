@@ -80,7 +80,7 @@ export function AiCodeReview({ initialCode, initialLanguage }: { initialCode?: s
         value={code}
         onChange={(e) => setCode(e.target.value)}
         placeholder="Paste your solution code here..."
-        className="min-h-[200px] font-mono text-xs"
+        className="min-h-50 font-mono text-xs"
       />
 
       {review && (

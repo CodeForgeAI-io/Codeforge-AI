@@ -182,7 +182,7 @@ export function DiscussionDetail({ discussion: initial, userId }: { discussion: 
               value={reply}
               onChange={(e) => setReply(e.target.value)}
               placeholder="Write a reply..."
-              className="min-h-[80px] text-sm"
+              className="min-h-20 text-sm"
             />
             <Button
               size="icon"

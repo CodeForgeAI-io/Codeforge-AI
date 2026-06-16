@@ -83,9 +83,9 @@ export function ActivityHeatmap({ days }: { days: HeatmapDay[] }) {
             </span>
           ))}
         </div>
-        <div className="flex gap-[3px]">
+        <div className="flex gap-0.75">
           {columns.map((column, columnIndex) => (
-            <div key={columnIndex} className="flex flex-col gap-[3px]">
+            <div key={columnIndex} className="flex flex-col gap-0.75">
               {column.map((cell) =>
                 cell.future ? (
                   <span key={cell.date} className="size-2.5 rounded-[3px]" />

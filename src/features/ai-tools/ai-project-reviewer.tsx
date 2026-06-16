@@ -101,7 +101,7 @@ export function AiProjectReviewer() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Brief description of your project..."
-            className="min-h-[80px]"
+            className="min-h-20"
           />
         </div>
         <Button onClick={submit} disabled={loading || !repoUrl.trim()} className="w-full">

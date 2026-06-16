@@ -94,7 +94,7 @@ export function NewDiscussionForm({ questionId, redirectTo }: { questionId?: str
           value={form.content}
           onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
           placeholder="Share your thoughts, approach, or solution..."
-          className="min-h-[200px] font-mono text-sm"
+          className="min-h-50 font-mono text-sm"
           maxLength={10000}
         />
       </div>

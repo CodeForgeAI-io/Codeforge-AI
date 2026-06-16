@@ -73,7 +73,7 @@ export function AiComplexityVisualizer() {
           {loading ? <><Loader2 className="mr-2 size-4 animate-spin" />Analyzing...</> : <><BarChart2 className="mr-2 size-4" />Analyze Complexity</>}
         </Button>
       </div>
-      <Textarea value={code} onChange={(e) => setCode(e.target.value)} placeholder="Paste your code to analyze time and space complexity..." className="font-mono text-xs min-h-[160px]" />
+      <Textarea value={code} onChange={(e) => setCode(e.target.value)} placeholder="Paste your code to analyze time and space complexity..." className="font-mono text-xs min-h-40" />
 
       {analysis && (
         <div className="space-y-4">
