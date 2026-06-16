@@ -20,6 +20,7 @@ export const authConfig = {
       session.user.role = (token.role as "user" | "admin") ?? "user";
       session.user.username = (token.username as string) ?? "";
       session.user.onboardingComplete = (token.onboardingComplete as boolean) ?? false;
+      session.user.plan = (token.plan as "free" | "go" | "plus") ?? "free";
       return session;
     },
   },

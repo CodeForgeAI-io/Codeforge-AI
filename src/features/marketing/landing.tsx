@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { PricingCards } from "@/features/subscription/pricing-cards";
 import Link from "next/link";
 import {
   motion,
@@ -282,7 +283,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
             <Link href="/forum" className="hover:text-foreground">Forum</Link>
             <a href="#features" className="hover:text-foreground">Features</a>
             <a href="#ai" className="hover:text-foreground">AI Suite</a>
-            <a href="#how-it-works" className="hover:text-foreground">How it works</a>
+            <a href="#pricing" className="hover:text-foreground">Pricing</a>
             <a href="#faq" className="hover:text-foreground">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
@@ -705,6 +706,20 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
           </div>
         </section>
 
+        {/* ── Pricing ── */}
+        <section id="pricing" className="border-b bg-muted/20">
+          <div className="mx-auto max-w-5xl px-4 py-20 sm:px-6">
+            <SectionHeading
+              eyebrow="Pricing"
+              title="Start free, level up fast"
+              subtitle="7-day free trial on all paid plans. No credit card required."
+            />
+            <div className="mt-10">
+              <PricingCardsLanding />
+            </div>
+          </div>
+        </section>
+
         {/* ── FAQ ── */}
         <section id="faq" className="border-b">
           <div className="mx-auto max-w-3xl px-4 py-20">
@@ -776,6 +791,10 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
       </footer>
     </div>
   );
+}
+
+function PricingCardsLanding() {
+  return <PricingCards />;
 }
 
 function GitHubIcon({ className }: { className?: string }) {

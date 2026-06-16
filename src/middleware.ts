@@ -13,6 +13,7 @@ const PUBLIC_PREFIXES = [
   "/api/questions", // public question listing/search APIs
   "/api/discussions", // public discussion listing/reading
   "/forum", // public forum — posting/commenting requires auth (handled in page)
+  "/pricing", // public pricing page
   "/_next",
   "/favicon",
 ];
@@ -45,6 +46,7 @@ export default auth((req) => {
   if (
     !session.user.onboardingComplete &&
     !pathname.startsWith("/onboarding") &&
+    !pathname.startsWith("/pricing") &&
     !pathname.startsWith("/api")
   ) {
     return NextResponse.redirect(new URL("/onboarding", req.url));

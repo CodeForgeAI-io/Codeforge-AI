@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 const NAV_LINKS = [
   { label: "Problems", href: "/problems" },
   { label: "Forum", href: "/forum" },
+  { label: "Pricing", href: "/pricing" },
 ];
 
 /** Slim header for public pages (forum, profile, problems) */
