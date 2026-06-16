@@ -105,7 +105,7 @@ export async function awardContestBadge(
         criteria: { type: "contest_participation", threshold: 1 },
       },
     },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: 'after' },
   );
   await UserBadge.updateOne(
     { user: userId, badge: badge._id },

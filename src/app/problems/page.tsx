@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { Bookmark, Sparkles } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicHeader } from "@/components/layout/public-header";
@@ -12,13 +12,13 @@ import { CategoryChips } from "@/features/problems/category-chips";
 export const metadata: Metadata = { title: "Problems" };
 export const dynamic = "force-dynamic";
 
-/** Publicly browsable — solving a problem prompts sign-in */
 export default async function ProblemsPage() {
   const session = await auth();
+  const signedIn = !!session?.user;
 
   return (
     <div className="min-h-svh">
-      <PublicHeader signedIn={!!session?.user} />
+      <PublicHeader signedIn={signedIn} />
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -27,17 +27,26 @@ export default async function ProblemsPage() {
               Sharpen your DSA skills with curated interview questions.
             </p>
           </div>
-          <Button asChild variant="outline" size="sm">
-            <Link href={session ? "/generate" : "/login?callbackUrl=/generate"}>
-              <Sparkles className="size-4 text-primary" /> Generate with AI
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            {signedIn && (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/bookmarks">
+                  <Bookmark className="size-4 text-primary" /> Bookmarks
+                </Link>
+              </Button>
+            )}
+            <Button asChild variant="outline" size="sm">
+              <Link href={signedIn ? "/generate" : "/login?callbackUrl=/generate"}>
+                <Sparkles className="size-4 text-primary" /> Generate with AI
+              </Link>
+            </Button>
+          </div>
         </div>
         <Suspense>
           <div className="space-y-4">
             <CategoryChips />
             <ProblemsFilters />
-            <ProblemsList />
+            <ProblemsList signedIn={signedIn} />
           </div>
         </Suspense>
       </div>

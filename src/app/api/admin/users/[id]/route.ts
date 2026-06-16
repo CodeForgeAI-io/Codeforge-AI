@@ -47,7 +47,7 @@ export async function PATCH(
   const updated = await User.findByIdAndUpdate(
     id,
     { $set: parsed.data },
-    { new: true },
+    { returnDocument: 'after' },
   );
   if (!updated) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

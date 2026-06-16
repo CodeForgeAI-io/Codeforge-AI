@@ -1,0 +1,73 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { MessageSquare, Plus, TrendingUp, Users } from "lucide-react";
+import { auth } from "@/lib/auth";
+import { connectDB } from "@/lib/mongodb";
+import { Discussion } from "@/models";
+import { PublicHeader } from "@/components/layout/public-header";
+import { Button } from "@/components/ui/button";
+import { ForumList } from "@/features/discussions/forum-list";
+
+export const metadata: Metadata = { title: "Community Forum — CodeForge AI" };
+export const dynamic = "force-dynamic";
+
+export default async function ForumPage() {
+  const session = await auth();
+  const signedIn = !!session?.user;
+
+  await connectDB();
+  const [total, todayCount] = await Promise.all([
+    Discussion.countDocuments({}),
+    Discussion.countDocuments({
+      createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+    }),
+  ]);
+
+  return (
+    <div className="min-h-svh bg-background">
+      <PublicHeader signedIn={signedIn} />
+
+      {/* hero banner */}
+      <div className="border-b bg-linear-to-br from-primary/5 via-background to-background">
+        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <div className="mb-2 flex items-center gap-2">
+                <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+                  <MessageSquare className="size-5 text-primary" />
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight">Community Forum</h1>
+              </div>
+              <p className="text-sm text-muted-foreground max-w-lg">
+                Discuss algorithms, share solutions, ask questions and learn together. Open to everyone.
+              </p>
+              <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <TrendingUp className="size-3.5 text-primary" />
+                  <strong className="text-foreground">{total.toLocaleString()}</strong> threads
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Users className="size-3.5 text-primary" />
+                  <strong className="text-foreground">{todayCount}</strong> posted today
+                </span>
+              </div>
+            </div>
+            {signedIn ? (
+              <Button asChild>
+                <Link href="/forum/new"><Plus className="size-4" /> New Thread</Link>
+              </Button>
+            ) : (
+              <Button asChild variant="outline">
+                <Link href="/login?callbackUrl=/forum/new"><Plus className="size-4" /> Sign in to post</Link>
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+        <ForumList signedIn={signedIn} />
+      </div>
+    </div>
+  );
+}

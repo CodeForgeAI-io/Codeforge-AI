@@ -11,6 +11,8 @@ const PUBLIC_PREFIXES = [
   "/profile", // public profiles
   "/problems", // browsing problems is public; solving requires auth
   "/api/questions", // public question listing/search APIs
+  "/api/discussions", // public discussion listing/reading
+  "/forum", // public forum — posting/commenting requires auth (handled in page)
   "/_next",
   "/favicon",
 ];
@@ -40,7 +42,10 @@ export default auth((req) => {
   }
 
   const isAdminArea =
-    pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/api/admin") ||
+    pathname.startsWith("/docs") ||
+    pathname.startsWith("/api/docs");
   if (isAdminArea && session.user.role !== "admin") {
     if (pathname.startsWith("/api")) {
       return NextResponse.json(

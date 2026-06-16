@@ -96,7 +96,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   const updated = await Question.findByIdAndUpdate(
     id,
     { $set: update },
-    { new: true },
+    { returnDocument: 'after' },
   );
   if (!updated) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

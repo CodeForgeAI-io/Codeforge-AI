@@ -36,3 +36,8 @@ export { Company, type CompanyDoc } from "./Company";
 export { AiChat, type AiChatDoc, type AiChatMessage } from "./AiChat";
 export { PromptTemplate, type PromptTemplateDoc } from "./PromptTemplate";
 export { DailyActivity, type DailyActivityDoc } from "./DailyActivity";
+export { Discussion, type DiscussionDoc, type DiscussionReply } from "./Discussion";
+export { Note, type NoteDoc } from "./Note";
+export { Bookmark, type BookmarkDoc, type BookmarkKind } from "./Bookmark";
+export { Follow, type FollowDoc } from "./Follow";
+export { SpacedRepetition, type SpacedRepetitionDoc } from "./SpacedRepetition";

@@ -172,7 +172,7 @@ export async function advanceRoadmapProgress(
   const progress = await Progress.findOneAndUpdate(
     { user: new Types.ObjectId(userId), track },
     { $setOnInsert: { completedTopics: [], percent: 0 } },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: 'after' },
   );
 
   for (const topic of matchedTopics) {
