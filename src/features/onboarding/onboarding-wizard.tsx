@@ -8,6 +8,9 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
+import { PLANS } from "@/lib/plans";
+import { PlanBadge } from "@/features/subscription/plan-badge";
+import type { PlanId } from "@/lib/plans";
 import {
   ArrowRight,
   ArrowLeft,
@@ -62,7 +65,7 @@ const DAILY_GOALS = [
   { value: 10, icon: Flame, label: "10+ / day", tag: "Intensive", desc: "All-in grind for fast results" },
 ];
 
-const TOTAL_STEPS = 7; // 0=welcome, 1=goal, 2=level, 3=topics, 4=companies, 5=daily, 6=done
+const TOTAL_STEPS = 8; // 0=welcome, 1=goal, 2=level, 3=topics, 4=companies, 5=daily, 6=plan, 7=done
 
 /* ── animation ──────────────────────────────────────────────────── */
 
@@ -100,7 +103,7 @@ export function OnboardingWizard({ name }: { name: string }) {
     setCompanies((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]);
   }
 
-  async function finish() {
+  async function finish(chosenPlan: PlanId = "free") {
     setSubmitting(true);
     try {
       const res = await fetch("/api/onboarding", {
@@ -109,9 +112,18 @@ export function OnboardingWizard({ name }: { name: string }) {
         body: JSON.stringify({ goal, level, topics, companies, dailyGoal }),
       });
       if (!res.ok) throw new Error();
-      // Refresh JWT so middleware sees onboardingComplete=true
+
+      // Start trial if paid plan chosen
+      if (chosenPlan !== "free") {
+        await fetch("/api/subscription/start-trial", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan: chosenPlan }),
+        });
+      }
+
       await update();
-      go(6);
+      go(7);
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
@@ -195,11 +207,17 @@ export function OnboardingWizard({ name }: { name: string }) {
                 value={dailyGoal}
                 onChange={setDailyGoal}
                 onBack={() => go(4)}
+                onNext={() => go(6)}
+              />
+            )}
+            {step === 6 && (
+              <StepPlan
+                onBack={() => go(5)}
                 onFinish={finish}
                 submitting={submitting}
               />
             )}
-            {step === 6 && (
+            {step === 7 && (
               <StepDone
                 name={name}
                 goal={goal}
@@ -448,14 +466,12 @@ function StepDailyGoal({
   value,
   onChange,
   onBack,
-  onFinish,
-  submitting,
+  onNext,
 }: {
   value: number;
   onChange: (v: number) => void;
   onBack: () => void;
-  onFinish: () => void;
-  submitting: boolean;
+  onNext: () => void;
 }) {
   return (
     <div className="space-y-6">
@@ -496,8 +512,93 @@ function StepDailyGoal({
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="size-4" /> Back
         </Button>
-        <Button onClick={onFinish} disabled={submitting} size="lg" className="px-8">
-          {submitting ? "Saving..." : "Finish Setup"}
+        <Button onClick={onNext} size="lg" className="px-8">
+          Continue <ArrowRight className="size-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function StepPlan({
+  onBack,
+  onFinish,
+  submitting,
+}: {
+  onBack: () => void;
+  onFinish: (plan: PlanId) => void;
+  submitting: boolean;
+}) {
+  const [chosen, setChosen] = useState<PlanId>("free");
+  const plans = [PLANS.free, PLANS.go, PLANS.plus] as const;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <span className="text-xs font-bold text-primary uppercase tracking-widest">Step 6 / 6</span>
+        <h2 className="text-2xl font-bold tracking-tight mt-0.5">Choose your plan</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          All paid plans include a <strong>7-day free trial</strong> — no credit card needed to start.
+        </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        {plans.map((plan) => {
+          const isFree = plan.id === "free";
+          return (
+            <button
+              key={plan.id}
+              onClick={() => setChosen(plan.id as PlanId)}
+              className={cn(
+                "relative flex flex-col rounded-2xl border-2 p-5 text-left transition-all",
+                chosen === plan.id
+                  ? "border-primary bg-primary/5 shadow-sm"
+                  : "border-border hover:border-primary/40 hover:bg-muted/30",
+                plan.highlighted && chosen !== plan.id && "border-primary/40",
+              )}
+            >
+              {plan.highlighted && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold text-primary-foreground">
+                  <Zap className="size-2.5" /> Popular
+                </span>
+              )}
+              <div className="mb-3 flex items-center justify-between">
+                <PlanBadge plan={plan.id} size="md" />
+                {chosen === plan.id && <Check className="size-4 text-primary" />}
+              </div>
+              <p className="font-bold text-lg">{isFree ? "Free" : `₹${plan.price.monthly}/mo`}</p>
+              {!isFree && (
+                <p className="text-[10px] text-primary font-semibold mt-0.5">{plan.trialDays}-day free trial</p>
+              )}
+              <p className="mt-1 text-xs text-muted-foreground">{plan.tagline}</p>
+              <ul className="mt-3 space-y-1">
+                {plan.features.slice(0, 4).map((f, i) => (
+                  <li key={i} className={cn("flex items-center gap-1.5 text-[10px]", !f.included && "opacity-40")}>
+                    {f.included ? <Check className="size-2.5 shrink-0 text-primary" /> : <span className="size-2.5">—</span>}
+                    {f.text}
+                  </li>
+                ))}
+              </ul>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="size-4" /> Back
+        </Button>
+        <Button
+          onClick={() => onFinish(chosen)}
+          disabled={submitting}
+          size="lg"
+          className="px-8"
+        >
+          {submitting
+            ? "Setting up…"
+            : chosen === "free"
+            ? "Continue with Free"
+            : `Start ${PLANS[chosen].trialDays}-day trial on ${PLANS[chosen].name}`}
           {!submitting && <ChevronRight className="size-4" />}
         </Button>
       </div>

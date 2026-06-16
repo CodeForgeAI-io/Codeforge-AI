@@ -133,6 +133,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             token.name = dbUser.name;
             token.picture = dbUser.image ?? token.picture;
             token.onboardingComplete = dbUser.onboarding?.completed ?? false;
+            token.plan = dbUser.plan ?? "free";
           }
         }
       }

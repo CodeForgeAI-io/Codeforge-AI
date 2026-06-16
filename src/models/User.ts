@@ -48,6 +48,10 @@ export interface UserDoc {
   stats: UserStats;
   preferences: UserPreferences;
   onboarding: UserOnboarding;
+  plan: "free" | "go" | "plus";
+  planExpiresAt?: Date | null;
+  trialEndsAt?: Date | null;
+  billingCycle?: "monthly" | "yearly" | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -114,6 +118,10 @@ const userSchema = new Schema<UserDoc>(
       dailyGoal: { type: Number, default: 3 },
       completedAt: { type: Date },
     },
+    plan: { type: String, enum: ["free", "go", "plus"], default: "free" },
+    planExpiresAt: { type: Date, default: null },
+    trialEndsAt: { type: Date, default: null },
+    billingCycle: { type: String, enum: ["monthly", "yearly", null], default: null },
   },
   { timestamps: true },
 );

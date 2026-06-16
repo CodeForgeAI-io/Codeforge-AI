@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Settings, Crown } from "lucide-react";
+import { PlanBadge } from "@/features/subscription/plan-badge";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/shared/logo";
 import { NAV_ITEMS, MOBILE_NAV_ITEMS } from "./nav-items";
@@ -12,6 +13,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
+  const plan = session?.user?.plan ?? "free";
 
   return (
     <aside className="sticky top-0 hidden h-svh w-56 shrink-0 flex-col border-r bg-sidebar md:flex">
@@ -58,8 +60,27 @@ export function AppSidebar() {
           ));
         })()}
       </nav>
-      {isAdmin && (
-        <div className="border-t p-2">
+      <div className="border-t p-2 space-y-0.5">
+        {/* Plan badge + upgrade prompt */}
+        <Link
+          href="/settings"
+          className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-sidebar-accent/60 transition-colors"
+        >
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {plan === "plus" ? <Crown className="size-3.5 text-primary" /> : <Settings className="size-3.5" />}
+            <span>Account</span>
+          </div>
+          <PlanBadge plan={plan} size="xs" />
+        </Link>
+        {plan === "free" && (
+          <Link
+            href="/pricing"
+            className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/20 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors"
+          >
+            <Crown className="size-3.5" /> Upgrade plan
+          </Link>
+        )}
+        {isAdmin && (
           <Link
             href="/admin"
             className={cn(
@@ -72,8 +93,8 @@ export function AppSidebar() {
             <ShieldCheck className="size-4" />
             Admin Panel
           </Link>
-        </div>
-      )}
+        )}
+      </div>
     </aside>
   );
 }

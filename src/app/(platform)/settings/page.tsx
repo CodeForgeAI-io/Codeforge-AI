@@ -7,6 +7,8 @@ import {
   EditorSettingsForm,
   ProfileSettingsForm,
 } from "@/features/settings/settings-forms";
+import { BillingPanel } from "@/features/subscription/billing-panel";
+import { CreditCard } from "lucide-react";
 
 export const metadata: Metadata = { title: "Settings" };
 export const dynamic = "force-dynamic";
@@ -46,6 +48,22 @@ export default async function SettingsPage() {
           defaultLanguage: user.preferences.defaultLanguage,
         }}
       />
+
+      {/* Billing */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 border-b pb-2">
+          <CreditCard className="size-4 text-muted-foreground" />
+          <h2 className="font-semibold">Billing &amp; Subscription</h2>
+        </div>
+        <BillingPanel
+          billing={{
+            plan: user.plan ?? "free",
+            planExpiresAt: user.planExpiresAt?.toISOString() ?? null,
+            trialEndsAt: user.trialEndsAt?.toISOString() ?? null,
+            billingCycle: user.billingCycle ?? null,
+          }}
+        />
+      </div>
     </div>
   );
 }
