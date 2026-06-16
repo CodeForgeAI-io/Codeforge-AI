@@ -14,6 +14,8 @@ const PUBLIC_PREFIXES = [
   "/api/discussions", // public discussion listing/reading
   "/forum", // public forum — posting/commenting requires auth (handled in page)
   "/pricing", // public pricing page
+  "/forgot-password",
+  "/reset-password",
   "/_next",
   "/favicon",
 ];
