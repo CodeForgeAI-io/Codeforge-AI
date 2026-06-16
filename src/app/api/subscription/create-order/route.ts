@@ -6,11 +6,6 @@ import { Subscription } from "@/models/Subscription";
 import { PLANS } from "@/lib/plans";
 import type { BillingCycle, PlanId } from "@/lib/plans";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
-
 export async function POST(req: NextRequest) {
   const { session, error } = await requireUser();
   if (error) return error;
@@ -23,6 +18,11 @@ export async function POST(req: NextRequest) {
   }
 
   const amount = cycle === "yearly" ? planDef.price.yearly : planDef.price.monthly;
+
+  const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID!,
+    key_secret: process.env.RAZORPAY_KEY_SECRET!,
+  });
 
   await connectDB();
   const order = await razorpay.orders.create({
