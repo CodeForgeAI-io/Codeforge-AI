@@ -43,8 +43,12 @@ export default auth((req) => {
   }
 
   // Redirect new users to onboarding (skip for API routes and onboarding itself)
+  // Also skip if the ob_done fallback cookie is set (set by /api/onboarding right after
+  // saving — ensures we don't redirect even if the JWT hasn't been refreshed yet)
+  const obDone = req.cookies.get("ob_done")?.value;
   if (
     !session.user.onboardingComplete &&
+    !obDone &&
     !pathname.startsWith("/onboarding") &&
     !pathname.startsWith("/pricing") &&
     !pathname.startsWith("/api")

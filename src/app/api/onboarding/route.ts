@@ -25,5 +25,14 @@ export async function POST(req: NextRequest) {
     "onboarding.completedAt": new Date(),
   });
 
-  return NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true });
+  // Fallback cookie so middleware can allow /dashboard even if JWT update() is slow
+  res.cookies.set("ob_done", "1", {
+    path: "/",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 300,
+  });
+  return res;
 }

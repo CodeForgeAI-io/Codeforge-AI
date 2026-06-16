@@ -15,15 +15,20 @@ export default async function DiscussionPage({
   const { id } = await params;
   const [session] = await Promise.all([auth()]);
 
-  await connectDB();
-  const discussion = await Discussion.findByIdAndUpdate(
-    id,
-    { $inc: { views: 1 } },
-    { returnDocument: 'after' },
-  )
-    .populate("author", "username name image")
-    .populate("replies.author", "username name image")
-    .lean();
+  let discussion;
+  try {
+    await connectDB();
+    discussion = await Discussion.findByIdAndUpdate(
+      id,
+      { $inc: { views: 1 } },
+      { returnDocument: "after" },
+    )
+      .populate("author", "username name image")
+      .populate("replies.author", "username name image")
+      .lean();
+  } catch {
+    notFound();
+  }
 
   if (!discussion) notFound();
 
