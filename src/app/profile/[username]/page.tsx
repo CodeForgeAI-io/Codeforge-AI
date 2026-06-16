@@ -3,25 +3,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/lib/auth";
+import { connectDB } from "@/lib/mongodb";
 import { getPublicProfile } from "@/services/stats";
-import { StatsOverview } from "@/features/dashboard/stats-overview";
+import { Follow, User } from "@/models";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
+import { PublicProfile } from "@/features/profile/public-profile";
 
 interface PageProps {
   params: Promise<{ username: string }>;
 }
 
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
-  return { title: `@${username}` };
+  return { title: `@${username} — CodeForge AI` };
 }
 
-/** Public profile — viewable without authentication */
 export default async function PublicProfilePage({ params }: PageProps) {
   const { username } = await params;
+
   const [data, session] = await Promise.all([
     getPublicProfile(username).catch(() => null),
     auth(),
@@ -29,10 +29,27 @@ export default async function PublicProfilePage({ params }: PageProps) {
   if (!data) notFound();
 
   const isOwner = session?.user?.username === data.username;
+  const signedIn = !!session?.user;
+
+  // resolve target user's _id and check follow status
+  let targetUserId: string | undefined;
+  let isFollowing = false;
+
+  if (signedIn && !isOwner) {
+    await connectDB();
+    const targetUser = await User.findOne({ username: data.username }).select("_id").lean();
+    if (targetUser) {
+      targetUserId = targetUser._id.toString();
+      isFollowing = !!(await Follow.exists({
+        follower: session!.user.id,
+        following: targetUserId,
+      }));
+    }
+  }
 
   return (
-    <div className="min-h-svh">
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b px-4 glass-strong">
+    <div className="min-h-svh bg-background">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b px-4 backdrop-blur-sm bg-background/95">
         <Logo />
         <Button asChild variant="outline" size="sm">
           <Link href={session ? "/dashboard" : "/login"}>
@@ -41,8 +58,15 @@ export default async function PublicProfilePage({ params }: PageProps) {
           </Link>
         </Button>
       </header>
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
-        <StatsOverview data={data} isOwner={isOwner} />
+
+      <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
+        <PublicProfile
+          data={data}
+          isOwner={isOwner}
+          signedIn={signedIn}
+          targetUserId={targetUserId}
+          isFollowing={isFollowing}
+        />
       </div>
     </div>
   );

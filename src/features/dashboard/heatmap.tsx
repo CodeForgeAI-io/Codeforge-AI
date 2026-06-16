@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -18,6 +21,9 @@ function heatClass(count: number): string {
 
 /** GitHub-style contribution heatmap of accepted solves over the past year */
 export function ActivityHeatmap({ days }: { days: HeatmapDay[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const counts = new Map(days.map((day) => [day.date, day.count]));
 
   // Align the grid so the last column ends on today (UTC)
@@ -60,6 +66,8 @@ export function ActivityHeatmap({ days }: { days: HeatmapDay[] }) {
       lastMonth = month;
     }
   });
+
+  if (!mounted) return <div className="h-18" />;
 
   return (
     <div className="overflow-x-auto">

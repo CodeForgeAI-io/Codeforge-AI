@@ -44,7 +44,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   const updated = await Contest.findByIdAndUpdate(
     id,
     { $set: parsed.data },
-    { new: true },
+    { returnDocument: 'after' },
   );
   if (!updated) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
