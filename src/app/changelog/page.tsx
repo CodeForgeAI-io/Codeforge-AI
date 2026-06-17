@@ -8,10 +8,28 @@ export const metadata = {
 
 const RELEASES = [
   {
-    version: "1.1.0",
-    date: "June 17, 2025",
+    version: "1.1.1",
+    date: "June 18, 2025",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [],
+      improved: [
+        "Forgot-password now fails gracefully — if the email can't be sent it returns a clear message and logs the real reason instead of an opaque 500 error",
+        "Site URL for SEO, robots.txt, and sitemap.xml now resolves correctly in production instead of pointing at localhost",
+        "Rewrote the README with a modern layout, the full feature set, the Setups Works logo, and a release history",
+      ],
+      fixed: [
+        "Production build no longer crashes while prerendering /robots.txt and /sitemap.xml when the database is unreachable — both routes now render dynamically at request time",
+        "Site config loading is resilient to a missing database connection and falls back to environment configuration",
+      ],
+    },
+  },
+  {
+    version: "1.1.0",
+    date: "June 17, 2025",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Admin Settings panel — configure SEO, Analytics, Email, AI, Code Runner, Database, Cache, OAuth, and Payments from the UI without touching .env files",

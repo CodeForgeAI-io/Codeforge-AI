@@ -312,7 +312,8 @@ Full release notes live in-app at `/changelog`. Recent highlights:
 
 | Version | Tag | Date | Highlights |
 | :--- | :--- | :--- | :--- |
-| **1.1.0** | 🟢 Latest | Jun 17, 2025 | Admin Settings panel (SEO, Analytics, Email, AI, Runner, DB, Cache, OAuth & Payments from the UI), GA4 + Clarity + Search Console, `/feedback`, auto sitemap & robots.txt, advanced SEO (OG, Twitter Cards, JSON-LD), per-service Test Connection buttons. |
+| **1.1.1** | 🟢 Latest | Jun 18, 2025 | Fixed production build crash on `/robots.txt` & `/sitemap.xml` when the DB is unreachable (now render dynamically), resilient site-config loading, correct production site URL for SEO/robots/sitemap, graceful forgot-password email failures, and a modernized README. |
+| **1.1.0** | 🔵 Stable | Jun 17, 2025 | Admin Settings panel (SEO, Analytics, Email, AI, Runner, DB, Cache, OAuth & Payments from the UI), GA4 + Clarity + Search Console, `/feedback`, auto sitemap & robots.txt, advanced SEO (OG, Twitter Cards, JSON-LD), per-service Test Connection buttons. |
 | **1.0.1** | 🔴 Security | Jun 17, 2025 | CSP & HSTS headers, `X-Frame-Options: DENY`, hardened auth cookies, 7-day JWT sessions, CORS guard on mutations, NoSQL regex-injection fix, content sanitization, stronger passwords. |
 | **1.0.0** | 🔵 Launch | Jun 17, 2025 | Public launch — Monaco editor (12 langs), AI Mentor & Pair Programmer, Learning Coach, SM-2 spaced repetition, analytics & weakness detection, streaks/XP/badges/leaderboards, contests & daily challenges, company sets, forum, frontend sandbox with AI design review, roadmaps, Google/GitHub OAuth, password reset. |
 | **0.9.0** | 🟠 Beta | Jun 10, 2025 | Beta — core problem-solving, JS/Python execution, profiles & submission history, initial AI hints. |
