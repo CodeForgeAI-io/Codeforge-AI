@@ -20,9 +20,16 @@ export const SENSITIVE_FIELDS: (keyof SiteConfigDoc)[] = [
 /** Fetch and cache the site config. Revalidated when admin saves settings. */
 export const getSiteConfig = unstable_cache(
   async (): Promise<SiteConfigDoc> => {
-    await connectDB();
-    const cfg = await SiteConfig.findById("global").lean<SiteConfigDoc>();
-    return cfg ?? ({} as SiteConfigDoc);
+    try {
+      await connectDB();
+      const cfg = await SiteConfig.findById("global").lean<SiteConfigDoc>();
+      return cfg ?? ({} as SiteConfigDoc);
+    } catch (err) {
+      // The DB may be unreachable during build/prerender (e.g. robots.txt,
+      // sitemap.xml). Fall back to env-based config instead of crashing.
+      console.error("[site-config] Could not load config from DB:", err);
+      return {} as SiteConfigDoc;
+    }
   },
   [SITE_CONFIG_TAG],
   { revalidate: 60, tags: [SITE_CONFIG_TAG] },
