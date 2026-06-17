@@ -1,5 +1,5 @@
 import NextAuth from "next-auth";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { authConfig } from "@/lib/auth.config";
 
 const { auth } = NextAuth(authConfig);
@@ -20,22 +20,54 @@ const PUBLIC_PREFIXES = [
   "/privacy",
   "/changelog",
   "/feedback",
+  "/api/feedback",
   "/_next",
   "/favicon",
+  "/sitemap.xml",
+  "/robots.txt",
 ];
+
+/** Allowed origins for cross-origin API requests (empty = same-origin only). */
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+function isSameOrigin(req: NextRequest): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return true; // same-origin requests don't send Origin
+  const appUrl =
+    process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+  if (appUrl && origin === new URL(appUrl).origin) return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  return false;
+}
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
   const session = req.auth;
+  const method = req.method;
 
+  // ── CORS guard for mutating API requests ─────────────────────────────────
+  if (
+    pathname.startsWith("/api/") &&
+    !pathname.startsWith("/api/auth") &&
+    (method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE")
+  ) {
+    if (!isSameOrigin(req)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
+  // ── Public routes ─────────────────────────────────────────────────────────
   if (pathname === "/" || PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) {
-    // Send signed-in users from auth pages to the dashboard
     if (session && (pathname === "/login" || pathname === "/register")) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     return NextResponse.next();
   }
 
+  // ── Require auth ──────────────────────────────────────────────────────────
   if (!session) {
     if (pathname.startsWith("/api")) {
       return NextResponse.json(
@@ -48,6 +80,7 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
+  // ── Admin-only areas ──────────────────────────────────────────────────────
   const isAdminArea =
     pathname.startsWith("/admin") ||
     pathname.startsWith("/api/admin") ||
@@ -68,7 +101,6 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
-    // Everything except static assets
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

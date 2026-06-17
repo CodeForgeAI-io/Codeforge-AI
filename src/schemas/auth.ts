@@ -16,7 +16,10 @@ export const registerSchema = z.object({
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
-    .max(128),
+    .max(128)
+    .refine((p) => /[A-Z]/.test(p) || /[0-9]/.test(p) || /[^A-Za-z0-9]/.test(p), {
+      message: "Password must contain at least one uppercase letter, number, or symbol",
+    }),
   terms: z.literal(true, { message: "You must accept the Terms & Privacy Policy" }),
 });
 
@@ -33,7 +36,13 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z
   .object({
     token: z.string().min(1),
-    password: z.string().min(8, "Password must be at least 8 characters").max(128),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(128)
+      .refine((p) => /[A-Z]/.test(p) || /[0-9]/.test(p) || /[^A-Za-z0-9]/.test(p), {
+        message: "Password must contain at least one uppercase letter, number, or symbol",
+      }),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((d) => d.password === d.confirmPassword, {
