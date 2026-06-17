@@ -21,6 +21,8 @@ const PUBLIC_PREFIXES = [
   "/changelog",
   "/feedback",
   "/api/feedback",
+  "/beta",
+  "/api/beta",
   "/_next",
   "/favicon",
   "/sitemap.xml",

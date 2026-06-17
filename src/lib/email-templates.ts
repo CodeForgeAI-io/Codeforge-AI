@@ -141,6 +141,102 @@ export function welcomeEmailSubject(name: string): string {
   return `Welcome to CodeForge AI, ${name}! 🎉`;
 }
 
+// ─── Beta Welcome ─────────────────────────────────────────────────────────────
+
+export function betaWelcomeEmailHtml({
+  name,
+  dashboardUrl,
+  spotsLeft,
+  planExpiresAt,
+}: {
+  name: string;
+  dashboardUrl: string;
+  spotsLeft: number;
+  planExpiresAt: string;
+}): string {
+  return base(`
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="display:inline-block;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.3);border-radius:50%;padding:18px;">
+        <span style="font-size:36px;line-height:1;">🚀</span>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-bottom:20px;">
+      <span style="display:inline-block;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);color:#a855f7;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:4px 14px;border-radius:100px;">
+        Beta Access Granted
+      </span>
+    </div>
+
+    <h1 style="margin:0 0 8px;color:${TEXT};font-size:24px;font-weight:800;letter-spacing:-0.5px;text-align:center;">
+      You're in, ${name}! 🎉
+    </h1>
+    <p style="margin:0 0 28px;color:${MUTED};font-size:15px;line-height:1.7;text-align:center;">
+      You've secured early access to CodeForge AI. As a beta member,
+      you get the <strong style="color:${TEXT};">Go Plan free for 30 days</strong> — no credit card needed.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr>
+        <td style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:12px;padding:20px 24px;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding-bottom:14px;">
+                <span style="font-size:18px;">⚡</span>
+                <span style="color:${TEXT};font-size:14px;font-weight:700;margin-left:10px;">Go Plan — Free for 30 days</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-bottom:14px;">
+                <span style="font-size:18px;">📅</span>
+                <span style="color:${MUTED};font-size:14px;margin-left:10px;">Plan active until <strong style="color:${TEXT};">${planExpiresAt}</strong></span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-bottom:14px;">
+                <span style="font-size:18px;">🤖</span>
+                <span style="color:${TEXT};font-size:14px;font-weight:600;margin-left:10px;">Unlimited AI Mentor, Pair Programmer &amp; Coach</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-bottom:14px;">
+                <span style="font-size:18px;">🏆</span>
+                <span style="color:${TEXT};font-size:14px;font-weight:600;margin-left:10px;">All contests, challenges &amp; leaderboards</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span style="font-size:18px;">🔁</span>
+                <span style="color:${TEXT};font-size:14px;font-weight:600;margin-left:10px;">Spaced repetition &amp; advanced analytics</span>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+      <tr>
+        <td style="background:#111;border:1px solid ${BORDER};border-radius:10px;padding:16px 20px;text-align:center;">
+          <span style="color:${MUTED};font-size:13px;">Only <strong style="color:${BRAND};">${spotsLeft} beta spot${spotsLeft !== 1 ? "s" : ""} remaining</strong> — share with friends before it's gone!</span>
+        </td>
+      </tr>
+    </table>
+
+    ${btn("Start Solving Problems →", dashboardUrl)}
+
+    ${divider()}
+
+    <p style="margin:0;color:${MUTED};font-size:13px;line-height:1.6;text-align:center;">
+      Questions or feedback? Reply to this email — we read every message.<br/>
+      Thank you for being an early adopter! 💙
+    </p>
+  `);
+}
+
+export function betaWelcomeEmailSubject(name: string): string {
+  return `🚀 You're in, ${name}! Beta access + Go Plan activated`;
+}
+
 // ─── Password Reset ───────────────────────────────────────────────────────────
 
 export function resetPasswordEmailHtml({

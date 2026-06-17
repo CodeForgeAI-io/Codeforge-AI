@@ -14,6 +14,9 @@ export function InfoLayout({ children }: { children: React.ReactNode }) {
             <Link href="/pricing" className="hover:text-foreground transition-colors hidden sm:block">Pricing</Link>
             <Link href="/changelog" className="hover:text-foreground transition-colors hidden sm:block">Changelog</Link>
             <Link href="/feedback" className="hover:text-foreground transition-colors">Feedback</Link>
+            <Link href="/beta/join" className="rounded-md border border-purple-500/40 bg-purple-500/10 px-3 py-1.5 text-xs font-bold text-purple-400 hover:bg-purple-500/20 transition-colors">
+              Join Beta
+            </Link>
             <Link href="/login" className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
               Sign in
             </Link>

@@ -52,6 +52,7 @@ export interface UserDoc {
   planExpiresAt?: Date | null;
   trialEndsAt?: Date | null;
   billingCycle?: "monthly" | "yearly" | null;
+  betaUser?: boolean;
   passwordResetToken?: string | null;
   passwordResetExpiry?: Date | null;
   createdAt: Date;
@@ -124,6 +125,7 @@ const userSchema = new Schema<UserDoc>(
     planExpiresAt: { type: Date, default: null },
     trialEndsAt: { type: Date, default: null },
     billingCycle: { type: String, enum: ["monthly", "yearly", null], default: null },
+    betaUser: { type: Boolean, default: false, index: true },
     passwordResetToken: { type: String, default: null, select: false },
     passwordResetExpiry: { type: Date, default: null, select: false },
   },
