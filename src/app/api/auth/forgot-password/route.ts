@@ -55,15 +55,25 @@ export async function POST(req: NextRequest) {
     "http://localhost:3000";
   const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
-  await sendEmail({
-    to: user.email,
-    subject: resetPasswordEmailSubject,
-    html: resetPasswordEmailHtml({
-      name: user.name,
-      resetUrl,
-      expiryMinutes: EXPIRY_MINUTES,
-    }),
-  });
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: resetPasswordEmailSubject,
+      html: resetPasswordEmailHtml({
+        name: user.name,
+        resetUrl,
+        expiryMinutes: EXPIRY_MINUTES,
+      }),
+    });
+  } catch (err) {
+    // Surface the real reason in server logs (e.g. missing SMTP_* env vars)
+    // instead of crashing with an opaque 500.
+    console.error("[forgot-password] Failed to send reset email:", err);
+    return NextResponse.json(
+      { error: "Could not send the reset email. Please try again later." },
+      { status: 502 },
+    );
+  }
 
   return NextResponse.json({ ok: true });
 }
