@@ -266,7 +266,7 @@ function OrbitSphere({ size = 120, className }: { size?: number; className?: str
       <div className="absolute rounded-full border border-orange-500/20 animate-orbit" style={{ width: size, height: size }} />
       <div className="absolute rounded-full border border-purple-500/20 animate-orbit-reverse" style={{ width: size * 0.75, height: size * 0.75 }} />
       <div className="absolute rounded-full border border-orange-400/30" style={{ width: size * 0.5, height: size * 0.5, transform: "rotateX(60deg)" }} />
-      <div className="size-2 rounded-full bg-orange-400 shadow-[0_0_12px_4px_rgba(249,115,22,0.6)]" />
+      <div className="size-2 rounded-full bg-orange-400" />
     </div>
   );
 }
@@ -387,7 +387,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                 <Button asChild variant="ghost" size="sm" className="hidden lp-ink-2 hover:lp-ink sm:inline-flex">
                   <Link href="/login">Sign in</Link>
                 </Button>
-                <Button asChild size="sm" className="bg-orange-500 lp-ink hover:bg-orange-600 shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+                <Button asChild size="sm" className="bg-orange-500 lp-ink hover:bg-orange-600">
                   <Link href="/register">Get started free</Link>
                 </Button>
               </>
@@ -473,7 +473,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               </p>
 
               <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Button asChild size="lg" className="h-12 px-7 text-base bg-orange-500 hover:bg-orange-600 lp-ink shadow-[0_0_30px_rgba(249,115,22,0.45)] hover:shadow-[0_0_50px_rgba(249,115,22,0.6)] transition-all duration-300">
+                <Button asChild size="lg" className="h-12 px-7 text-base bg-orange-500 hover:bg-orange-600 lp-ink transition-all duration-300">
                   <Link href={ctaHref}>
                     Start for free <ArrowRight className="size-4" />
                   </Link>
@@ -505,7 +505,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               <div className="absolute inset-0 rounded-2xl bg-orange-500/15 blur-3xl" />
 
               <TiltCard max={6}>
-                <div className="relative overflow-hidden rounded-2xl border lp-border lp-card shadow-[0_0_60px_rgba(0,0,0,0.8)]">
+                <div className="relative overflow-hidden rounded-2xl border lp-border lp-card">
                   {/* Shimmer overlay */}
                   <div className="animate-shimmer pointer-events-none absolute inset-0 z-10" />
                   {/* Editor chrome */}
@@ -561,7 +561,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               {/* Floating notification cards */}
               <motion.div style={{ y: y2 }} className="absolute -left-4 -top-5 sm:-left-12">
                 <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-                  className="flex items-center gap-2.5 rounded-xl border border-orange-500/20 lp-card-glass px-3.5 py-2.5 shadow-[0_0_30px_rgba(249,115,22,0.2)] backdrop-blur-sm">
+                  className="flex items-center gap-2.5 rounded-xl border border-orange-500/20 lp-card-glass px-3.5 py-2.5 backdrop-blur-sm">
                   <Zap className="size-4 text-orange-400" />
                   <div>
                     <p className="text-xs font-bold lp-ink">+25 XP earned</p>
@@ -572,7 +572,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
 
               <motion.div style={{ y: y1 }} className="absolute -bottom-5 -right-3 sm:-right-10">
                 <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
-                  className="flex items-center gap-2.5 rounded-xl border border-orange-500/20 lp-card-glass px-3.5 py-2.5 shadow-[0_0_30px_rgba(249,115,22,0.2)] backdrop-blur-sm">
+                  className="flex items-center gap-2.5 rounded-xl border border-orange-500/20 lp-card-glass px-3.5 py-2.5 backdrop-blur-sm">
                   <Flame className="size-4 text-orange-400" />
                   <div>
                     <p className="text-xs font-bold lp-ink">🔥 14-day streak</p>
@@ -583,7 +583,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
 
               <motion.div style={{ y: y2 }} className="absolute right-0 top-1/3 hidden sm:block lg:-right-14">
                 <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.3 }}
-                  className="flex items-center gap-2.5 rounded-xl border border-purple-500/30 lp-card-glass px-3.5 py-2.5 shadow-[0_0_30px_rgba(168,85,247,0.2)] backdrop-blur-sm">
+                  className="flex items-center gap-2.5 rounded-xl border border-purple-500/30 lp-card-glass px-3.5 py-2.5 backdrop-blur-sm">
                   <Award className="size-4 text-purple-400" />
                   <div>
                     <p className="text-xs font-bold lp-ink">Badge unlocked!</p>
@@ -677,8 +677,6 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               <motion.div {...fadeUp} className="sm:col-span-2 sm:row-span-2">
                 <TiltCard max={4} className="h-full">
                   <div className="group relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-6">
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-transparent" />
-                    <div className="absolute -right-8 -top-8 size-40 rounded-full bg-orange-500/10 blur-3xl group-hover:bg-orange-500/15 transition-all duration-700" />
                     <Code2 className="mb-4 size-8 text-orange-400" />
                     <h3 className="text-xl font-bold">VS Code–style Editor</h3>
                     <p className="mt-2 text-sm lp-ink-3 max-w-sm">Full IntelliSense, multi-tab editing, 12 languages, hidden test cases and instant verdicts — everything your local setup has, zero config.</p>
@@ -705,7 +703,6 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               <motion.div {...fadeUp} transition={{ delay: 0.1 }} className="sm:col-span-1">
                 <TiltCard max={6} className="h-full">
                   <div className="group relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
-                    <div className="absolute -left-4 -top-4 size-24 rounded-full bg-purple-500/10 blur-2xl" />
                     <Bot className="mb-3 size-7 text-purple-400" />
                     <h3 className="font-bold">AI Mentor</h3>
                     <p className="mt-1.5 text-xs lp-ink-3">Progressive hints without spoiling. Nudges you to the pattern.</p>
@@ -721,7 +718,6 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               <motion.div {...fadeUp} transition={{ delay: 0.15 }}>
                 <TiltCard max={8} className="h-full">
                   <div className="group relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
-                    <div className="absolute right-0 top-0 size-20 rounded-full bg-orange-500/10 blur-2xl" />
                     <Flame className="mb-2 size-6 text-orange-400" />
                     <h3 className="font-bold">Daily Streaks</h3>
                     <div className="mt-3 flex gap-1">
@@ -738,7 +734,6 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               <motion.div {...fadeUp} transition={{ delay: 0.2 }}>
                 <TiltCard max={8} className="h-full">
                   <div className="relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
-                    <div className="absolute left-0 bottom-0 size-20 rounded-full bg-blue-500/10 blur-2xl" />
                     <Brain className="mb-2 size-6 text-blue-400" />
                     <h3 className="font-bold">Spaced Repetition</h3>
                     <p className="mt-1 text-xs lp-ink-3">SM-2 algorithm. Review at the perfect moment.</p>
@@ -758,7 +753,6 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               <motion.div {...fadeUp} transition={{ delay: 0.25 }}>
                 <TiltCard max={8} className="h-full">
                   <div className="relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
-                    <div className="absolute right-0 bottom-0 size-20 rounded-full bg-green-500/10 blur-2xl" />
                     <BarChart3 className="mb-2 size-6 text-green-400" />
                     <h3 className="font-bold">Skill Analytics</h3>
                     <div className="mt-2 space-y-1.5">
@@ -776,7 +770,6 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               {/* Wide card — gamification */}
               <motion.div {...fadeUp} transition={{ delay: 0.2 }} className="sm:col-span-2 lg:col-span-1">
                 <div className="relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
-                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent" />
                   <Trophy className="mb-3 size-6 text-orange-400" />
                   <h3 className="font-bold">Gamification System</h3>
                   <div className="mt-4 grid grid-cols-2 gap-3">
@@ -819,8 +812,6 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                 <motion.div key={feat.title} {...fadeUp} transition={{ delay: i * 0.12 }}>
                   <TiltCard max={5} className="h-full">
                     <div className="group relative h-full overflow-hidden rounded-2xl border lp-border lp-card">
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20" />
-                      <div className="absolute -top-10 right-0 size-32 rounded-full opacity-20 blur-3xl transition-opacity duration-700 group-hover:opacity-30" style={{ background: feat.color }} />
 
                       <div className="relative p-5">
                         <div className="mb-4 flex items-center gap-2.5">
@@ -938,7 +929,6 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                 >
                   <TiltCard max={5} className="h-full">
                     <div className="relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-7">
-                      <div className="absolute -right-8 -top-8 size-32 rounded-full blur-3xl opacity-20" style={{ background: step.color }} />
                       <div className="absolute right-4 top-4 font-mono text-6xl font-black text-white/[0.03] select-none">{step.n}</div>
                       <div className="mb-5 flex size-12 items-center justify-center rounded-2xl border lp-border" style={{ background: `${step.color}20` }}>
                         <step.icon className="size-6" style={{ color: step.color }} />
@@ -965,7 +955,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                     {totalProblems}+ real interview<br />questions, ready to run.
                   </h2>
                   <p className="mt-4 lp-ink-3">DSA classics, JavaScript deep-dives and React pattern exercises — every problem executes against hidden test cases in the cloud.</p>
-                  <Button asChild size="lg" className="mt-7 bg-orange-500 hover:bg-orange-600 lp-ink shadow-[0_0_24px_rgba(249,115,22,0.35)]">
+                  <Button asChild size="lg" className="mt-7 bg-orange-500 hover:bg-orange-600 lp-ink">
                     <Link href="/problems">Browse all problems <ArrowRight className="size-4" /></Link>
                   </Button>
                 </motion.div>
@@ -1126,7 +1116,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                 Free forever. 26+ features. 9 AI tools. No credit card. Just you, the editor, and an AI mentor that never sleeps.
               </p>
               <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-                <Button asChild size="lg" className="h-14 px-10 text-lg bg-orange-500 hover:bg-orange-600 lp-ink shadow-[0_0_50px_rgba(249,115,22,0.5)] hover:shadow-[0_0_70px_rgba(249,115,22,0.7)] transition-all duration-300 animate-glow">
+                <Button asChild size="lg" className="h-14 px-10 text-lg bg-orange-500 hover:bg-orange-600 lp-ink transition-all duration-300">
                   <Link href={ctaHref}>Create free account <ArrowRight className="size-5" /></Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="h-14 lp-border lp-ink-3 hover:lp-ink hover:lp-card hover:lp-border-strong">
