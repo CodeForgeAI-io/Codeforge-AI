@@ -8,6 +8,7 @@ import {
   FileQuestion,
   ListChecks,
   Paintbrush,
+  Settings,
   Trophy,
   Users,
   type LucideIcon,
@@ -48,6 +49,10 @@ const SECTIONS: AdminNavSection[] = [
   {
     heading: "AI",
     items: [{ href: "/admin/prompts", label: "Prompts", icon: Bot }],
+  },
+  {
+    heading: "Config",
+    items: [{ href: "/admin/settings", label: "Settings", icon: Settings }],
   },
 ];
 
