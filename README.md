@@ -31,39 +31,99 @@ LeetCode-style DSA problems · Frontend sandbox challenges · Live contests · P
 
 ## 🏗 System Architecture
 
-CodeForge AI uses a decoupled, event-resilient architecture built on **Next.js 15 (App Router)**. Below is how the client workspace, caching layers, execution runtimes, AI models, and billing interact:
+CodeForge AI is a **single Next.js 15 (App Router) application** that serves the UI, the API, and background work from one codebase. It follows a layered design — **route handlers → service layer → data/integration layer** — so that providers (code runners, AI, payments) are swappable behind interfaces and the app degrades gracefully when any optional integration is absent.
+
+### High-Level Topology
 
 ```mermaid
 graph TD
-    User([User Browser]) -->|HTTPS / WSS| FE[Next.js Client]
+    User(["👤 User Browser"]) -->|HTTPS / SSE| Edge
 
-    subgraph ClientWorkspace ["🖥 Client Workspace"]
-        FE --> Editor["Monaco Editor (DSA)"]
-        FE --> Sandbox["Sandpack Preview (Frontend)"]
-        FE --> AIChat["AI Mentor Panel"]
+    subgraph Client ["🖥 Client (React 19)"]
+        Editor["Monaco Editor — DSA"]
+        Sandbox["Sandpack — Frontend"]
+        AIChat["AI Mentor Panel (streamed)"]
+        UI["Pages • Zustand • React Query"]
     end
+    User --> Client
 
-    FE -->|Server Actions / Route Handlers| API[Next.js Server / Middleware]
+    Edge["🛡 Edge Middleware<br/>auth gate • CORS • security headers"]
+    Client -->|Server Actions / fetch| Edge
+    Edge --> Routes["🧭 Route Handlers (/api/*)"]
 
-    subgraph Storage ["💾 Storage & Cache"]
-        API --> DB[("MongoDB + Mongoose")]
-        API --> Redis[("Upstash Redis")]
+    Routes --> Auth["NextAuth v5<br/>Credentials • Google • GitHub"]
+    Routes --> Services["⚙️ Service Layer"]
+
+    subgraph Services2 ["Service Layer (src/services)"]
+        Q["questions / contests / challenges"]
+        Exec["execution (provider router)"]
+        AIsvc["ai (Groq prompts + stream)"]
+        Game["gamification (XP • badges • streaks)"]
+        Stats["stats / roadmaps / companies"]
     end
+    Services --> Services2
 
-    subgraph Execution ["⚙️ Code Execution"]
-        API --> Paiza["Paiza.io (Default/Free)"]
-        API --> Judge0["Judge0 CE (RapidAPI)"]
-        API --> Piston["Piston (Self-hosted)"]
-    end
+    Services2 --> DB[("🗄 MongoDB + Mongoose<br/>22 models")]
+    Services2 --> Redis[("⚡ Upstash Redis<br/>rate-limit • leaderboard cache")]
 
-    subgraph AI ["🤖 AI Services"]
-        API --> Groq["Groq (Llama 3 Stream)"]
-    end
+    Exec --> Paiza["Paiza.io (default)"]
+    Exec --> Judge0["Judge0 CE (RapidAPI)"]
+    Exec --> Piston["Piston (self-hosted)"]
 
-    subgraph Payments ["💳 Billing"]
-        API --> Razorpay["Razorpay Subscriptions"]
-    end
+    AIsvc --> Groq["Groq — Llama 3 (streaming)"]
+    Routes --> Razorpay["💳 Razorpay (subscriptions)"]
+    Routes --> Mailer["✉️ Nodemailer / SMTP"]
+    Routes --> GH["🐙 GitHub Issues (feedback)"]
 ```
+
+### Request Lifecycle
+
+1. **Edge middleware** ([src/middleware.ts](src/middleware.ts)) runs first on every request. It checks the NextAuth session against a public-route allowlist, enforces same-origin/CORS on mutating requests, and attaches security headers (CSP, HSTS, `X-Frame-Options: DENY`).
+2. **Route handlers** under `src/app/api/*` validate input with **Zod**, resolve the session, and apply **rate limiting** (Upstash sliding window, with an in-memory fallback) before doing work.
+3. **Service layer** (`src/services/*`) holds the business logic — question/contest queries, the execution-provider router, AI prompt orchestration, gamification, and stats — keeping handlers thin.
+4. **Data & integrations** — Mongoose models persist state; Redis caches hot reads (leaderboards) and rate-limit counters; external providers (Groq, Razorpay, SMTP, GitHub, code runners) are called through small adapter modules in `src/lib` and `src/services`.
+
+### Layer Responsibilities
+
+| Layer | Location | Responsibility |
+| :--- | :--- | :--- |
+| **Client** | `src/app/(platform)`, `src/features`, `src/components` | React 19 UI, Monaco/Sandpack workspaces, Zustand workspace store, React Query server-state cache |
+| **Edge** | `src/middleware.ts`, `src/lib/auth.config.ts` | Auth gating, CORS/origin guard, security headers, cookie policy |
+| **API** | `src/app/api/*` | Route handlers: validation (Zod), authz (`lib/api-auth`), rate-limit, response shaping |
+| **Services** | `src/services/*` | Domain logic: questions, contests, execution, AI, gamification, stats, roadmaps |
+| **Integrations** | `src/lib/*` | `mongodb`, `redis`, `mailer`, `github`, `site-config`, `rate-limit`, `sanitize`, `openapi` |
+| **Data** | `src/models/*` (22 Mongoose models) | Users, Questions, Submissions, Contests, Discussions, Subscriptions, SpacedRepetition, Badges, etc. |
+
+### Code Execution Pipeline
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant API as /api/execute
+    participant R as Execution Router
+    participant P as Provider (Paiza / Judge0 / Piston)
+    participant DB as MongoDB
+
+    U->>API: source + language + stdin (test cases)
+    API->>API: Zod validate • auth • rate-limit
+    API->>R: run(language, source, input)
+    R->>P: submit job (selected by EXECUTION_PROVIDER)
+    P-->>R: stdout / stderr / status
+    R->>R: normalize verdict (AC / WA / TLE / RE)
+    R-->>API: per-test results
+    API->>DB: persist Submission (+ XP, streak, badges)
+    API-->>U: verdict + diff + metrics
+```
+
+The provider is chosen at runtime by `EXECUTION_PROVIDER`; all providers conform to one interface in `src/services/execution`, and outputs pass through a `normalize` step so verdicts are consistent regardless of backend.
+
+### AI Mentor Pipeline
+
+The AI panels post the **problem, code buffer, and runtime output** to streaming routes under `/api/ai/*`. The `ai` service composes a system prompt (progressive-hint policy) and forwards to **Groq (Llama 3)**, relaying tokens to the client over **Server-Sent Events** for real-time rendering. If `GROQ_API_KEY` is absent, the routes short-circuit and the UI shows inline setup guidance instead of failing.
+
+### Resilience by Design
+
+Every external dependency is optional and isolated, so a missing key degrades one feature rather than breaking the app: **no Redis** → in-memory rate-limit + on-demand leaderboard from Mongo; **no Groq** → AI panels show setup help; **no Razorpay** → billing hidden; **no SMTP/GitHub** → feedback and emails fall back or no-op; **DB unreachable at build** → `robots.txt`/`sitemap.xml` render dynamically rather than crashing the build.
 
 ---
 
