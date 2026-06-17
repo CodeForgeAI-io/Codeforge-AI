@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   motion,
@@ -51,7 +52,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/shared/logo";
 import { DifficultyBadge } from "@/components/shared/difficulty-badge";
-import { PricingCards } from "@/features/subscription/pricing-cards";
+const PricingCards = dynamic(
+  () => import("@/features/subscription/pricing-cards").then((m) => m.PricingCards),
+  { ssr: false, loading: () => <div className="h-96 animate-pulse rounded-2xl lp-card" /> },
+);
 import { APP_NAME, LANGUAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -334,6 +338,25 @@ function TypingText({ texts, className }: { texts: string[]; className?: string 
   );
 }
 
+/* ── smooth scroll (900 ms, cubic ease-out) ─────────────────────── */
+function slowScrollTo(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const target = el.getBoundingClientRect().top + window.scrollY - 72; // 72 = header height
+  const start = window.scrollY;
+  const distance = target - start;
+  const duration = 900;
+  let startTime: number | null = null;
+  function step(now: number) {
+    if (!startTime) startTime = now;
+    const p = Math.min((now - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    window.scrollTo(0, start + distance * ease);
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
 /* ── main page ────────────────────────────────────────────────────── */
 
 export function Landing({ signedIn, problems, totalProblems }: { signedIn: boolean; problems: LandingProblem[]; totalProblems: number }) {
@@ -346,12 +369,21 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
   const [mobileMenu, setMobileMenu] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
+  // Fewer particles — each one spawns a Framer Motion node
   const particles = [
-    { x: 10, y: 20, delay: 0 }, { x: 85, y: 15, delay: 1.2 }, { x: 45, y: 70, delay: 2.4 },
-    { x: 70, y: 40, delay: 0.8 }, { x: 20, y: 65, delay: 1.9 }, { x: 92, y: 55, delay: 3 },
-    { x: 35, y: 88, delay: 0.5 }, { x: 60, y: 10, delay: 2.1 }, { x: 5, y: 45, delay: 1.5 },
-    { x: 78, y: 80, delay: 3.3 }, { x: 50, y: 30, delay: 0.3 }, { x: 15, y: 90, delay: 2.7 },
+    { x: 10, y: 20, delay: 0 }, { x: 85, y: 15, delay: 1.2 },
+    { x: 45, y: 70, delay: 2.4 }, { x: 70, y: 40, delay: 0.8 },
+    { x: 20, y: 65, delay: 1.9 }, { x: 92, y: 55, delay: 3 },
   ];
+
+  // Intercept anchor (#section) links for slow smooth scroll
+  const navClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    const href = e.currentTarget.getAttribute("href") ?? "";
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      slowScrollTo(href.slice(1));
+    }
+  }, []);
 
   return (
     /* force dark mode for consistent dark landing aesthetic */
@@ -369,7 +401,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               ["Pricing", "#pricing"],
               ["Forum", "/forum"],
             ].map(([label, href]) => (
-              <a key={label} href={href} className="transition-colors hover:lp-ink">
+              <a key={label} href={href} onClick={navClick} className="transition-colors duration-300 hover:lp-ink">
                 {label}
                 {label === "Problems" && totalProblems > 0 && (
                   <span className="ml-1.5 rounded-full bg-orange-500/20 px-1.5 py-0.5 text-[10px] font-bold text-orange-400">{totalProblems}</span>
@@ -401,11 +433,12 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
           {mobileMenu && (
             <motion.div
               initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
               className="border-t lp-border-faint md:hidden"
             >
               <nav className="flex flex-col gap-1 px-4 py-4">
                 {[["Problems", "/problems"], ["Forum", "/forum"], ["Pricing", "#pricing"]].map(([label, href]) => (
-                  <a key={label} href={href} onClick={() => setMobileMenu(false)} className="rounded-lg px-3 py-2.5 text-sm lp-ink-2 hover:lp-card hover:lp-ink">
+                  <a key={label} href={href} onClick={(e) => { navClick(e); setMobileMenu(false); }} className="rounded-lg px-3 py-2.5 text-sm lp-ink-2 hover:lp-card hover:lp-ink transition-colors duration-300">
                     {label}
                   </a>
                 ))}
@@ -479,7 +512,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="h-12 gap-2 lp-border lp-ink-2 lp-card hover:lp-card-raised hover:lp-ink">
-                  <a href="#ai">
+                  <a href="#ai" onClick={navClick}>
                     <Play className="size-4 fill-current" /> See AI in action
                   </a>
                 </Button>
