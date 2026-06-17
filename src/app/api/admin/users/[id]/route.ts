@@ -8,6 +8,10 @@ import { User } from "@/models";
 const patchSchema = z.object({
   role: z.enum(["user", "admin"]).optional(),
   banned: z.boolean().optional(),
+  plan: z.enum(["free", "go", "plus"]).optional(),
+  billingCycle: z.enum(["monthly", "yearly"]).nullable().optional(),
+  planExpiresAt: z.string().nullable().optional(),
+  betaUser: z.boolean().optional(),
 });
 
 export async function PATCH(
@@ -43,11 +47,23 @@ export async function PATCH(
     );
   }
 
+  const updateFields: Record<string, unknown> = {};
+  if (parsed.data.role !== undefined) updateFields.role = parsed.data.role;
+  if (parsed.data.banned !== undefined) updateFields.banned = parsed.data.banned;
+  if (parsed.data.plan !== undefined) updateFields.plan = parsed.data.plan;
+  if (parsed.data.billingCycle !== undefined) updateFields.billingCycle = parsed.data.billingCycle;
+  if (parsed.data.betaUser !== undefined) updateFields.betaUser = parsed.data.betaUser;
+  if (parsed.data.planExpiresAt !== undefined) {
+    updateFields.planExpiresAt = parsed.data.planExpiresAt
+      ? new Date(parsed.data.planExpiresAt)
+      : null;
+  }
+
   await connectDB();
   const updated = await User.findByIdAndUpdate(
     id,
-    { $set: parsed.data },
-    { returnDocument: 'after' },
+    { $set: updateFields },
+    { returnDocument: "after" },
   );
   if (!updated) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
