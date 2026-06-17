@@ -4,6 +4,23 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Landing page tokens — light mode */
+  --lp-page:        #f8f8fc;
+  --lp-card:        #ffffff;
+  --lp-card-raised: #f0f0f8;
+  --lp-card-subtle: rgba(0,0,0,0.03);
+  --lp-card-glass:  rgba(255,255,255,0.88);
+  --lp-border:      rgba(0,0,0,0.09);
+  --lp-border-faint:rgba(0,0,0,0.055);
+  --lp-border-strong:rgba(0,0,0,0.16);
+  --lp-ink:         #0a0a0f;
+  --lp-ink-2:       #1f2937;
+  --lp-ink-3:       #6b7280;
+  --lp-ink-4:       #9ca3af;
+  --lp-ink-5:       #c9cdd6;
+  --lp-header-bg:   rgba(248,248,252,0.92);
+  --lp-hero-fade:   #f8f8fc;
+
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -50,6 +67,23 @@
 }
 
 .dark {
+  /* Landing page tokens — dark mode */
+  --lp-page:        #06060a;
+  --lp-card:        #0d0d12;
+  --lp-card-raised: #0f0f16;
+  --lp-card-subtle: rgba(255,255,255,0.03);
+  --lp-card-glass:  rgba(13,13,18,0.88);
+  --lp-border:      rgba(255,255,255,0.08);
+  --lp-border-faint:rgba(255,255,255,0.05);
+  --lp-border-strong:rgba(255,255,255,0.18);
+  --lp-ink:         #ffffff;
+  --lp-ink-2:       rgba(255,255,255,0.80);
+  --lp-ink-3:       rgba(255,255,255,0.50);
+  --lp-ink-4:       rgba(255,255,255,0.28);
+  --lp-ink-5:       rgba(255,255,255,0.15);
+  --lp-header-bg:   rgba(6,6,10,0.88);
+  --lp-hero-fade:   #06060a;
+
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.185 0 0);
@@ -227,22 +261,31 @@
   animation: float-y 5s ease-in-out infinite;
 }
 
-/* ── 3D landing page animations ─────────────────────────────────── */
+/* ── Landing page CSS utilities ──────────────────────────────────── */
+/*
+  Use these classes in landing.tsx instead of dark: Tailwind pairs.
+  Dark mode is handled by the .dark CSS variable overrides above.
+*/
 
-/* perspective grid that recedes to horizon */
-@utility bg-grid {
-  background-image:
-    linear-gradient(rgba(249 115 22 / 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(249 115 22 / 0.07) 1px, transparent 1px);
-  background-size: 60px 60px;
-}
+/* backgrounds */
+@utility lp-page        { background-color: var(--lp-page); }
+@utility lp-card        { background-color: var(--lp-card); }
+@utility lp-card-raised { background-color: var(--lp-card-raised); }
+@utility lp-card-subtle { background-color: var(--lp-card-subtle); }
+@utility lp-card-glass  { background-color: var(--lp-card-glass); }
+@utility lp-header-bg   { background-color: var(--lp-header-bg); }
 
-@utility bg-grid-sm {
-  background-image:
-    linear-gradient(rgba(249 115 22 / 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(249 115 22 / 0.04) 1px, transparent 1px);
-  background-size: 30px 30px;
-}
+/* borders */
+@utility lp-border       { border-color: var(--lp-border); }
+@utility lp-border-faint { border-color: var(--lp-border-faint); }
+@utility lp-border-strong{ border-color: var(--lp-border-strong); }
+
+/* text hierarchy */
+@utility lp-ink   { color: var(--lp-ink); }
+@utility lp-ink-2 { color: var(--lp-ink-2); }
+@utility lp-ink-3 { color: var(--lp-ink-3); }
+@utility lp-ink-4 { color: var(--lp-ink-4); }
+@utility lp-ink-5 { color: var(--lp-ink-5); }
 
 /* gradient text */
 @utility text-gradient-orange {
@@ -252,17 +295,25 @@
   background-clip: text;
 }
 
-@utility text-gradient-white {
-  background: linear-gradient(180deg, #111827 60%, rgba(17,24,39,0.6) 100%);
+@utility text-gradient-hero {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  background-image: linear-gradient(180deg, var(--lp-ink) 60%, var(--lp-ink-3) 100%);
 }
-.dark .text-gradient-white {
-  background: linear-gradient(180deg, #ffffff 60%, rgba(255,255,255,0.5) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+
+/* perspective grid */
+@utility bg-grid {
+  background-image:
+    linear-gradient(rgba(249 115 22 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(249 115 22 / 0.07) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+@utility bg-grid-sm {
+  background-image:
+    linear-gradient(rgba(249 115 22 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(249 115 22 / 0.04) 1px, transparent 1px);
+  background-size: 30px 30px;
 }
 
 /* beam scan */
