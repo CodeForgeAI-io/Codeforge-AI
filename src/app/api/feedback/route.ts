@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendEmail } from "@/lib/mailer";
+import { createIssue, isGithubFeedbackEnabled } from "@/lib/github";
 import { APP_NAME } from "@/lib/constants";
 
 const feedbackSchema = z.object({
@@ -14,6 +15,13 @@ const TYPE_LABELS: Record<string, string> = {
   feature: "Feature Request",
   bug: "Bug Report",
   issue: "Issue / Other",
+};
+
+// Map feedback types to GitHub's default repository labels.
+const TYPE_GH_LABELS: Record<string, string> = {
+  feature: "enhancement",
+  bug: "bug",
+  issue: "question",
 };
 
 export async function POST(req: NextRequest) {
@@ -46,18 +54,52 @@ export async function POST(req: NextRequest) {
     </div>
   `;
 
+  // Primary channel: open a GitHub issue (if configured).
+  let issueCreated = false;
+  let issueUrl: string | undefined;
+  if (isGithubFeedbackEnabled()) {
+    const issueBody = [
+      description,
+      "",
+      "---",
+      `**Type:** ${typeLabel}`,
+      `**Submitted by:** ${from}`,
+      `_Opened automatically from the ${APP_NAME} feedback form._`,
+    ].join("\n");
+
+    try {
+      const issue = await createIssue({
+        title: `[${typeLabel}] ${title}`,
+        body: issueBody,
+        labels: ["feedback", TYPE_GH_LABELS[type]].filter(Boolean),
+      });
+      issueCreated = true;
+      issueUrl = issue.url;
+    } catch (err) {
+      console.error("[feedback] GitHub issue creation failed:", err);
+    }
+  }
+
+  // Secondary channel: email notification (best-effort).
+  let emailSent = false;
   try {
     await sendEmail({
       to: process.env.SMTP_USER ?? "info@setups.works",
       subject: `[${APP_NAME} Feedback] [${typeLabel}] ${title}`,
       html,
     });
-  } catch {
+    emailSent = true;
+  } catch (err) {
+    console.error("[feedback] Email notification failed:", err);
+  }
+
+  // Succeed if at least one channel went through.
+  if (!issueCreated && !emailSent) {
     return NextResponse.json(
-      { error: "Could not send feedback. Please try again later." },
-      { status: 500 },
+      { error: "Could not submit feedback. Please try again later." },
+      { status: 502 },
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, issueUrl });
 }
