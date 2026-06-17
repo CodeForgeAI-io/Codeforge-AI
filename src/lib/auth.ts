@@ -72,6 +72,7 @@ const providers = [
         GitHub({
           clientId: process.env.GITHUB_CLIENT_ID,
           clientSecret: process.env.GITHUB_CLIENT_SECRET,
+          authorization: { params: { scope: "read:user user:email" } },
         }),
       ]
     : []),
@@ -83,40 +84,66 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     ...authConfig.callbacks,
 
-    async signIn({ user, account }) {
-      if (!user.email) return false;
+    async signIn({ user, account, profile }) {
       if (account?.provider === "credentials") return true;
 
-      // OAuth: provision or update the user record (JWT strategy, no adapter)
-      await connectDB();
-      const existing = await User.findOne({
-        email: user.email.toLowerCase(),
-      });
+      // Some providers (notably GitHub) omit the email when it's private or the
+      // app lacks email permission. Fall back to the provider-supplied value
+      // before giving up, so sign-in doesn't fail with an opaque AccessDenied.
+      const ghId = (profile as { id?: number | string } | undefined)?.id;
+      const ghLogin = (profile as { login?: string } | undefined)?.login;
+      const fallbackEmail =
+        (profile as { email?: string } | undefined)?.email ??
+        (account?.provider === "github" && (ghLogin || ghId)
+          ? `${ghId ?? ghLogin}+${ghLogin ?? "user"}@users.noreply.github.com`
+          : undefined);
+      const email = (user.email ?? fallbackEmail)?.toLowerCase();
 
-      if (existing?.banned) return false;
-
-      if (existing) {
-        if (account && !existing.providers.includes(account.provider)) {
-          existing.providers.push(account.provider);
-        }
-        if (!existing.image && user.image) existing.image = user.image;
-        await existing.save();
-        return true;
+      if (!email) {
+        console.error(
+          `[auth] OAuth sign-in denied: no email from provider "${account?.provider}". ` +
+            `Grant the app email-read permission (or make your email public).`,
+        );
+        return false;
       }
+      // Persist the resolved email so the jwt callback can find the user.
+      user.email = email;
 
-      const username = await generateUniqueUsername(
-        user.email.split("@")[0] ?? user.name ?? "coder",
-      );
-      await User.create({
-        name: user.name ?? username,
-        username,
-        email: user.email.toLowerCase(),
-        image: user.image ?? null,
-        password: null,
-        providers: [account?.provider ?? "oauth"],
-        role: isAdminEmail(user.email) ? "admin" : "user",
-      });
-      return true;
+      try {
+        // OAuth: provision or update the user record (JWT strategy, no adapter)
+        await connectDB();
+        const existing = await User.findOne({ email });
+
+        if (existing?.banned) return false;
+
+        if (existing) {
+          const providers: string[] = existing.providers ?? [];
+          if (account && !providers.includes(account.provider)) {
+            providers.push(account.provider);
+            existing.providers = providers;
+          }
+          if (!existing.image && user.image) existing.image = user.image;
+          await existing.save();
+          return true;
+        }
+
+        const username = await generateUniqueUsername(
+          email.split("@")[0] ?? user.name ?? "coder",
+        );
+        await User.create({
+          name: user.name ?? username,
+          username,
+          email,
+          image: user.image ?? null,
+          password: null,
+          providers: [account?.provider ?? "oauth"],
+          role: isAdminEmail(email) ? "admin" : "user",
+        });
+        return true;
+      } catch (err) {
+        console.error("[auth] OAuth provisioning failed:", err);
+        return false;
+      }
     },
 
     async jwt({ token, user, trigger }) {
