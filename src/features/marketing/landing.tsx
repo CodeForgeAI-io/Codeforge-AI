@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { PricingCards } from "@/features/subscription/pricing-cards";
+import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   motion,
@@ -11,6 +11,7 @@ import {
   useSpring,
   useTransform,
   animate,
+  AnimatePresence,
 } from "framer-motion";
 import {
   ArrowRight,
@@ -20,13 +21,11 @@ import {
   BookOpen,
   Bookmark,
   Bot,
-  Braces,
   Brain,
   Building2,
   CheckCircle2,
   ChevronDown,
   Code2,
-  FileText,
   Flame,
   GraduationCap,
   LineChart,
@@ -34,21 +33,29 @@ import {
   MessageSquare,
   MessageSquareText,
   MonitorPlay,
-  Paintbrush,
   RefreshCw,
   Sparkles,
+  Star,
   StickyNote,
   Target,
   Trophy,
-  UserPlus,
   Users,
   Zap,
+  Braces,
+  Paintbrush,
+  FileText,
+  Menu,
+  X,
+  Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/shared/logo";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { DifficultyBadge } from "@/components/shared/difficulty-badge";
+const PricingCards = dynamic(
+  () => import("@/features/subscription/pricing-cards").then((m) => m.PricingCards),
+  { ssr: false, loading: () => <div className="h-96 animate-pulse rounded-2xl lp-card" /> },
+);
 import { APP_NAME, LANGUAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -60,164 +67,150 @@ export interface LandingProblem {
   acceptanceRate: number | null;
 }
 
-/* ── content ─────────────────────────────────────────────────────── */
+/* ── data ─────────────────────────────────────────────────────────── */
 
 const STATS = [
-  { value: 12, suffix: "", label: "Programming languages" },
-  { value: 40, suffix: "+", label: "Topic categories" },
-  { value: 26, suffix: "+", label: "Platform features" },
+  { value: 500, suffix: "+", label: "Problems solved daily" },
+  { value: 12, suffix: "", label: "Languages supported" },
   { value: 9, suffix: "", label: "AI-powered tools" },
+  { value: 26, suffix: "+", label: "Platform features" },
 ];
 
-const STEPS = [
-  { icon: UserPlus, title: "Create your free account", description: "Sign up with email, Google or GitHub. Pick your track — DSA, frontend, or both." },
-  { icon: Code2, title: "Solve real interview problems", description: "Code in a full VS Code-style editor, run against hidden test cases, get instant verdicts." },
-  { icon: Trophy, title: "Level up and get hired", description: "Earn XP, keep your streak alive, climb the leaderboard and walk into interviews prepared." },
-];
+const COMPANY_LOGOS = ["Google", "Meta", "Amazon", "Microsoft", "Netflix", "Uber", "Atlassian", "Apple"];
 
-const FEATURE_GROUPS = [
+const BENTO_FEATURES = [
   {
-    group: "Core Platform",
-    color: "text-primary",
-    bg: "bg-primary/5 border-primary/20",
+    size: "large",
     icon: Code2,
-    features: [
-      { icon: Braces, title: "DSA Problems", description: "Curated interview questions in 12 languages with hidden test cases, instant verdicts and editorials." },
-      { icon: Paintbrush, title: "Frontend Challenges", description: "Build real UIs in an in-browser sandbox with live preview, console and design review." },
-      { icon: MonitorPlay, title: "Mock Interviews", description: "Timed sessions with a question queue and AI performance report." },
-      { icon: Trophy, title: "Contests", description: "Weekly contests, daily challenges and live leaderboards." },
-      { icon: Building2, title: "Company Prep", description: "Question sets modeled on Google, Amazon, Meta and more." },
-      { icon: Map, title: "Learning Roadmaps", description: "Structured paths from arrays to DP and from HTML to architecture." },
-    ],
+    title: "VS Code–style Editor",
+    description: "Full IntelliSense, multi-tab editing, 12 languages, hidden test cases — everything your local setup has, zero config needed.",
+    color: "#f97316",
+    demo: "editor",
   },
   {
-    group: "AI Suite",
-    color: "text-purple-500",
-    bg: "bg-purple-500/5 border-purple-500/20",
-    icon: Sparkles,
-    features: [
-      { icon: Bot, title: "AI Mentor", description: "Progressive hints, complexity analysis and debugging inside the editor." },
-      { icon: Users, title: "AI Pair Programmer", description: "Real-time streaming AI co-pilot that thinks through problems with you." },
-      { icon: GraduationCap, title: "AI Learning Coach", description: "Personalized coaching based on your solving history and weak areas." },
-      { icon: BookOpen, title: "AI Study Planner", description: "Multi-week personalized study plans based on your goal and schedule." },
-      { icon: Map, title: "AI Roadmap Generator", description: "Enter any career goal and get a phased learning roadmap instantly." },
-      { icon: BarChart3, title: "Complexity Visualizer", description: "Paste code and get a detailed Big-O time & space analysis with loop breakdown." },
-      { icon: Trophy, title: "AI Contest Generator", description: "Generate custom coding contests on any theme in seconds." },
-      { icon: FileText, title: "AI Resume Analyzer", description: "ATS score, missing keywords and improvement suggestions for your resume." },
-      { icon: Code2, title: "AI Code Reviewer", description: "Correctness, readability, performance and best practices scored out of 10." },
-    ],
+    size: "medium",
+    icon: Bot,
+    title: "AI Mentor",
+    description: "Progressive hints, complexity analysis and debugging that nudges — never spoils.",
+    color: "#a855f7",
+    demo: "mentor",
   },
   {
-    group: "Community",
-    color: "text-blue-500",
-    bg: "bg-blue-500/5 border-blue-500/20",
-    icon: MessageSquare,
-    features: [
-      { icon: MessageSquare, title: "Discussion Forum", description: "Per-problem threads with solutions, Q&A, upvotes and AI summaries." },
-      { icon: StickyNote, title: "Personal Notes", description: "Private markdown notes attached to each problem. Save learning points." },
-      { icon: Bookmark, title: "Bookmarks", description: "Save problems and challenges to review-later lists." },
-      { icon: Users, title: "Follow System", description: "Follow top coders, view activity feed and public achievements." },
-    ],
-  },
-  {
-    group: "Learning Intelligence",
-    color: "text-green-600",
-    bg: "bg-green-500/5 border-green-500/20",
-    icon: Brain,
-    features: [
-      { icon: Target, title: "Weakness Detection", description: "Analyze your acceptance rate per category and get targeted recommendations." },
-      { icon: Brain, title: "Smart Revision", description: "SM-2 spaced repetition — review cards at the scientifically optimal moment." },
-      { icon: LineChart, title: "Skill Analytics", description: "Topic mastery map, trend analysis and interview readiness prediction." },
-      { icon: Zap, title: "Daily Plan", description: "Auto-generated daily problem set based on your weaknesses and history." },
-    ],
-  },
-  {
-    group: "Gamification",
-    color: "text-orange-500",
-    bg: "bg-orange-500/5 border-orange-500/20",
+    size: "small",
     icon: Flame,
-    features: [
-      { icon: Flame, title: "Daily Streaks", description: "Maintain streaks to earn bonus XP and unlock exclusive achievements." },
-      { icon: Zap, title: "XP & Levels", description: "Earn XP for every problem solved, level up and show your rank." },
-      { icon: Award, title: "Achievement Badges", description: "Unlock 30+ badges for milestones: first solve, 100-day streak, speed runs." },
-      { icon: Trophy, title: "Leaderboard", description: "Compete globally or with friends on weekly and all-time leaderboards." },
+    title: "Daily Streaks",
+    description: "Keep your streak alive for bonus XP and exclusive badges.",
+    color: "#f97316",
+    demo: null,
+  },
+  {
+    size: "small",
+    icon: BarChart3,
+    title: "Skill Analytics",
+    description: "Mastery map, trend analysis and readiness score.",
+    color: "#22c55e",
+    demo: null,
+  },
+  {
+    size: "medium",
+    icon: Brain,
+    title: "Spaced Repetition",
+    description: "SM-2 algorithm schedules reviews at the scientifically optimal moment — cement patterns permanently.",
+    color: "#3b82f6",
+    demo: "revision",
+  },
+  {
+    size: "small",
+    icon: Trophy,
+    title: "Contests",
+    description: "Weekly contests, daily challenges, live leaderboards.",
+    color: "#eab308",
+    demo: null,
+  },
+  {
+    size: "small",
+    icon: Building2,
+    title: "Company Prep",
+    description: "Google, Meta, Amazon, Microsoft question sets.",
+    color: "#06b6d4",
+    demo: null,
+  },
+];
+
+const AI_FEATURES = [
+  {
+    icon: Bot,
+    title: "AI Mentor",
+    badge: "live",
+    badgeColor: "text-green-400",
+    color: "#a855f7",
+    messages: [
+      { role: "user", text: "Why is my solution O(n²)?" },
+      { role: "ai", text: "Your nested loop checks every pair. Use a hash map to look up complements in O(1) — bringing it to O(n). 🎯" },
     ],
+    chips: ["Hint", "Debug", "Complexity", "Optimize"],
+  },
+  {
+    icon: Users,
+    title: "AI Pair Programmer",
+    badge: "streaming",
+    badgeColor: "text-orange-400",
+    color: "#f97316",
+    messages: [
+      { role: "user", text: "My DFS keeps timing out on large graphs" },
+      { role: "ai", text: "You're creating a new visited Set inside each call. Move it outside — that's O(n²) → O(n) instantly" },
+    ],
+    chips: ["Explain", "Refactor", "Test", "Review"],
+  },
+  {
+    icon: GraduationCap,
+    title: "Learning Coach",
+    badge: "personalized",
+    badgeColor: "text-blue-400",
+    color: "#3b82f6",
+    stats: { score: 72, focus: "Dynamic Programming", ready: "6 weeks", strong: "Arrays 91%" },
   },
 ];
 
 const TESTIMONIALS = [
-  { name: "Priya S.", role: "SDE @ a FAANG company", quote: "The AI mentor is the closest thing to having a senior engineer next to you. It nudged me toward the pattern without spoiling the answer — that's how I finally internalized sliding window." },
-  { name: "Marcus T.", role: "Frontend Engineer", quote: "Every other platform ignores frontend folks. The sandbox challenges with AI design review are exactly what I practiced before my React interviews." },
-  { name: "Aditi R.", role: "CS Student", quote: "The streak heatmap is dangerously motivating. 94 days and counting — and I went from failing easies to clearing mediums in one sitting." },
-  { name: "Rohan K.", role: "Backend Dev → SDE-2", quote: "The AI Pair Programmer and the Spaced Repetition system together changed how I retain algorithms. I stopped forgetting patterns after 2 weeks." },
-  { name: "Sara M.", role: "Final Year Student", quote: "Generated my entire 8-week study plan in 30 seconds with AI Study Planner. It even accounted for my weak topics. Incredible." },
-  { name: "James L.", role: "Senior SDE", quote: "The weakness detection pinpointed that my graph acceptance rate was 20%. Focused there for 3 weeks and now it's 85%. Data-driven practice works." },
+  { name: "Priya S.", role: "SDE @ FAANG", avatar: "P", quote: "The AI mentor is the closest thing to having a senior engineer next to you. Finally internalized sliding window.", stars: 5 },
+  { name: "Marcus T.", role: "Frontend Engineer", avatar: "M", quote: "Every other platform ignores frontend folks. The sandbox challenges with AI design review are exactly what I needed.", stars: 5 },
+  { name: "Aditi R.", role: "CS Student", avatar: "A", quote: "94-day streak and counting — went from failing easies to clearing mediums in one sitting.", stars: 5 },
+  { name: "Rohan K.", role: "Backend Dev → SDE-2", avatar: "R", quote: "AI Pair Programmer + Spaced Repetition changed how I retain algorithms. Stopped forgetting patterns after 2 weeks.", stars: 5 },
+  { name: "Sara M.", role: "Final Year Student", avatar: "S", quote: "Generated my entire 8-week study plan in 30 seconds. It even accounted for my weak topics.", stars: 5 },
+  { name: "James L.", role: "Senior SDE", avatar: "J", quote: "Weakness detection pinpointed my graph acceptance was 20%. Three weeks later it's 85%. Data-driven practice works.", stars: 5 },
 ];
 
 const FAQS = [
-  { q: "Is CodeForge AI really free?", a: "Yes. Solving problems, frontend challenges, contests, roadmaps, all AI tools and the discussion forum are completely free. Just create an account." },
-  { q: "Which languages can I solve problems in?", a: "JavaScript, TypeScript, Python, Java, C, C++, C#, Go, PHP, Rust, Kotlin and Swift — all executed in a secure cloud sandbox." },
-  { q: "How does the AI mentor work?", a: "It sees the problem and your current code, giving you hints, debugging help, complexity analysis and coaching without dumping the full solution." },
-  { q: "What is spaced repetition and how does it work?", a: "The SM-2 algorithm schedules problem reviews at increasing intervals based on how well you recalled the solution. You'll review Two Sum at day 1, then day 6, then day 14 — cementing the pattern." },
-  { q: "Can I prepare for a specific company?", a: "Yes. Pick a company set (Google, Amazon, Microsoft, Meta, Netflix, Uber, Atlassian) and track your progress against its question patterns." },
-  { q: "What is the AI Pair Programmer?", a: "It's a real-time streaming AI that reads your code and converses with you — suggest approaches, debug errors, explain concepts and review your solution, just like a teammate would." },
+  { q: "Is CodeForge AI really free?", a: "Yes. Problems, frontend challenges, contests, roadmaps, all 9 AI tools and the forum are completely free. Just create an account." },
+  { q: "Which languages can I code in?", a: "JavaScript, TypeScript, Python, Java, C, C++, C#, Go, PHP, Rust, Kotlin and Swift — all in a secure cloud sandbox." },
+  { q: "How does the AI mentor differ from just asking ChatGPT?", a: "It sees your exact problem statement and current code in real-time, so hints are specific to your approach — not generic. It also won't give you the full solution, by design." },
+  { q: "What is spaced repetition?", a: "The SM-2 algorithm schedules problem reviews at increasing intervals based on recall quality. You review Two Sum at day 1, day 6, day 14 — cementing the pattern." },
+  { q: "Can I prepare for specific companies?", a: "Yes — pick Google, Amazon, Microsoft, Meta, Netflix, Uber or Atlassian and track your progress against each company's question patterns." },
+  { q: "What's the AI Pair Programmer?", a: "A real-time streaming AI that reads your code and converses with you — suggests approaches, debugs errors, explains concepts. Like a teammate who never sleeps." },
 ];
 
-const FOOTER_COLUMNS = [
-  { heading: "Platform", links: [
-    { label: "Problems", href: "/problems" },
-    { label: "Frontend Challenges", href: "/challenges" },
-    { label: "Contests", href: "/contests" },
-    { label: "Roadmaps", href: "/roadmaps" },
-    { label: "Leaderboard", href: "/leaderboard" },
-  ]},
-  { heading: "Learn", links: [
-    { label: "Weakness Detection", href: "/weakness" },
-    { label: "Smart Revision", href: "/revision" },
-    { label: "Skill Analytics", href: "/analytics" },
-    { label: "Daily Plan", href: "/weakness" },
-  ]},
-  { heading: "AI Tools", links: [
-    { label: "Learning Coach", href: "/ai-tools" },
-    { label: "Pair Programmer", href: "/ai-tools" },
-    { label: "Study Planner", href: "/ai-tools" },
-    { label: "Roadmap Generator", href: "/ai-tools" },
-    { label: "Resume Analyzer", href: "/ai-tools" },
-  ]},
-  { heading: "Community", links: [
-    { label: "Forum", href: "/forum" },
-    { label: "Discussions", href: "/discuss" },
-    { label: "My Notes", href: "/notes" },
-    { label: "Bookmarks", href: "/bookmarks" },
-    { label: "Company Prep", href: "/companies" },
-    { label: "Mock Interviews", href: "/interview" },
-  ]},
+const STEPS = [
+  { n: "01", icon: Users, title: "Create your free account", description: "Sign up with email, Google or GitHub. Pick your track: DSA, Frontend, or both. Takes 30 seconds.", color: "#f97316" },
+  { n: "02", icon: Code2, title: "Solve, practice, and learn", description: "Code in a full VS Code-style editor. AI mentor gives hints. Spaced repetition locks in patterns.", color: "#a855f7" },
+  { n: "03", icon: Trophy, title: "Level up and get hired", description: "Earn XP, maintain streaks, climb leaderboards, and walk into any interview fully prepared.", color: "#22c55e" },
 ];
+
+const FOOTER_COLS = [
+  { heading: "Platform", links: [{ label: "Problems", href: "/problems" }, { label: "Challenges", href: "/challenges" }, { label: "Contests", href: "/contests" }, { label: "Roadmaps", href: "/roadmaps" }, { label: "Leaderboard", href: "/leaderboard" }] },
+  { heading: "Learn", links: [{ label: "Weakness Detection", href: "/weakness" }, { label: "Smart Revision", href: "/revision" }, { label: "Skill Analytics", href: "/analytics" }, { label: "Daily Plan", href: "/weakness" }] },
+  { heading: "AI Tools", links: [{ label: "Learning Coach", href: "/ai-tools" }, { label: "Pair Programmer", href: "/ai-tools" }, { label: "Study Planner", href: "/ai-tools" }, { label: "Resume Analyzer", href: "/ai-tools" }] },
+  { heading: "Community", links: [{ label: "Forum", href: "/forum" }, { label: "Discussions", href: "/discuss" }, { label: "Notes", href: "/notes" }, { label: "Company Prep", href: "/companies" }] },
+];
+
+/* ── motion helpers ───────────────────────────────────────────────── */
 
 const fadeUp = {
-  initial: { opacity: 0, y: 22 },
+  initial: { opacity: 0, y: 28 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-60px" },
-  transition: { duration: 0.5 },
+  transition: { duration: 0.55 },
 };
-
-/* ── motion building blocks ────────────────────────────────────── */
-
-function TiltCard({ children, className, max = 8 }: { children: React.ReactNode; className?: string; max?: number }) {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [max, -max]), { stiffness: 200, damping: 20 });
-  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-max, max]), { stiffness: 200, damping: 20 });
-  return (
-    <div style={{ perspective: 1200 }} className={className}>
-      <motion.div
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        onMouseMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); x.set((e.clientX - r.left) / r.width - 0.5); y.set((e.clientY - r.top) / r.height - 0.5); }}
-        onMouseLeave={() => { x.set(0); y.set(0); }}
-      >{children}</motion.div>
-    </div>
-  );
-}
 
 function CountUp({ value, suffix }: { value: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -225,457 +218,757 @@ function CountUp({ value, suffix }: { value: number; suffix: string }) {
   const [display, setDisplay] = useState(0);
   useEffect(() => {
     if (!inView) return;
-    const controls = animate(0, value, { duration: 1.2, ease: "easeOut", onUpdate: (v) => setDisplay(Math.round(v)) });
+    const controls = animate(0, value, { duration: 1.4, ease: "easeOut", onUpdate: (v) => setDisplay(Math.round(v)) });
     return () => controls.stop();
   }, [inView, value]);
   return <span ref={ref}>{display}{suffix}</span>;
 }
 
-function Cube3D({ size = 88, className }: { size?: number; className?: string }) {
+function TiltCard({ children, className, max = 8 }: { children: React.ReactNode; className?: string; max?: number }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [max, -max]), { stiffness: 180, damping: 18 });
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-max, max]), { stiffness: 180, damping: 18 });
+  return (
+    <div style={{ perspective: 1200 }} className={className}>
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        onMouseMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); x.set((e.clientX - r.left) / r.width - 0.5); y.set((e.clientY - r.top) / r.height - 0.5); }}
+        onMouseLeave={() => { x.set(0); y.set(0); }}
+        className="h-full"
+      >{children}</motion.div>
+    </div>
+  );
+}
+
+function Cube3D({ size = 80, className }: { size?: number; className?: string }) {
   const half = size / 2;
   const faces = [
     { transform: `rotateY(0deg) translateZ(${half}px)`, label: "{ }" },
     { transform: `rotateY(90deg) translateZ(${half}px)`, label: "</>" },
-    { transform: `rotateY(180deg) translateZ(${half}px)`, label: "λ" },
-    { transform: `rotateY(-90deg) translateZ(${half}px)`, label: "fn" },
+    { transform: `rotateY(180deg) translateZ(${half}px)`, label: "fn()" },
+    { transform: `rotateY(-90deg) translateZ(${half}px)`, label: "λ" },
     { transform: `rotateX(90deg) translateZ(${half}px)`, label: "++" },
     { transform: `rotateX(-90deg) translateZ(${half}px)`, label: "()" },
   ];
   return (
     <div className={cn("pointer-events-none", className)} style={{ width: size, height: size, perspective: 600 }} aria-hidden>
       <div className="cube-3d relative h-full w-full">
-        {faces.map((f) => <div key={f.label} className="cube-face" style={{ transform: f.transform, fontSize: size / 5 }}>{f.label}</div>)}
+        {faces.map((f) => (
+          <div key={f.label} className="cube-face" style={{ transform: f.transform, fontSize: size / 5 }}>{f.label}</div>
+        ))}
       </div>
     </div>
   );
 }
 
-function SectionHeading({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle?: string }) {
+function OrbitSphere({ size = 120, className }: { size?: number; className?: string }) {
   return (
-    <motion.div {...fadeUp} className="mx-auto max-w-2xl text-center">
-      <p className="mb-3 text-sm font-bold uppercase tracking-widest text-primary">{eyebrow}</p>
-      <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
-      {subtitle && <p className="mt-3 text-muted-foreground">{subtitle}</p>}
-    </motion.div>
+    <div className={cn("pointer-events-none relative flex items-center justify-center", className)} style={{ width: size, height: size }} aria-hidden>
+      {/* core glow */}
+      <div className="absolute rounded-full bg-orange-500/20 blur-xl" style={{ width: size * 0.5, height: size * 0.5 }} />
+      <div className="absolute rounded-full border border-orange-500/20 animate-orbit" style={{ width: size, height: size }} />
+      <div className="absolute rounded-full border border-purple-500/20 animate-orbit-reverse" style={{ width: size * 0.75, height: size * 0.75 }} />
+      <div className="absolute rounded-full border border-orange-400/30" style={{ width: size * 0.5, height: size * 0.5, transform: "rotateX(60deg)" }} />
+      <div className="size-2 rounded-full bg-orange-400" />
+    </div>
   );
 }
 
-/* ── page ────────────────────────────────────────────────────────── */
+function GlowOrb({ color = "#f97316", size = 400, className }: { color?: string; size?: number; className?: string }) {
+  return (
+    <div
+      aria-hidden
+      className={cn("pointer-events-none absolute rounded-full", className)}
+      style={{ width: size, height: size, background: color, filter: `blur(${size * 0.35}px)`, opacity: 0.12 }}
+    />
+  );
+}
+
+function Particle({ delay = 0, x = 0, y = 0 }: { delay?: number; x?: number; y?: number }) {
+  return (
+    <motion.div
+      aria-hidden
+      className="absolute size-1 rounded-full bg-orange-400/60"
+      style={{ left: `${x}%`, top: `${y}%` }}
+      animate={{ y: [0, -30, 0], opacity: [0.4, 0.9, 0.4], scale: [1, 1.5, 1] }}
+      transition={{ duration: 4 + delay, repeat: Infinity, delay, ease: "easeInOut" }}
+    />
+  );
+}
+
+function SectionLabel({ text }: { text: string }) {
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-orange-400">
+      <span className="size-1.5 rounded-full bg-orange-400" />
+      {text}
+    </div>
+  );
+}
+
+/* ── Typing text animation ──────────────────────────────────────── */
+function TypingText({ texts, className }: { texts: string[]; className?: string }) {
+  const [idx, setIdx] = useState(0);
+  const [displayed, setDisplayed] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const target = texts[idx];
+    const speed = isDeleting ? 40 : 80;
+    const timeout = setTimeout(() => {
+      if (!isDeleting && displayed === target) {
+        setTimeout(() => setIsDeleting(true), 1800);
+        return;
+      }
+      if (isDeleting && displayed === "") {
+        setIsDeleting(false);
+        setIdx((i) => (i + 1) % texts.length);
+        return;
+      }
+      setDisplayed(isDeleting ? displayed.slice(0, -1) : target.slice(0, displayed.length + 1));
+    }, speed);
+    return () => clearTimeout(timeout);
+  }, [displayed, isDeleting, idx, texts]);
+
+  return (
+    <span className={className}>
+      {displayed}
+      <span className="animate-blink ml-0.5 inline-block h-[0.9em] w-0.5 align-middle bg-orange-400" />
+    </span>
+  );
+}
+
+/* ── smooth scroll (900 ms, cubic ease-out) ─────────────────────── */
+function slowScrollTo(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const target = el.getBoundingClientRect().top + window.scrollY - 72; // 72 = header height
+  const start = window.scrollY;
+  const distance = target - start;
+  const duration = 900;
+  let startTime: number | null = null;
+  function step(now: number) {
+    if (!startTime) startTime = now;
+    const p = Math.min((now - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    window.scrollTo(0, start + distance * ease);
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ── main page ────────────────────────────────────────────────────── */
 
 export function Landing({ signedIn, problems, totalProblems }: { signedIn: boolean; problems: LandingProblem[]; totalProblems: number }) {
   const ctaHref = signedIn ? "/dashboard" : "/register";
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const floatSlow = useTransform(scrollYProgress, [0, 1], [0, -60]);
-  const floatFast = useTransform(scrollYProgress, [0, 1], [0, -120]);
+  const y1 = useTransform(scrollYProgress, [0, 1], [0, -80]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [0, -140]);
+  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  const [mobileMenu, setMobileMenu] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  // Fewer particles — each one spawns a Framer Motion node
+  const particles = [
+    { x: 10, y: 20, delay: 0 }, { x: 85, y: 15, delay: 1.2 },
+    { x: 45, y: 70, delay: 2.4 }, { x: 70, y: 40, delay: 0.8 },
+    { x: 20, y: 65, delay: 1.9 }, { x: 92, y: 55, delay: 3 },
+  ];
+
+  // Intercept anchor (#section) links for slow smooth scroll
+  const navClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    const href = e.currentTarget.getAttribute("href") ?? "";
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      slowScrollTo(href.slice(1));
+    }
+  }, []);
 
   return (
-    <div className="min-h-svh bg-background">
-      {/* ── header ── */}
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+    /* force dark mode for consistent dark landing aesthetic */
+    <div className="min-h-svh lp-page lp-ink">
+
+      {/* ── HEADER ─────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50 border-b lp-border-faint lp-header-bg backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
           <Logo />
-          <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
-            <Link href="/problems" className="flex items-center gap-1 hover:text-foreground">
-              Problems
-              <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">{totalProblems > 0 ? totalProblems : "new"}</span>
-            </Link>
-            <Link href="/forum" className="hover:text-foreground">Forum</Link>
-            <a href="#features" className="hover:text-foreground">Features</a>
-            <a href="#ai" className="hover:text-foreground">AI Suite</a>
-            <a href="#pricing" className="hover:text-foreground">Pricing</a>
-            <a href="#faq" className="hover:text-foreground">FAQ</a>
+          <nav className="hidden items-center gap-7 text-sm font-medium lp-ink-3 md:flex">
+            {[
+              ["Problems", "/problems"],
+              ["Features", "#features"],
+              ["AI Suite", "#ai"],
+              ["Pricing", "#pricing"],
+              ["Forum", "/forum"],
+            ].map(([label, href]) => (
+              <a key={label} href={href} onClick={navClick} className="transition-colors duration-300 hover:lp-ink">
+                {label}
+                {label === "Problems" && totalProblems > 0 && (
+                  <span className="ml-1.5 rounded-full bg-orange-500/20 px-1.5 py-0.5 text-[10px] font-bold text-orange-400">{totalProblems}</span>
+                )}
+              </a>
+            ))}
           </nav>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
+          <div className="flex items-center gap-3">
             {signedIn ? (
-              <Button asChild size="sm"><Link href="/dashboard">Dashboard <ArrowRight className="size-4" /></Link></Button>
+              <Button asChild size="sm" className="bg-orange-500 lp-ink hover:bg-orange-600">
+                <Link href="/dashboard">Dashboard <ArrowRight className="size-4" /></Link>
+              </Button>
             ) : (
               <>
-                <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><Link href="/login">Sign in</Link></Button>
-                <Button asChild size="sm"><Link href="/register">Get started</Link></Button>
+                <Button asChild variant="ghost" size="sm" className="hidden lp-ink-2 hover:lp-ink sm:inline-flex">
+                  <Link href="/login">Sign in</Link>
+                </Button>
+                <Button asChild size="sm" className="bg-orange-500 lp-ink hover:bg-orange-600">
+                  <Link href="/register">Get started free</Link>
+                </Button>
               </>
             )}
+            <button className="md:hidden lp-ink-3 hover:lp-ink" onClick={() => setMobileMenu(!mobileMenu)}>
+              {mobileMenu ? <X className="size-5" /> : <Menu className="size-5" />}
+            </button>
           </div>
         </div>
+        <AnimatePresence>
+          {mobileMenu && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+              className="border-t lp-border-faint md:hidden"
+            >
+              <nav className="flex flex-col gap-1 px-4 py-4">
+                {[["Problems", "/problems"], ["Forum", "/forum"], ["Pricing", "#pricing"]].map(([label, href]) => (
+                  <a key={label} href={href} onClick={(e) => { navClick(e); setMobileMenu(false); }} className="rounded-lg px-3 py-2.5 text-sm lp-ink-2 hover:lp-card hover:lp-ink transition-colors duration-300">
+                    {label}
+                  </a>
+                ))}
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       <main>
-        {/* ── hero ── */}
-        <section ref={heroRef} className="relative overflow-hidden border-b">
-          <div aria-hidden className="bg-dots absolute inset-0 mask-[radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
-          <motion.div style={{ y: floatSlow }} aria-hidden className="absolute -right-10 top-24 hidden lg:block">
-            <Cube3D size={96} className="animate-float opacity-80" />
+        {/* ── HERO ───────────────────────────────────────────────────── */}
+        <section ref={heroRef} className="relative min-h-[90vh] overflow-hidden flex items-center">
+          {/* Background */}
+          <div className="absolute inset-0">
+            <div className="bg-grid absolute inset-0 opacity-100" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--lp-hero-fade)]" />
+          </div>
+
+          {/* Glow orbs */}
+          <GlowOrb color="#f97316" size={600} className="-top-40 left-1/4" />
+          <GlowOrb color="#a855f7" size={400} className="top-1/2 right-0" />
+          <GlowOrb color="#3b82f6" size={300} className="bottom-0 left-0" />
+
+          {/* Particles */}
+          <div className="absolute inset-0 overflow-hidden">
+            {particles.map((p, i) => <Particle key={i} {...p} />)}
+          </div>
+
+          {/* 3D decorative elements */}
+          <motion.div style={{ y: y1 }} className="absolute right-12 top-24 hidden xl:block" aria-hidden>
+            <Cube3D size={80} className="opacity-60" />
           </motion.div>
-          <motion.div style={{ y: floatFast }} aria-hidden className="absolute left-6 bottom-16 hidden xl:block">
-            <Cube3D size={56} className="opacity-40" />
+          <motion.div style={{ y: y2 }} className="absolute left-8 bottom-32 hidden xl:block" aria-hidden>
+            <OrbitSphere size={100} className="opacity-50" />
+          </motion.div>
+          <motion.div style={{ y: y1 }} className="absolute right-1/4 bottom-24 hidden lg:block" aria-hidden>
+            <Cube3D size={44} className="opacity-30" />
           </motion.div>
 
-          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 lg:grid-cols-2 lg:py-24">
-            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
-              <Badge variant="outline" className="mb-5 gap-1.5 border-primary/40 bg-primary/5 px-3 py-1 text-primary">
-                <Sparkles className="size-3.5" /> 26+ features · 9 AI tools · 100% free
-              </Badge>
-              <h1 className="text-balance text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl xl:text-[4.2rem]">
-                Forge your skills.
+          <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 lg:grid-cols-[1fr_1.1fr] lg:py-28">
+            {/* Left — text */}
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}>
+                <Badge className="mb-6 gap-2 border border-orange-500/30 bg-orange-500/10 px-4 py-1.5 text-orange-400 hover:bg-orange-500/15">
+                  <Sparkles className="size-3.5" /> 26+ features · 9 AI tools · 100% free
+                </Badge>
+              </motion.div>
+
+              <h1 className="text-balance text-5xl font-black leading-[1.02] tracking-tight sm:text-6xl xl:text-7xl">
+                <span className="text-gradient-hero">Master coding</span>
                 <br />
-                <span className="relative inline-block text-primary">
-                  Ace the interview.
-                  <motion.span initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.7, delay: 0.6 }} className="absolute -bottom-1.5 left-0 h-1.5 w-full origin-left rounded-full bg-primary/30 sm:-bottom-2" />
+                <span className="text-gradient-hero">interviews with</span>
+                <br />
+                <span className="text-gradient-orange animate-gradient bg-gradient-to-r from-orange-400 via-orange-500 to-red-500">
+                  AI power.
                 </span>
               </h1>
-              <p className="mt-6 max-w-lg text-pretty text-lg text-muted-foreground">
-                {APP_NAME} combines LeetCode-style problems, AI pair programming, spaced repetition, discussion forums, skill analytics and 9 AI tools — all in one focused, free platform.
+
+              <p className="mt-6 max-w-lg text-pretty text-lg lp-ink-3 leading-relaxed">
+                The{" "}
+                <span className="lp-ink-2 font-medium">
+                  <TypingText texts={["only platform", "smartest tool", "best way"]} />
+                </span>{" "}
+                that combines LeetCode-style problems, AI pair programming, spaced repetition and skill analytics — all free.
               </p>
+
               <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Button asChild size="lg" className="h-12 px-6 text-base shadow-[4px_4px_0_0] shadow-foreground transition-shadow hover:shadow-[2px_2px_0_0]">
-                  <Link href={ctaHref}>Start solving free <ArrowRight className="size-4" /></Link>
+                <Button asChild size="lg" className="h-12 px-7 text-base bg-orange-500 hover:bg-orange-600 lp-ink transition-all duration-300">
+                  <Link href={ctaHref}>
+                    Start for free <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="h-12 gap-2 lp-border lp-ink-2 lp-card hover:lp-card-raised hover:lp-ink">
+                  <a href="#ai" onClick={navClick}>
+                    <Play className="size-4 fill-current" /> See AI in action
+                  </a>
                 </Button>
               </div>
-              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+
+              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm lp-ink-3">
                 {["No credit card", "12 languages", "9 AI tools", "Community forum"].map((item) => (
                   <span key={item} className="flex items-center gap-1.5">
-                    <CheckCircle2 className="size-4 text-primary" /> {item}
+                    <CheckCircle2 className="size-4 text-orange-400" /> {item}
                   </span>
                 ))}
               </div>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }} className="relative mx-auto w-full max-w-lg">
-              <TiltCard max={7}>
-                <div className="overflow-hidden rounded-xl border-2 border-foreground/80 bg-card shadow-[10px_10px_0_0] shadow-primary">
-                  <div className="flex items-center gap-1.5 border-b bg-muted px-4 py-2.5">
-                    <span className="size-2.5 rounded-full bg-hard" />
-                    <span className="size-2.5 rounded-full bg-medium" />
-                    <span className="size-2.5 rounded-full bg-easy" />
-                    <span className="ml-3 font-mono text-xs text-muted-foreground">two-sum.js</span>
-                    <motion.span initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.4, type: "spring", stiffness: 300 }} className="ml-auto rounded bg-easy/15 px-1.5 py-0.5 text-[10px] font-semibold text-easy">ACCEPTED</motion.span>
+            {/* Right — 3D editor mockup */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="relative mx-auto w-full max-w-xl"
+            >
+              {/* Glow behind card */}
+              <div className="absolute inset-0 rounded-2xl bg-orange-500/15 blur-3xl" />
+
+              <TiltCard max={6}>
+                <div className="relative overflow-hidden rounded-2xl border lp-border lp-card">
+                  {/* Shimmer overlay */}
+                  <div className="animate-shimmer pointer-events-none absolute inset-0 z-10" />
+                  {/* Editor chrome */}
+                  <div className="flex items-center gap-1.5 border-b lp-border-faint lp-card-raised px-4 py-3">
+                    <span className="size-2.5 rounded-full bg-[#ff5f57]" />
+                    <span className="size-2.5 rounded-full bg-[#ffbd2e]" />
+                    <span className="size-2.5 rounded-full bg-[#28c840]" />
+                    <div className="ml-3 flex gap-2">
+                      {["two-sum.js", "binary-search.py"].map((tab, i) => (
+                        <span key={tab} className={cn("rounded px-3 py-1 font-mono text-xs", i === 0 ? "lp-card-raised lp-ink-2" : "lp-ink-4")}>
+                          {tab}
+                        </span>
+                      ))}
+                    </div>
+                    <motion.span
+                      initial={{ opacity: 0, scale: 0.7 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 1.6, type: "spring", stiffness: 260 }}
+                      className="ml-auto rounded-md bg-green-500/20 px-2 py-0.5 text-[10px] font-bold text-green-400 border border-green-500/30"
+                    >
+                      ✓ ACCEPTED
+                    </motion.span>
                   </div>
-                  <pre className="overflow-x-auto p-4 font-mono text-xs leading-relaxed sm:text-[13px]">
+                  {/* Code */}
+                  <pre className="p-5 font-mono text-xs leading-[1.9] sm:text-[13px]">
                     <code>
-                      <span className="text-primary">function</span>{" twoSum(nums, target) {\n"}
-                      {"  "}<span className="text-primary">const</span>{" seen = "}<span className="text-primary">new</span>{" Map();\n"}
-                      {"  "}<span className="text-primary">for</span>{" (let i = 0; i < nums.length; i++) {\n"}
-                      {"    "}<span className="text-primary">const</span>{" need = target - nums[i];\n"}
-                      {"    "}<span className="text-primary">if</span>{" (seen.has(need))\n"}
-                      {"      "}<span className="text-primary">return</span>{" [seen.get(need), i];\n"}
-                      {"    seen.set(nums[i], i);\n"}
-                      {"  }\n"}
-                      {"}\n\n"}
-                      <span className="text-muted-foreground">{"// ✓ 12/12 tests · O(n) time · O(n) space"}</span>
+                      <span className="text-purple-400">function</span>{" "}
+                      <span className="text-blue-400">twoSum</span>
+                      <span className="lp-ink-3">{"(nums, target) {"}</span>{"\n"}
+                      {"  "}<span className="text-purple-400">const</span>{" seen = "}
+                      <span className="text-purple-400">new</span>{" Map();\n"}
+                      {"  "}<span className="text-orange-400">for</span>
+                      {" (let i = 0; i < nums.length; i++) {\n"}
+                      {"    "}<span className="text-purple-400">const</span>{" need = target - nums[i];\n"}
+                      {"    "}<span className="text-orange-400">if</span>{" (seen."}
+                      <span className="text-blue-400">has</span>{"(need))\n"}
+                      {"      "}<span className="text-orange-400">return</span>{" [seen."}
+                      <span className="text-blue-400">get</span>{"(need), i];\n"}
+                      {"    seen."}<span className="text-blue-400">set</span>{"(nums[i], i);\n"}
+                      {"  }\n"}<span className="lp-ink-3">{"}"}</span>{"\n\n"}
+                      <span className="lp-ink-4">{"// ✓ 12/12 tests · O(n) time · O(n) space"}</span>
                     </code>
                   </pre>
+                  {/* Bottom bar */}
+                  <div className="flex items-center gap-4 border-t lp-border-faint lp-card-raised px-4 py-2.5">
+                    <span className="flex items-center gap-1.5 text-[11px] lp-ink-4"><span className="size-1.5 rounded-full bg-green-400" /> JavaScript</span>
+                    <span className="text-[11px] lp-ink-4">Ln 8, Col 1</span>
+                    <span className="ml-auto text-[11px] lp-ink-4">UTF-8</span>
+                  </div>
                 </div>
               </TiltCard>
-              <motion.div style={{ y: floatFast }} className="absolute -left-4 -top-5 sm:-left-10">
-                <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="flex items-center gap-2 rounded-lg border-2 border-foreground/80 bg-background px-3 py-2 shadow-[4px_4px_0_0] shadow-foreground/80">
-                  <Zap className="size-4 text-primary" /><span className="text-sm font-bold">+25 XP</span>
+
+              {/* Floating notification cards */}
+              <motion.div style={{ y: y2 }} className="absolute -left-4 -top-5 sm:-left-12">
+                <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="flex items-center gap-2.5 rounded-xl border border-orange-500/20 lp-card-glass px-3.5 py-2.5 backdrop-blur-sm">
+                  <Zap className="size-4 text-orange-400" />
+                  <div>
+                    <p className="text-xs font-bold lp-ink">+25 XP earned</p>
+                    <p className="text-[10px] lp-ink-3">Two Sum solved</p>
+                  </div>
                 </motion.div>
               </motion.div>
-              <motion.div style={{ y: floatSlow }} className="absolute -bottom-5 -right-3 sm:-right-8">
-                <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }} className="flex items-center gap-2 rounded-lg border-2 border-foreground/80 bg-background px-3 py-2 shadow-[4px_4px_0_0] shadow-foreground/80">
-                  <Flame className="size-4 text-primary" /><span className="text-sm font-bold">14-day streak</span>
+
+              <motion.div style={{ y: y1 }} className="absolute -bottom-5 -right-3 sm:-right-10">
+                <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
+                  className="flex items-center gap-2.5 rounded-xl border border-orange-500/20 lp-card-glass px-3.5 py-2.5 backdrop-blur-sm">
+                  <Flame className="size-4 text-orange-400" />
+                  <div>
+                    <p className="text-xs font-bold lp-ink">🔥 14-day streak</p>
+                    <p className="text-[10px] lp-ink-3">Keep it going!</p>
+                  </div>
                 </motion.div>
               </motion.div>
-              <motion.div style={{ y: floatFast }} className="absolute -right-2 top-1/4 hidden sm:block lg:-right-12">
-                <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1.1 }} className="flex items-center gap-2 rounded-lg border-2 border-foreground/80 bg-primary px-3 py-2 text-primary-foreground shadow-[4px_4px_0_0] shadow-foreground/80">
-                  <Award className="size-4" /><span className="text-sm font-bold">Badge earned!</span>
+
+              <motion.div style={{ y: y2 }} className="absolute right-0 top-1/3 hidden sm:block lg:-right-14">
+                <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.3 }}
+                  className="flex items-center gap-2.5 rounded-xl border border-purple-500/30 lp-card-glass px-3.5 py-2.5 backdrop-blur-sm">
+                  <Award className="size-4 text-purple-400" />
+                  <div>
+                    <p className="text-xs font-bold lp-ink">Badge unlocked!</p>
+                    <p className="text-[10px] lp-ink-3">Speed Solver 🏅</p>
+                  </div>
                 </motion.div>
               </motion.div>
             </motion.div>
           </div>
 
-          {/* language marquee */}
-          <div className="relative border-t bg-muted/40 py-3">
-            <div className="overflow-hidden mask-[linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-              <div className="animate-marquee flex w-max gap-3 hover:paused">
-                {[...LANGUAGES, ...LANGUAGES].map((language, index) => (
-                  <span key={`${language.id}-${index}`} className="flex shrink-0 items-center gap-2 rounded-full border bg-background px-3.5 py-1.5 text-xs font-semibold">
-                    <span className="flex size-5 items-center justify-center rounded bg-foreground font-mono text-[9px] font-bold text-background">{language.extension.slice(0, 2).toUpperCase()}</span>
-                    {language.label}
-                  </span>
-                ))}
+          {/* Language marquee */}
+          <motion.div style={{ opacity }} className="absolute bottom-0 left-0 right-0">
+            <div className="border-t lp-border-faint lp-card-subtle py-3">
+              <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+                <div className="animate-marquee flex w-max gap-3">
+                  {[...LANGUAGES, ...LANGUAGES].map((lang, i) => (
+                    <span key={`${lang.id}-${i}`} className="flex shrink-0 items-center gap-2 rounded-full border lp-border lp-card px-3.5 py-1.5 text-xs font-semibold lp-ink-3">
+                      <span className="flex size-5 items-center justify-center rounded lp-card-raised font-mono text-[9px] font-black">{lang.extension.slice(0, 2).toUpperCase()}</span>
+                      {lang.label}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
+        </section>
 
-          {/* stats strip */}
-          <div className="bg-foreground text-background">
-            <div className="mx-auto grid max-w-6xl grid-cols-2 px-4 sm:grid-cols-4">
-              {STATS.map((stat) => (
-                <div key={stat.label} className="px-4 py-6 text-center">
-                  <p className="text-3xl font-bold text-primary sm:text-4xl"><CountUp value={stat.value} suffix={stat.suffix} /></p>
-                  <p className="mt-1 text-[11px] uppercase tracking-wide opacity-70">{stat.label}</p>
-                </div>
+        {/* ── COMPANY TRUST ─────────────────────────────────────────── */}
+        <section className="border-b lp-border-faint py-14">
+          <div className="mx-auto max-w-7xl px-4">
+            <motion.p {...fadeUp} className="mb-8 text-center text-xs font-semibold uppercase tracking-widest lp-ink-4">
+              Engineers at world-class companies practice here
+            </motion.p>
+            <motion.div {...fadeUp} className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+              {COMPANY_LOGOS.map((name, i) => (
+                <motion.span
+                  key={name}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.06 }}
+                  className="text-sm font-bold tracking-wide lp-ink-5 hover:lp-ink-3 transition-colors cursor-default"
+                >
+                  {name}
+                </motion.span>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
 
-        {/* ── all features ── */}
-        <section id="features" className="border-b">
-          <div className="mx-auto max-w-6xl px-4 py-20">
-            <SectionHeading eyebrow="Everything included" title="26+ features. Zero paywalls." subtitle="One platform for algorithms, frontend, AI tools, community and analytics — completely free." />
-            <div className="mt-14 space-y-14">
-              {FEATURE_GROUPS.map((group, gi) => (
-                <motion.div key={group.group} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.5, delay: gi * 0.05 }}>
-                  <div className="mb-6 flex items-center gap-3">
-                    <div className={cn("flex size-8 items-center justify-center rounded-lg border", group.bg)}>
-                      <group.icon className={cn("size-4", group.color)} />
-                    </div>
-                    <h3 className={cn("text-lg font-bold", group.color)}>{group.group}</h3>
-                    <div className="flex-1 border-t" />
-                    <span className="text-xs text-muted-foreground">{group.features.length} features</span>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {group.features.map((feature, fi) => (
-                      <motion.div
-                        key={feature.title}
-                        initial={{ opacity: 0, y: 16 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-40px" }}
-                        transition={{ duration: 0.35, delay: fi * 0.04 }}
-                        whileHover={{ y: -4 }}
-                        className={cn("group rounded-xl border p-4 transition-all hover:shadow-[4px_4px_0_0] hover:shadow-primary", group.bg)}
-                      >
-                        <div className={cn("mb-2.5 flex size-8 items-center justify-center rounded-lg bg-background/80")}>
-                          <feature.icon className={cn("size-4", group.color)} />
-                        </div>
-                        <h4 className="mb-1 text-sm font-semibold">{feature.title}</h4>
-                        <p className="text-xs text-muted-foreground leading-relaxed">{feature.description}</p>
-                      </motion.div>
-                    ))}
-                  </div>
+        {/* ── STATS ─────────────────────────────────────────────────── */}
+        <section className="border-b lp-border-faint py-20">
+          <div className="mx-auto max-w-7xl px-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {STATS.map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ scale: 1.03 }}
+                  className="group relative overflow-hidden rounded-2xl border lp-border-faint lp-card-subtle p-6 text-center"
+                >
+                  <div className="animate-shimmer pointer-events-none absolute inset-0" />
+                  <p className="text-4xl font-black text-gradient-orange sm:text-5xl">
+                    <CountUp value={stat.value} suffix={stat.suffix} />
+                  </p>
+                  <p className="mt-2 text-xs lp-ink-3 uppercase tracking-wide">{stat.label}</p>
                 </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── live problems ── */}
-        {problems.length > 0 && (
-          <section id="problems" className="border-b bg-muted/40">
-            <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 lg:grid-cols-[1fr_1.3fr]">
-              <motion.div {...fadeUp}>
-                <p className="mb-3 text-sm font-bold uppercase tracking-widest text-primary">Problem bank</p>
-                <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">{totalProblems}+ real interview questions, ready to run</h2>
-                <p className="mt-4 text-muted-foreground">DSA classics, JavaScript deep-dives and React pattern exercises — every problem executes against hidden test cases in the cloud, no setup needed.</p>
-                <Button asChild size="lg" className="mt-6"><Link href="/problems">Browse all problems <ArrowRight className="size-4" /></Link></Button>
-              </motion.div>
-              <div className="overflow-hidden rounded-xl border-2 border-foreground/15">
-                {problems.map((problem, index) => (
-                  <motion.div key={problem.slug} initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.4, delay: index * 0.08 }}>
-                    <Link href={`/problems/${problem.slug}`} className={cn("group flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-primary/5", index % 2 === 1 && "bg-muted/30")}>
-                      <span className="font-mono text-xs text-muted-foreground">{String(index + 1).padStart(2, "0")}</span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold group-hover:text-primary">{problem.title}</p>
-                        <p className="text-xs text-muted-foreground">{problem.category}</p>
-                      </div>
-                      <DifficultyBadge difficulty={problem.difficulty} />
-                      <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
-                    </Link>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
+        {/* ── FEATURES BENTO GRID ───────────────────────────────────── */}
+        <section id="features" className="border-b lp-border-faint py-24">
+          <div className="mx-auto max-w-7xl px-4">
+            <motion.div {...fadeUp} className="mx-auto mb-16 max-w-2xl text-center">
+              <SectionLabel text="Features" />
+              <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-hero">
+                26+ features.<br />Zero paywalls.
+              </h2>
+              <p className="mt-4 lp-ink-3 text-lg">
+                One platform for algorithms, frontend, AI tools, community and analytics.
+              </p>
+            </motion.div>
 
-        {/* ── AI suite spotlight ── */}
-        <section id="ai" className="border-b">
-          <div className="mx-auto max-w-6xl px-4 py-20">
-            <SectionHeading eyebrow="AI Suite" title="9 AI tools. One platform." subtitle="From personalized coaching to pair programming — AI is woven into every part of your practice." />
-            <div className="mt-12 grid gap-6 lg:grid-cols-3">
-              <motion.div {...fadeUp} transition={{ delay: 0 }}>
-                <TiltCard max={6}>
-                  <div className="rounded-xl border-2 border-foreground/80 bg-card shadow-[8px_8px_0_0] shadow-foreground/80 h-full">
-                    <div className="flex items-center gap-2 border-b px-4 py-3">
-                      <Bot className="size-4 text-primary" />
-                      <span className="text-sm font-semibold">AI Mentor</span>
-                      <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground"><span className="size-1.5 animate-pulse rounded-full bg-easy" /> live</span>
-                    </div>
-                    <div className="space-y-3 p-4 text-sm">
-                      <div className="ml-8 rounded-lg bg-primary px-3 py-2 text-primary-foreground text-xs">Why is my solution O(n²)?</div>
-                      <div className="mr-4 rounded-lg border bg-muted/50 px-3 py-2 text-xs">Your nested loop checks every pair. Use a hash map to look up complements in O(1) — bringing it to <strong>O(n)</strong>. 🎯</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {["Hint", "Debug", "Complexity", "Optimize"].map((c) => <span key={c} className="rounded-full border px-2 py-0.5 text-[10px] text-muted-foreground">{c}</span>)}
+            <div className="grid auto-rows-[200px] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Large card — code editor */}
+              <motion.div {...fadeUp} className="sm:col-span-2 sm:row-span-2">
+                <TiltCard max={4} className="h-full">
+                  <div className="group relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-6">
+                    <Code2 className="mb-4 size-8 text-orange-400" />
+                    <h3 className="text-xl font-bold">VS Code–style Editor</h3>
+                    <p className="mt-2 text-sm lp-ink-3 max-w-sm">Full IntelliSense, multi-tab editing, 12 languages, hidden test cases and instant verdicts — everything your local setup has, zero config.</p>
+                    <div className="mt-6 overflow-hidden rounded-xl border lp-border-faint lp-card-raised">
+                      <div className="flex items-center gap-1.5 border-b lp-border-faint px-3 py-2">
+                        <span className="size-2 rounded-full bg-[#ff5f57]" /><span className="size-2 rounded-full bg-[#ffbd2e]" /><span className="size-2 rounded-full bg-[#28c840]" />
+                        <span className="ml-2 font-mono text-[10px] lp-ink-4">solution.py</span>
                       </div>
+                      <pre className="p-3 font-mono text-[11px] leading-relaxed lp-ink-3">
+                        <span className="text-purple-400">def</span> <span className="text-blue-400">maxProfit</span>(prices):{"\n"}
+                        {"    "}<span className="lp-ink-4">min_price = float("inf")</span>{"\n"}
+                        {"    "}<span className="lp-ink-4">max_profit = 0</span>{"\n"}
+                        {"    "}<span className="text-orange-400">for</span> price <span className="text-orange-400">in</span> prices:{"\n"}
+                        {"        "}min_price = <span className="text-blue-400">min</span>(min_price, price){"\n"}
+                        {"        "}max_profit = <span className="text-blue-400">max</span>(max_profit, price - min_price){"\n"}
+                        {"    "}<span className="text-orange-400">return</span> max_profit
+                      </pre>
                     </div>
                   </div>
                 </TiltCard>
               </motion.div>
 
-              <motion.div {...fadeUp} transition={{ delay: 0.1 }}>
-                <TiltCard max={6}>
-                  <div className="rounded-xl border-2 border-foreground/80 bg-card shadow-[8px_8px_0_0] shadow-primary h-full">
-                    <div className="flex items-center gap-2 border-b px-4 py-3">
-                      <Users className="size-4 text-primary" />
-                      <span className="text-sm font-semibold">AI Pair Programmer</span>
-                      <span className="ml-auto text-xs text-primary font-semibold">streaming</span>
-                    </div>
-                    <div className="space-y-3 p-4 text-sm">
-                      <div className="ml-8 rounded-lg bg-primary px-3 py-2 text-primary-foreground text-xs">My DFS keeps timing out on large graphs</div>
-                      <div className="mr-4 rounded-lg border bg-muted/50 px-3 py-2 text-xs">You&apos;re creating a new visited Set inside each call. Move it outside and pass it as a parameter — that&apos;s O(n²) → O(n) right there<span className="inline-block w-1 h-3 bg-foreground animate-pulse ml-0.5 align-middle" /></div>
+              {/* Medium card — AI mentor */}
+              <motion.div {...fadeUp} transition={{ delay: 0.1 }} className="sm:col-span-1">
+                <TiltCard max={6} className="h-full">
+                  <div className="group relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
+                    <Bot className="mb-3 size-7 text-purple-400" />
+                    <h3 className="font-bold">AI Mentor</h3>
+                    <p className="mt-1.5 text-xs lp-ink-3">Progressive hints without spoiling. Nudges you to the pattern.</p>
+                    <div className="mt-4 space-y-2">
+                      <div className="ml-6 rounded-lg bg-purple-500/15 px-2.5 py-1.5 text-xs lp-ink-2">Why is this O(n²)?</div>
+                      <div className="rounded-lg border lp-border-faint lp-card-subtle px-2.5 py-1.5 text-xs lp-ink-3">Use a hash map — O(n) ✓</div>
                     </div>
                   </div>
                 </TiltCard>
               </motion.div>
 
+              {/* Small card — streaks */}
+              <motion.div {...fadeUp} transition={{ delay: 0.15 }}>
+                <TiltCard max={8} className="h-full">
+                  <div className="group relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
+                    <Flame className="mb-2 size-6 text-orange-400" />
+                    <h3 className="font-bold">Daily Streaks</h3>
+                    <div className="mt-3 flex gap-1">
+                      {[1,1,1,1,1,0,1].map((active, i) => (
+                        <div key={i} className={cn("h-7 flex-1 rounded-sm", active ? "bg-orange-500" : "lp-card-raised")} />
+                      ))}
+                    </div>
+                    <p className="mt-2 text-xs font-bold text-orange-400">🔥 94-day streak</p>
+                  </div>
+                </TiltCard>
+              </motion.div>
+
+              {/* Small card — spaced repetition */}
               <motion.div {...fadeUp} transition={{ delay: 0.2 }}>
-                <TiltCard max={6}>
-                  <div className="rounded-xl border-2 border-foreground/80 bg-card shadow-[8px_8px_0_0] shadow-foreground/80 h-full">
-                    <div className="flex items-center gap-2 border-b px-4 py-3">
-                      <GraduationCap className="size-4 text-primary" />
-                      <span className="text-sm font-semibold">Learning Coach</span>
-                    </div>
-                    <div className="p-4 space-y-3">
-                      <div className="rounded-lg bg-primary/5 border border-primary/20 px-3 py-2">
-                        <p className="text-xs font-semibold text-primary">Interview Readiness</p>
-                        <div className="mt-1 flex items-end gap-2">
-                          <span className="text-2xl font-black">72</span>
-                          <span className="text-xs text-muted-foreground mb-0.5">/100 · Intermediate</span>
+                <TiltCard max={8} className="h-full">
+                  <div className="relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
+                    <Brain className="mb-2 size-6 text-blue-400" />
+                    <h3 className="font-bold">Spaced Repetition</h3>
+                    <p className="mt-1 text-xs lp-ink-3">SM-2 algorithm. Review at the perfect moment.</p>
+                    <div className="mt-2 space-y-1">
+                      {[["Two Sum", "Today", true], ["Binary Search", "Day 6", false], ["Merge K Lists", "Day 14", false]].map(([t, d, u]) => (
+                        <div key={t as string} className="flex items-center justify-between text-[10px]">
+                          <span className="lp-ink-3">{t}</span>
+                          <span className={cn("font-semibold", u ? "text-orange-400" : "lp-ink-4")}>{d}</span>
                         </div>
-                      </div>
-                      <div className="space-y-1 text-xs">
-                        <p className="text-muted-foreground">🎯 Focus: Dynamic Programming (32% rate)</p>
-                        <p className="text-muted-foreground">📅 Ready by: ~6 weeks at current pace</p>
-                        <p className="text-muted-foreground">💪 Strong: Arrays (91%), Strings (84%)</p>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </TiltCard>
               </motion.div>
-            </div>
-          </div>
-        </section>
 
-        {/* ── learning intelligence ── */}
-        <section className="border-b bg-muted/40">
-          <div className="mx-auto max-w-6xl px-4 py-20">
-            <SectionHeading eyebrow="Learning Intelligence" title="Practice smarter, not just harder" subtitle="Spaced repetition, weakness detection, daily plans and skill analytics to maximize every minute." />
-            <div className="mt-12 grid gap-6 lg:grid-cols-2">
-              <motion.div {...fadeUp}>
-                <div className="rounded-xl border-2 border-foreground/80 bg-card shadow-[8px_8px_0_0] shadow-foreground/80 p-5 space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Brain className="size-5 text-primary" />
-                    <span className="font-semibold">Smart Revision (Spaced Repetition)</span>
-                  </div>
-                  <div className="space-y-2">
-                    {[
-                      { title: "Two Sum", next: "Today", interval: 1 },
-                      { title: "Binary Search", next: "Tomorrow", interval: 6 },
-                      { title: "Merge Intervals", next: "In 14 days", interval: 14 },
-                    ].map((card) => (
-                      <div key={card.title} className="flex items-center justify-between rounded-lg border bg-background/60 px-3 py-2.5">
-                        <span className="text-sm font-medium">{card.title}</span>
-                        <div className="flex items-center gap-2">
-                          <span className={cn("text-xs", card.interval === 1 ? "text-primary font-semibold" : "text-muted-foreground")}>{card.next}</span>
-                          <RefreshCw className="size-3 text-muted-foreground" />
+              {/* Small card — skill analytics */}
+              <motion.div {...fadeUp} transition={{ delay: 0.25 }}>
+                <TiltCard max={8} className="h-full">
+                  <div className="relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
+                    <BarChart3 className="mb-2 size-6 text-green-400" />
+                    <h3 className="font-bold">Skill Analytics</h3>
+                    <div className="mt-2 space-y-1.5">
+                      {[["Arrays", 91, "bg-green-400"], ["Strings", 84, "bg-green-400"], ["DP", 32, "bg-orange-400"], ["Graphs", 18, "bg-red-400"]].map(([c, v, col]) => (
+                        <div key={c as string} className="space-y-0.5">
+                          <div className="flex justify-between text-[9px] lp-ink-3"><span>{c}</span><span>{v}%</span></div>
+                          <div className="h-1 rounded-full lp-card"><div className={cn("h-full rounded-full", col)} style={{ width: `${v}%` }} /></div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground">SM-2 algorithm schedules reviews at the perfect moment for maximum retention</p>
-                </div>
-              </motion.div>
-
-              <motion.div {...fadeUp} transition={{ delay: 0.1 }}>
-                <div className="rounded-xl border-2 border-foreground/80 bg-card shadow-[8px_8px_0_0] shadow-foreground/80 p-5 space-y-4">
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="size-5 text-primary" />
-                    <span className="font-semibold">Skill Analytics & Mastery Map</span>
-                  </div>
-                  <div className="space-y-2.5">
-                    {[
-                      { cat: "Arrays", rate: 91, level: "Master" },
-                      { cat: "Strings", rate: 84, level: "Expert" },
-                      { cat: "Trees", rate: 67, level: "Practitioner" },
-                      { cat: "Dynamic Programming", rate: 32, level: "Learner" },
-                      { cat: "Graphs", rate: 18, level: "Novice" },
-                    ].map((item) => (
-                      <div key={item.cat} className="space-y-0.5">
-                        <div className="flex justify-between text-xs">
-                          <span>{item.cat}</span>
-                          <span className={cn("font-semibold", item.rate >= 80 ? "text-easy" : item.rate >= 60 ? "text-primary" : item.rate >= 40 ? "text-medium" : "text-destructive")}>{item.level} · {item.rate}%</span>
-                        </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                          <div className={cn("h-full rounded-full", item.rate >= 80 ? "bg-easy" : item.rate >= 60 ? "bg-primary" : item.rate >= 40 ? "bg-medium" : "bg-destructive")} style={{ width: `${item.rate}%` }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── community ── */}
-        <section className="border-b">
-          <div className="mx-auto max-w-6xl px-4 py-20">
-            <SectionHeading eyebrow="Community" title="Learn together, grow faster" subtitle="Discussions, notes, bookmarks and activity feeds — a complete social layer for coders." />
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                { icon: MessageSquare, title: "Discussion Forum", desc: "Per-problem discussions with community solutions, Q&A threads, upvotes and AI-generated summaries.", href: "/discuss" },
-                { icon: StickyNote, title: "Personal Notes", desc: "Private markdown notes per problem. Save patterns, approaches and learning insights permanently.", href: "/notes" },
-                { icon: Bookmark, title: "Bookmarks", desc: "Save problems and challenges to custom lists. Build your own curated review set.", href: "/bookmarks" },
-                { icon: Users, title: "Follow & Feed", desc: "Follow top coders, see their accepted solutions and achievements in your activity feed.", href: "/leaderboard" },
-              ].map((item, i) => (
-                <motion.div key={item.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }} whileHover={{ y: -5 }}>
-                  <Link href={item.href} className="group block rounded-xl border bg-card p-5 transition-all hover:border-primary hover:shadow-[4px_4px_0_0] hover:shadow-primary h-full">
-                    <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary">
-                      <item.icon className="size-5 text-primary transition-colors group-hover:text-primary-foreground" />
+                      ))}
                     </div>
-                    <h3 className="mb-1.5 font-semibold text-sm">{item.title}</h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── gamification ── */}
-        <section className="border-b bg-foreground text-background">
-          <div className="mx-auto max-w-6xl px-4 py-20">
-            <motion.div {...fadeUp} className="mx-auto max-w-2xl text-center mb-12">
-              <p className="mb-3 text-sm font-bold uppercase tracking-widest text-primary">Gamification</p>
-              <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Solve problems. Earn rewards. Level up.</h2>
-              <p className="mt-3 opacity-70">XP, streaks, badges and leaderboards that turn daily practice into a habit.</p>
-            </motion.div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                { icon: Flame, title: "Streak System", desc: "Miss a day and it resets. Keep it alive for bonus XP and exclusive streak badges.", value: "🔥 94-day streak" },
-                { icon: Zap, title: "XP & Levels", desc: "Easy: 10 XP · Medium: 25 XP · Hard: 50 XP. Level up and show off your rank.", value: "⚡ Level 14" },
-                { icon: Award, title: "30+ Badges", desc: "Speed Solver, Century Club, Bug Squasher, Polyglot — unlock milestones that matter.", value: "🏅 8 badges" },
-                { icon: Trophy, title: "Leaderboard", desc: "Weekly and all-time global leaderboards. Weekly resets keep it competitive for everyone.", value: "🏆 Top 3%" },
-              ].map((item, i) => (
-                <motion.div key={item.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }} whileHover={{ y: -4 }}>
-                  <div className="rounded-xl border border-white/10 bg-white/5 p-5 h-full">
-                    <item.icon className="mb-3 size-6 text-primary" />
-                    <p className="text-xs font-bold text-primary mb-1">{item.value}</p>
-                    <h3 className="font-semibold mb-1.5">{item.title}</h3>
-                    <p className="text-xs opacity-60 leading-relaxed">{item.desc}</p>
                   </div>
-                </motion.div>
-              ))}
+                </TiltCard>
+              </motion.div>
+
+              {/* Wide card — gamification */}
+              <motion.div {...fadeUp} transition={{ delay: 0.2 }} className="sm:col-span-2 lg:col-span-1">
+                <div className="relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
+                  <Trophy className="mb-3 size-6 text-orange-400" />
+                  <h3 className="font-bold">Gamification System</h3>
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    {[
+                      { icon: Zap, label: "XP & Levels", value: "Lvl 14", color: "text-orange-400" },
+                      { icon: Award, label: "Badges", value: "8 earned", color: "text-yellow-400" },
+                      { icon: Trophy, label: "Leaderboard", value: "Top 3%", color: "text-green-400" },
+                      { icon: Target, label: "Accuracy", value: "82%", color: "text-blue-400" },
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-lg border lp-border-faint lp-card-subtle p-2.5">
+                        <item.icon className={cn("mb-1 size-4", item.color)} />
+                        <p className={cn("text-sm font-bold", item.color)}>{item.value}</p>
+                        <p className="text-[10px] lp-ink-4">{item.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
         </section>
 
-        {/* ── how it works ── */}
-        <section id="how-it-works" className="border-b">
-          <div className="mx-auto max-w-6xl px-4 py-20">
-            <SectionHeading eyebrow="How it works" title="From zero to offer in three steps" subtitle="No setup, no installs — everything runs in your browser." />
-            <div className="mt-12 grid gap-6 md:grid-cols-3">
-              {STEPS.map((step, index) => (
-                <motion.div key={step.title} {...fadeUp} transition={{ duration: 0.45, delay: index * 0.1 }}>
-                  <TiltCard max={5}>
-                    <div className="relative h-full rounded-xl border-2 border-foreground/15 bg-card p-6 transition-colors hover:border-primary">
-                      <span className="absolute -top-4 left-6 flex size-8 items-center justify-center rounded-lg bg-primary font-mono text-sm font-bold text-primary-foreground">{index + 1}</span>
-                      <step.icon className="mb-4 mt-2 size-7 text-primary" />
-                      <h3 className="mb-2 font-semibold">{step.title}</h3>
-                      <p className="text-sm text-muted-foreground">{step.description}</p>
+        {/* ── AI SUITE ──────────────────────────────────────────────── */}
+        <section id="ai" className="relative border-b lp-border-faint py-24 overflow-hidden">
+          <GlowOrb color="#a855f7" size={500} className="top-0 left-0 -translate-x-1/2" />
+          <GlowOrb color="#f97316" size={400} className="bottom-0 right-0 translate-x-1/3" />
+          <div className="relative mx-auto max-w-7xl px-4">
+            <motion.div {...fadeUp} className="mx-auto mb-16 max-w-2xl text-center">
+              <SectionLabel text="AI Suite" />
+              <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-hero">
+                9 AI tools.<br />One platform.
+              </h2>
+              <p className="mt-4 lp-ink-3 text-lg">
+                From personalized coaching to pair programming — AI is woven into every part of your practice.
+              </p>
+            </motion.div>
+
+            <div className="grid gap-5 lg:grid-cols-3">
+              {AI_FEATURES.map((feat, i) => (
+                <motion.div key={feat.title} {...fadeUp} transition={{ delay: i * 0.12 }}>
+                  <TiltCard max={5} className="h-full">
+                    <div className="group relative h-full overflow-hidden rounded-2xl border lp-border lp-card">
+
+                      <div className="relative p-5">
+                        <div className="mb-4 flex items-center gap-2.5">
+                          <div className="flex size-9 items-center justify-center rounded-xl border lp-border" style={{ background: `${feat.color}20` }}>
+                            <feat.icon className="size-5" style={{ color: feat.color }} />
+                          </div>
+                          <span className="font-bold text-sm">{feat.title}</span>
+                          <span className={cn("ml-auto text-xs font-semibold", feat.badgeColor)}>● {feat.badge}</span>
+                        </div>
+
+                        {feat.messages && (
+                          <div className="space-y-2.5">
+                            {feat.messages.map((msg, mi) => (
+                              <motion.div
+                                key={mi}
+                                initial={{ opacity: 0, x: msg.role === "user" ? 10 : -10 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.3 + mi * 0.2 }}
+                                className={cn("rounded-xl px-3 py-2 text-xs leading-relaxed", msg.role === "user" ? "ml-8 lp-ink-2" : "mr-2 border lp-border-faint lp-card lp-ink-3")}
+                                style={msg.role === "user" ? { background: `${feat.color}25`, border: `1px solid ${feat.color}40` } : {}}
+                              >
+                                {msg.text}
+                                {mi === feat.messages!.length - 1 && msg.role === "ai" && (
+                                  <span className="animate-blink ml-1 inline-block h-3 w-0.5 align-middle bg-white/40" />
+                                )}
+                              </motion.div>
+                            ))}
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {feat.chips?.map((c) => (
+                                <span key={c} className="rounded-full border lp-border px-2 py-0.5 text-[10px] lp-ink-4 hover:lp-border-strong hover:lp-ink-3 transition-colors cursor-pointer">{c}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {feat.stats && (
+                          <div className="space-y-3">
+                            <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-3.5 py-3">
+                              <p className="text-xs font-semibold text-blue-400">Interview Readiness</p>
+                              <div className="mt-1 flex items-end gap-2">
+                                <span className="text-3xl font-black lp-ink">{feat.stats.score}</span>
+                                <span className="mb-0.5 text-xs lp-ink-3">/100 · Intermediate</span>
+                              </div>
+                              <div className="mt-2 h-1.5 overflow-hidden rounded-full lp-card-raised">
+                                <motion.div
+                                  className="h-full rounded-full bg-blue-400"
+                                  initial={{ width: 0 }}
+                                  whileInView={{ width: `${feat.stats.score}%` }}
+                                  viewport={{ once: true }}
+                                  transition={{ duration: 1, delay: 0.3 }}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-1.5 text-xs lp-ink-3">
+                              <p>🎯 Focus: {feat.stats.focus}</p>
+                              <p>📅 Ready in: {feat.stats.ready}</p>
+                              <p>💪 Strong: {feat.stats.strong}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </TiltCard>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* More AI tools row */}
+            <motion.div {...fadeUp} transition={{ delay: 0.3 }} className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              {[
+                { icon: BookOpen, label: "Study Planner", color: "#f97316" },
+                { icon: Map, label: "Roadmap Generator", color: "#a855f7" },
+                { icon: FileText, label: "Resume Analyzer", color: "#3b82f6" },
+                { icon: Code2, label: "Code Reviewer", color: "#22c55e" },
+                { icon: BarChart3, label: "Complexity Visualizer", color: "#eab308" },
+                { icon: Trophy, label: "Contest Generator", color: "#f97316" },
+              ].map((tool, i) => (
+                <motion.div
+                  key={tool.label}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.07 }}
+                  whileHover={{ y: -3, scale: 1.02 }}
+                  className="rounded-xl border lp-border-faint lp-card-subtle p-3.5 text-center hover:lp-border transition-all"
+                >
+                  <div className="mx-auto mb-2 flex size-9 items-center justify-center rounded-lg" style={{ background: `${tool.color}20` }}>
+                    <tool.icon className="size-4.5" style={{ color: tool.color }} />
+                  </div>
+                  <p className="text-xs font-medium lp-ink-3">{tool.label}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ── HOW IT WORKS ──────────────────────────────────────────── */}
+        <section className="border-b lp-border-faint py-24">
+          <div className="mx-auto max-w-7xl px-4">
+            <motion.div {...fadeUp} className="mx-auto mb-16 max-w-2xl text-center">
+              <SectionLabel text="How it works" />
+              <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-hero">
+                From zero to offer<br />in three steps
+              </h2>
+            </motion.div>
+            <div className="grid gap-6 md:grid-cols-3">
+              {STEPS.map((step, i) => (
+                <motion.div
+                  key={step.n}
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.13 }}
+                >
+                  <TiltCard max={5} className="h-full">
+                    <div className="relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-7">
+                      <div className="absolute right-4 top-4 font-mono text-6xl font-black text-white/[0.03] select-none">{step.n}</div>
+                      <div className="mb-5 flex size-12 items-center justify-center rounded-2xl border lp-border" style={{ background: `${step.color}20` }}>
+                        <step.icon className="size-6" style={{ color: step.color }} />
+                      </div>
+                      <h3 className="mb-2.5 text-lg font-bold">{step.title}</h3>
+                      <p className="text-sm lp-ink-3 leading-relaxed">{step.description}</p>
+                      <div className="mt-5 h-0.5 w-12 rounded-full" style={{ background: step.color }} />
                     </div>
                   </TiltCard>
                 </motion.div>
@@ -684,20 +977,82 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
           </div>
         </section>
 
-        {/* ── testimonials ── */}
-        <section className="border-b bg-muted/40">
-          <div className="mx-auto max-w-6xl px-4 py-20">
-            <SectionHeading eyebrow="Loved by coders" title="Don't just take our word for it" />
-            <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {TESTIMONIALS.map((t, index) => (
-                <motion.figure key={t.name} {...fadeUp} transition={{ duration: 0.4, delay: (index % 3) * 0.1 }} whileHover={{ y: -4 }} className="flex h-full flex-col rounded-xl border bg-card p-6">
-                  <MessageSquareText className="mb-4 size-5 text-primary" />
-                  <blockquote className="flex-1 text-sm leading-relaxed text-foreground/90">&ldquo;{t.quote}&rdquo;</blockquote>
-                  <figcaption className="mt-5 flex items-center gap-3 border-t pt-4">
-                    <span className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">{t.name[0]}</span>
+        {/* ── PROBLEMS PREVIEW ──────────────────────────────────────── */}
+        {problems.length > 0 && (
+          <section className="border-b lp-border-faint py-24">
+            <div className="mx-auto max-w-7xl px-4">
+              <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.4fr]">
+                <motion.div {...fadeUp}>
+                  <SectionLabel text="Problem bank" />
+                  <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-hero">
+                    {totalProblems}+ real interview<br />questions, ready to run.
+                  </h2>
+                  <p className="mt-4 lp-ink-3">DSA classics, JavaScript deep-dives and React pattern exercises — every problem executes against hidden test cases in the cloud.</p>
+                  <Button asChild size="lg" className="mt-7 bg-orange-500 hover:bg-orange-600 lp-ink">
+                    <Link href="/problems">Browse all problems <ArrowRight className="size-4" /></Link>
+                  </Button>
+                </motion.div>
+                <div className="overflow-hidden rounded-2xl border lp-border lp-card">
+                  {problems.map((problem, index) => (
+                    <motion.div
+                      key={problem.slug}
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.07 }}
+                    >
+                      <Link href={`/problems/${problem.slug}`} className={cn("group flex items-center gap-3 px-5 py-4 transition-colors hover:bg-orange-500/5", index !== 0 && "border-t lp-border-faint")}>
+                        <span className="font-mono text-xs lp-ink-5">{String(index + 1).padStart(2, "0")}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold lp-ink-2 group-hover:lp-ink">{problem.title}</p>
+                          <p className="text-xs lp-ink-4">{problem.category}</p>
+                        </div>
+                        <DifficultyBadge difficulty={problem.difficulty} />
+                        <ArrowUpRight className="size-4 lp-ink-5 transition-all group-hover:text-orange-400 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── TESTIMONIALS ──────────────────────────────────────────── */}
+        <section className="border-b lp-border-faint py-24">
+          <div className="mx-auto max-w-7xl px-4">
+            <motion.div {...fadeUp} className="mx-auto mb-16 max-w-2xl text-center">
+              <SectionLabel text="Testimonials" />
+              <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-hero">
+                Loved by thousands<br />of coders
+              </h2>
+            </motion.div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {TESTIMONIALS.map((t, i) => (
+                <motion.figure
+                  key={t.name}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: (i % 3) * 0.1 }}
+                  whileHover={{ y: -5, scale: 1.01 }}
+                  className="group flex h-full flex-col rounded-2xl border lp-border-faint lp-card-subtle p-6 hover:border-orange-500/20 hover:bg-orange-500/[0.03] transition-all duration-300"
+                >
+                  <div className="mb-3 flex gap-0.5">
+                    {Array(t.stars).fill(0).map((_, si) => (
+                      <Star key={si} className="size-3.5 fill-orange-400 text-orange-400" />
+                    ))}
+                  </div>
+                  <blockquote className="flex-1 text-sm leading-relaxed lp-ink-3">
+                    &ldquo;{t.quote}&rdquo;
+                  </blockquote>
+                  <figcaption className="mt-5 flex items-center gap-3 border-t lp-border-faint pt-4">
+                    <span className="flex size-9 items-center justify-center rounded-full bg-orange-500/20 text-sm font-black text-orange-400">
+                      {t.avatar}
+                    </span>
                     <span>
-                      <span className="block text-sm font-semibold">{t.name}</span>
-                      <span className="block text-xs text-muted-foreground">{t.role}</span>
+                      <span className="block text-sm font-bold lp-ink-2">{t.name}</span>
+                      <span className="block text-xs lp-ink-4">{t.role}</span>
                     </span>
                   </figcaption>
                 </motion.figure>
@@ -706,86 +1061,143 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
           </div>
         </section>
 
-        {/* ── Pricing ── */}
-        <section id="pricing" className="border-b bg-muted/20">
-          <div className="mx-auto max-w-5xl px-4 py-20 sm:px-6">
-            <SectionHeading
-              eyebrow="Pricing"
-              title="Start free, level up fast"
-              subtitle="7-day free trial on all paid plans. No credit card required."
-            />
-            <div className="mt-10">
-              <PricingCardsLanding />
-            </div>
+        {/* ── PRICING ───────────────────────────────────────────────── */}
+        <section id="pricing" className="border-b lp-border-faint py-24">
+          <div className="mx-auto max-w-5xl px-4">
+            <motion.div {...fadeUp} className="mx-auto mb-12 max-w-2xl text-center">
+              <SectionLabel text="Pricing" />
+              <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-hero">
+                Start free,<br />level up fast.
+              </h2>
+              <p className="mt-4 lp-ink-3">7-day free trial on all paid plans. No credit card required.</p>
+            </motion.div>
+            <motion.div {...fadeUp} transition={{ delay: 0.15 }}>
+              <PricingCards />
+            </motion.div>
           </div>
         </section>
 
-        {/* ── FAQ ── */}
-        <section id="faq" className="border-b">
-          <div className="mx-auto max-w-3xl px-4 py-20">
-            <SectionHeading eyebrow="FAQ" title="Frequently asked questions" />
-            <div className="mt-10 space-y-3">
-              {FAQS.map((faq) => (
-                <motion.details key={faq.q} {...fadeUp} className="group rounded-xl border bg-card px-5 py-4 open:border-primary">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+        {/* ── FAQ ───────────────────────────────────────────────────── */}
+        <section id="faq" className="border-b lp-border-faint py-24">
+          <div className="mx-auto max-w-3xl px-4">
+            <motion.div {...fadeUp} className="mb-12 text-center">
+              <SectionLabel text="FAQ" />
+              <h2 className="mt-5 text-4xl font-black tracking-tight text-gradient-hero">Frequently asked</h2>
+            </motion.div>
+            <div className="space-y-2">
+              {FAQS.map((faq, i) => (
+                <motion.div
+                  key={faq.q}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.06 }}
+                  className={cn("overflow-hidden rounded-xl border lp-card-subtle transition-all", openFaq === i ? "border-orange-500/30" : "lp-border-faint")}
+                >
+                  <button
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-sm font-semibold lp-ink-2 hover:lp-ink"
+                  >
                     {faq.q}
-                    <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
-                  </summary>
-                  <p className="mt-3 text-sm text-muted-foreground">{faq.a}</p>
-                </motion.details>
+                    <motion.div animate={{ rotate: openFaq === i ? 180 : 0 }} transition={{ duration: 0.25 }}>
+                      <ChevronDown className="size-4 shrink-0 lp-ink-4" />
+                    </motion.div>
+                  </button>
+                  <AnimatePresence>
+                    {openFaq === i && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <p className="border-t lp-border-faint px-5 py-4 text-sm lp-ink-3 leading-relaxed">
+                          {faq.a}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── CTA ── */}
-        <section className="relative overflow-hidden bg-foreground text-background">
-          <div aria-hidden className="bg-dots absolute inset-0 opacity-30 mask-[radial-gradient(ellipse_at_center,black,transparent_70%)]" />
-          <div className="absolute right-8 top-8 hidden md:block" aria-hidden><Cube3D size={64} className="opacity-70" /></div>
-          <div className="relative mx-auto max-w-6xl px-4 py-20 text-center">
+        {/* ── FINAL CTA ─────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden py-32">
+          <div className="absolute inset-0 bg-grid-sm opacity-50" />
+          <GlowOrb color="#f97316" size={700} className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute right-16 top-12 hidden lg:block" aria-hidden>
+            <Cube3D size={72} className="opacity-40" />
+          </div>
+          <div className="absolute left-16 bottom-12 hidden lg:block" aria-hidden>
+            <OrbitSphere size={90} className="opacity-30" />
+          </div>
+          <div className="relative mx-auto max-w-4xl px-4 text-center">
             <motion.div {...fadeUp}>
-              <Flame className="mx-auto mb-5 size-10 text-primary" />
-              <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Your next offer starts with the next problem.</h2>
-              <p className="mx-auto mt-4 max-w-md opacity-70">Free forever. No credit card. 26+ features. 9 AI tools. Just you, the editor and an AI mentor that never sleeps.</p>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                <Button asChild size="lg" className="h-12 px-8 text-base"><Link href={ctaHref}>Create your free account <ArrowRight className="size-4" /></Link></Button>
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl border border-orange-500/30 bg-orange-500/10"
+              >
+                <Flame className="size-8 text-orange-400" />
+              </motion.div>
+              <h2 className="text-5xl font-black tracking-tight sm:text-6xl lg:text-7xl text-gradient-hero leading-[1.02]">
+                Your next offer<br />starts now.
+              </h2>
+              <p className="mx-auto mt-6 max-w-lg text-lg lp-ink-3">
+                Free forever. 26+ features. 9 AI tools. No credit card. Just you, the editor, and an AI mentor that never sleeps.
+              </p>
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+                <Button asChild size="lg" className="h-14 px-10 text-lg bg-orange-500 hover:bg-orange-600 lp-ink transition-all duration-300">
+                  <Link href={ctaHref}>Create free account <ArrowRight className="size-5" /></Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="h-14 lp-border lp-ink-3 hover:lp-ink hover:lp-card hover:lp-border-strong">
+                  <Link href="/problems">Browse problems</Link>
+                </Button>
               </div>
+              <p className="mt-6 text-sm lp-ink-4">No credit card · 12 languages · 9 AI tools</p>
             </motion.div>
           </div>
         </section>
       </main>
 
-      {/* ── footer ── */}
-      <footer className="border-t bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-14">
-          <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
+      {/* ── FOOTER ────────────────────────────────────────────────────── */}
+      <footer className="border-t lp-border-faint">
+        <div className="mx-auto max-w-7xl px-4 py-16">
+          <div className="grid gap-12 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
             <div>
               <Logo />
-              <p className="mt-4 max-w-xs text-sm text-muted-foreground">The AI-powered platform for mastering data structures, algorithms and frontend engineering — built for your next interview.</p>
-              <div className="mt-5 flex gap-2">
-                {[{ icon: GitHubIcon, label: "GitHub" }, { icon: XIcon, label: "Twitter / X" }, { icon: YouTubeIcon, label: "YouTube" }].map((social) => (
-                  <a key={social.label} href="#" aria-label={social.label} className="flex size-9 items-center justify-center rounded-lg border text-muted-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground">
-                    <social.icon className="size-4" />
+              <p className="mt-4 max-w-xs text-sm lp-ink-4 leading-relaxed">
+                The AI-powered platform for mastering data structures, algorithms and frontend engineering — built for your next interview.
+              </p>
+              <div className="mt-6 flex gap-2">
+                {[{ label: "GitHub", icon: GithubIcon }, { label: "Twitter", icon: XIcon }, { label: "YouTube", icon: YoutubeIcon }].map(({ label, icon: Icon }) => (
+                  <a key={label} href="#" aria-label={label}
+                    className="flex size-9 items-center justify-center rounded-lg border lp-border lp-ink-4 hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-400 transition-all">
+                    <Icon className="size-4" />
                   </a>
                 ))}
               </div>
             </div>
-            {FOOTER_COLUMNS.map((column) => (
-              <nav key={column.heading} aria-label={column.heading}>
-                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide">{column.heading}</h3>
-                <ul className="space-y-2.5">
-                  {column.links.map((link) => (
-                    <li key={link.label}><Link href={link.href} className="text-sm text-muted-foreground transition-colors hover:text-primary">{link.label}</Link></li>
+            {FOOTER_COLS.map((col) => (
+              <nav key={col.heading}>
+                <h3 className="mb-4 text-xs font-bold uppercase tracking-widest lp-ink-4">{col.heading}</h3>
+                <ul className="space-y-3">
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      <Link href={link.href} className="text-sm lp-ink-3 hover:text-orange-400 transition-colors">{link.label}</Link>
+                    </li>
                   ))}
                 </ul>
               </nav>
             ))}
           </div>
         </div>
-        <div className="border-t">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-5 text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} {APP_NAME}. Built for coders, by Setups Works.</p>
-            <p className="flex items-center gap-1.5">26+ features · 9 AI tools · 100% free <span className="text-primary">⚒</span></p>
+        <div className="border-t lp-border-faint">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-5 text-xs lp-ink-5">
+            <p>© {new Date().getFullYear()} {APP_NAME}. Built by Setups Works.</p>
+            <p>26+ features · 9 AI tools · 100% free ⚡</p>
           </div>
         </div>
       </footer>
@@ -793,16 +1205,13 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
   );
 }
 
-function PricingCardsLanding() {
-  return <PricingCards />;
-}
-
-function GitHubIcon({ className }: { className?: string }) {
+/* ── SVG icons ────────────────────────────────────────────────────── */
+function GithubIcon({ className }: { className?: string }) {
   return <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.88-.01-1.73-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.34 1.12 2.91.86.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.7 0 0 .84-.28 2.75 1.05a9.36 9.36 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.4.2 2.44.1 2.7.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.04 10.04 0 0 0 22 12.25C22 6.58 17.52 2 12 2" /></svg>;
 }
 function XIcon({ className }: { className?: string }) {
   return <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>;
 }
-function YouTubeIcon({ className }: { className?: string }) {
+function YoutubeIcon({ className }: { className?: string }) {
   return <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden><path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5A3.02 3.02 0 0 0 .5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 0 0 2.12 2.14c1.88.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 0 0 2.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81zM9.55 15.57V8.43L15.82 12z" /></svg>;
 }

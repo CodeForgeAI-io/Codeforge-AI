@@ -4,6 +4,23 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Landing page tokens — light mode */
+  --lp-page:        #f8f8fc;
+  --lp-card:        #ffffff;
+  --lp-card-raised: #f0f0f8;
+  --lp-card-subtle: rgba(0,0,0,0.03);
+  --lp-card-glass:  rgba(255,255,255,0.88);
+  --lp-border:      rgba(0,0,0,0.09);
+  --lp-border-faint:rgba(0,0,0,0.055);
+  --lp-border-strong:rgba(0,0,0,0.16);
+  --lp-ink:         #0a0a0f;
+  --lp-ink-2:       #1f2937;
+  --lp-ink-3:       #6b7280;
+  --lp-ink-4:       #9ca3af;
+  --lp-ink-5:       #c9cdd6;
+  --lp-header-bg:   rgba(248,248,252,0.92);
+  --lp-hero-fade:   #f8f8fc;
+
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -50,6 +67,23 @@
 }
 
 .dark {
+  /* Landing page tokens — dark mode */
+  --lp-page:        #06060a;
+  --lp-card:        #0d0d12;
+  --lp-card-raised: #0f0f16;
+  --lp-card-subtle: rgba(255,255,255,0.03);
+  --lp-card-glass:  rgba(13,13,18,0.88);
+  --lp-border:      rgba(255,255,255,0.08);
+  --lp-border-faint:rgba(255,255,255,0.05);
+  --lp-border-strong:rgba(255,255,255,0.18);
+  --lp-ink:         #ffffff;
+  --lp-ink-2:       rgba(255,255,255,0.80);
+  --lp-ink-3:       rgba(255,255,255,0.50);
+  --lp-ink-4:       rgba(255,255,255,0.28);
+  --lp-ink-5:       rgba(255,255,255,0.15);
+  --lp-header-bg:   rgba(6,6,10,0.88);
+  --lp-hero-fade:   #06060a;
+
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.185 0 0);
@@ -225,6 +259,135 @@
 }
 @utility animate-float {
   animation: float-y 5s ease-in-out infinite;
+}
+
+/* ── Landing page CSS utilities ──────────────────────────────────── */
+/*
+  Use these classes in landing.tsx instead of dark: Tailwind pairs.
+  Dark mode is handled by the .dark CSS variable overrides above.
+*/
+
+/* backgrounds */
+@utility lp-page        { background-color: var(--lp-page); }
+@utility lp-card        { background-color: var(--lp-card); }
+@utility lp-card-raised { background-color: var(--lp-card-raised); }
+@utility lp-card-subtle { background-color: var(--lp-card-subtle); }
+@utility lp-card-glass  { background-color: var(--lp-card-glass); }
+@utility lp-header-bg   { background-color: var(--lp-header-bg); }
+
+/* borders */
+@utility lp-border       { border-color: var(--lp-border); }
+@utility lp-border-faint { border-color: var(--lp-border-faint); }
+@utility lp-border-strong{ border-color: var(--lp-border-strong); }
+
+/* text hierarchy */
+@utility lp-ink   { color: var(--lp-ink); }
+@utility lp-ink-2 { color: var(--lp-ink-2); }
+@utility lp-ink-3 { color: var(--lp-ink-3); }
+@utility lp-ink-4 { color: var(--lp-ink-4); }
+@utility lp-ink-5 { color: var(--lp-ink-5); }
+
+/* gradient text */
+@utility text-gradient-orange {
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 40%, #ea580c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@utility text-gradient-hero {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-image: linear-gradient(180deg, var(--lp-ink) 60%, var(--lp-ink-3) 100%);
+}
+
+/* perspective grid */
+@utility bg-grid {
+  background-image:
+    linear-gradient(rgba(249 115 22 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(249 115 22 / 0.07) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+@utility bg-grid-sm {
+  background-image:
+    linear-gradient(rgba(249 115 22 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(249 115 22 / 0.04) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+/* beam scan */
+@keyframes beam {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+@utility animate-beam {
+  animation: beam 3.5s ease-in-out infinite;
+}
+
+/* shimmer on cards */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@utility animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(249,115,22,0.06), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s linear infinite;
+}
+
+/* glow pulse */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(249,115,22,0.3), 0 0 60px rgba(249,115,22,0.1); }
+  50% { box-shadow: 0 0 40px rgba(249,115,22,0.5), 0 0 100px rgba(249,115,22,0.2); }
+}
+@utility animate-glow {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* orbit ring for 3D sphere decoration */
+@keyframes orbit {
+  from { transform: rotateX(75deg) rotateZ(0deg); }
+  to { transform: rotateX(75deg) rotateZ(360deg); }
+}
+@keyframes orbit-reverse {
+  from { transform: rotateX(75deg) rotateZ(360deg); }
+  to { transform: rotateX(75deg) rotateZ(0deg); }
+}
+@utility animate-orbit {
+  animation: orbit 6s linear infinite;
+}
+@utility animate-orbit-reverse {
+  animation: orbit-reverse 9s linear infinite;
+}
+
+/* typing cursor blink */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@utility animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* gradient moving background */
+@keyframes gradient-move {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@utility animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-move 6s ease infinite;
+}
+
+/* particle float */
+@keyframes particle-float {
+  0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.4; }
+  33% { transform: translateY(-20px) translateX(10px); opacity: 0.8; }
+  66% { transform: translateY(-10px) translateX(-5px); opacity: 0.6; }
+}
+@utility animate-particle {
+  animation: particle-float 8s ease-in-out infinite;
 }
 
 /* Thin scrollbars across the app */
