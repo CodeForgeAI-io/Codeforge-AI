@@ -198,7 +198,6 @@ const STEPS = [
 
 const FOOTER_COLS = [
   { heading: "Platform", links: [{ label: "Problems", href: "/problems" }, { label: "Challenges", href: "/challenges" }, { label: "Contests", href: "/contests" }, { label: "Roadmaps", href: "/roadmaps" }, { label: "Leaderboard", href: "/leaderboard" }] },
-  { heading: "Learn", links: [{ label: "Weakness Detection", href: "/weakness" }, { label: "Smart Revision", href: "/revision" }, { label: "Skill Analytics", href: "/analytics" }, { label: "Daily Plan", href: "/weakness" }] },
   { heading: "AI Tools", links: [{ label: "Learning Coach", href: "/ai-tools" }, { label: "Pair Programmer", href: "/ai-tools" }, { label: "Study Planner", href: "/ai-tools" }, { label: "Resume Analyzer", href: "/ai-tools" }] },
   { heading: "Community", links: [{ label: "Forum", href: "/forum" }, { label: "Discussions", href: "/discuss" }, { label: "Notes", href: "/notes" }, { label: "Company Prep", href: "/companies" }] },
   { heading: "Legal", links: [{ label: "Terms & Conditions", href: "/terms" }, { label: "Privacy Policy", href: "/privacy" }, { label: "Changelog", href: "/changelog" }] },

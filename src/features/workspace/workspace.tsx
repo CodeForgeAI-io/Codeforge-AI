@@ -86,12 +86,7 @@ export function Workspace({
     custom: boolean;
   }>({ status: null, results: [], passedCount: 0, totalCount: 0, custom: false });
 
-  const availableLanguages = useMemo(() => {
-    const starters = Object.keys(question.starterCode);
-    return starters.length > 0
-      ? LANGUAGES.filter((lang) => starters.includes(lang.id))
-      : LANGUAGES;
-  }, [question.starterCode]);
+  const availableLanguages = LANGUAGES;
 
   const language = useMemo<LanguageId>(() => {
     return availableLanguages.some((lang) => lang.id === store.language)
