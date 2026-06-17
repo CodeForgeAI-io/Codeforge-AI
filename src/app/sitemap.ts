@@ -3,7 +3,8 @@ import { getEffectiveConfig } from "@/lib/site-config";
 import { connectDB } from "@/lib/mongodb";
 import { Question } from "@/models";
 
-export const revalidate = 3600;
+// Render at request time so the build never has to reach the DB to prerender.
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const cfg = await getEffectiveConfig();
