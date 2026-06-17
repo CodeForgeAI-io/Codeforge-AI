@@ -31,7 +31,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold">1. Acceptance of Terms</h2>
             <p className="mt-2 text-muted-foreground">
-              By accessing or using {APP_NAME} ("the Service"), you agree to be bound by these Terms and Conditions. If you do not agree, please do not use the Service.
+              By accessing or using {APP_NAME} (&quot;the Service&quot;), you agree to be bound by these Terms and Conditions. If you do not agree, please do not use the Service.
             </p>
           </section>
 
@@ -53,7 +53,7 @@ export default function TermsPage() {
             <h2 className="text-lg font-bold">4. User Accounts</h2>
             <ul className="mt-2 list-disc pl-5 text-muted-foreground space-y-1">
               <li>You are responsible for maintaining the confidentiality of your account credentials.</li>
-              <li>You may not share your account with others or use another person's account.</li>
+              <li>You may not share your account with others or use another person&apos;s account.</li>
               <li>You must notify us immediately at <a href="mailto:info@setups.works" className="text-primary underline">info@setups.works</a> if you suspect unauthorized access.</li>
               <li>We reserve the right to suspend or terminate accounts that violate these Terms.</li>
             </ul>
@@ -88,7 +88,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold">8. Disclaimers</h2>
             <p className="mt-2 text-muted-foreground">
-              The Service is provided "as is" without warranties of any kind. We do not guarantee that the Service will be uninterrupted, error-free, or that it will help you pass any specific interview. Use the Service at your own risk.
+              The Service is provided &quot;as is&quot; without warranties of any kind. We do not guarantee that the Service will be uninterrupted, error-free, or that it will help you pass any specific interview. Use the Service at your own risk.
             </p>
           </section>
 

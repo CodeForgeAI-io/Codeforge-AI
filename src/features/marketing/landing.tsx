@@ -19,30 +19,20 @@ import {
   Award,
   BarChart3,
   BookOpen,
-  Bookmark,
   Bot,
   Brain,
-  Building2,
   CheckCircle2,
   ChevronDown,
   Code2,
   Flame,
   GraduationCap,
-  LineChart,
   Map,
-  MessageSquare,
-  MessageSquareText,
-  MonitorPlay,
-  RefreshCw,
   Sparkles,
   Star,
-  StickyNote,
   Target,
   Trophy,
   Users,
   Zap,
-  Braces,
-  Paintbrush,
   FileText,
   Menu,
   X,
@@ -78,64 +68,6 @@ const STATS = [
 
 const COMPANY_LOGOS = ["Google", "Meta", "Amazon", "Microsoft", "Netflix", "Uber", "Atlassian", "Apple"];
 
-const BENTO_FEATURES = [
-  {
-    size: "large",
-    icon: Code2,
-    title: "VS Code–style Editor",
-    description: "Full IntelliSense, multi-tab editing, 12 languages, hidden test cases — everything your local setup has, zero config needed.",
-    color: "#f97316",
-    demo: "editor",
-  },
-  {
-    size: "medium",
-    icon: Bot,
-    title: "AI Mentor",
-    description: "Progressive hints, complexity analysis and debugging that nudges — never spoils.",
-    color: "#a855f7",
-    demo: "mentor",
-  },
-  {
-    size: "small",
-    icon: Flame,
-    title: "Daily Streaks",
-    description: "Keep your streak alive for bonus XP and exclusive badges.",
-    color: "#f97316",
-    demo: null,
-  },
-  {
-    size: "small",
-    icon: BarChart3,
-    title: "Skill Analytics",
-    description: "Mastery map, trend analysis and readiness score.",
-    color: "#22c55e",
-    demo: null,
-  },
-  {
-    size: "medium",
-    icon: Brain,
-    title: "Spaced Repetition",
-    description: "SM-2 algorithm schedules reviews at the scientifically optimal moment — cement patterns permanently.",
-    color: "#3b82f6",
-    demo: "revision",
-  },
-  {
-    size: "small",
-    icon: Trophy,
-    title: "Contests",
-    description: "Weekly contests, daily challenges, live leaderboards.",
-    color: "#eab308",
-    demo: null,
-  },
-  {
-    size: "small",
-    icon: Building2,
-    title: "Company Prep",
-    description: "Google, Meta, Amazon, Microsoft question sets.",
-    color: "#06b6d4",
-    demo: null,
-  },
-];
 
 const AI_FEATURES = [
   {
@@ -720,7 +652,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                       </div>
                       <pre className="p-3 font-mono text-[11px] leading-relaxed lp-ink-3">
                         <span className="text-purple-400">def</span> <span className="text-blue-400">maxProfit</span>(prices):{"\n"}
-                        {"    "}<span className="lp-ink-4">min_price = float("inf")</span>{"\n"}
+                        {"    "}<span className="lp-ink-4">{"min_price = float(\"inf\")"}</span>{"\n"}
                         {"    "}<span className="lp-ink-4">max_profit = 0</span>{"\n"}
                         {"    "}<span className="text-orange-400">for</span> price <span className="text-orange-400">in</span> prices:{"\n"}
                         {"        "}min_price = <span className="text-blue-400">min</span>(min_price, price){"\n"}
