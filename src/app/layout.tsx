@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Providers } from "@/components/providers";
 import { AnalyticsScripts } from "@/components/analytics";
 import { getEffectiveConfig } from "@/lib/site-config";
@@ -104,6 +105,7 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
         <AnalyticsScripts />
+        <SpeedInsights />
       </body>
     </html>
   );
