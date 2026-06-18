@@ -11,7 +11,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
-  "connect-src 'self' https://api.groq.com https://vitals.vercel-insights.com",
+  "connect-src 'self' https://api.groq.com https://vitals.vercel-insights.com https://va.vercel-scripts.com",
   "media-src 'self'",
   "object-src 'none'",
   "frame-src 'none'",
