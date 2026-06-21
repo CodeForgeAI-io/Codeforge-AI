@@ -8,10 +8,34 @@ export const metadata = {
 
 const RELEASES = [
   {
-    version: "1.2.0",
-    date: "June 18, 2025",
+    version: "1.3.0",
+    date: "June 21, 2025",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Installable app (PWA) — add CodeForge AI to your desktop or mobile home screen, with app icons and an offline fallback page",
+        "PostHog product analytics — pageviews, events, and session insights",
+        "PostHog error tracking — client and server-side exceptions are captured automatically",
+        "PostHog server-side logs via OpenTelemetry",
+        "Vercel Speed Insights — real-user performance metrics",
+        "Light / dark theme toggle in the landing page header",
+      ],
+      improved: [
+        "Much faster landing page — the hero now paints immediately instead of waiting for animations to load, fixing slow First/Largest Contentful Paint",
+        "Hardened Content-Security-Policy to safely allow analytics, the Monaco editor CDN, and session replay",
+      ],
+      fixed: [
+        "Code editor (Monaco) failing to load in production due to a Content-Security-Policy block",
+        "Google Analytics and Microsoft Clarity beacons blocked by Content-Security-Policy",
+      ],
+    },
+  },
+  {
+    version: "1.2.0",
+    date: "June 18, 2025",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "GitHub authentication — sign in with your GitHub account; the button appears automatically once OAuth is configured",
