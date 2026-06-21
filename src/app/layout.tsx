@@ -1,14 +1,22 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Providers } from "@/components/providers";
 import { AnalyticsScripts } from "@/components/analytics";
+import { PWARegister } from "@/components/pwa-register";
 import { getEffectiveConfig } from "@/lib/site-config";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const cfg = await getEffectiveConfig();
@@ -29,6 +37,12 @@ export async function generateMetadata(): Promise<Metadata> {
       : ["coding interview", "DSA", "LeetCode", "algorithm practice", "AI mentor"],
     authors: [{ name: "Setups Works" }],
     creator: "Setups Works",
+    applicationName: name,
+    appleWebApp: { capable: true, statusBarStyle: "default", title: name },
+    icons: {
+      icon: "/icon.svg",
+      apple: "/apple-touch-icon.png",
+    },
     alternates: { canonical: "/" },
     verification: cfg.gscVerification ? { google: cfg.gscVerification } : undefined,
     openGraph: {
@@ -106,6 +120,7 @@ export default async function RootLayout({
         <Providers>{children}</Providers>
         <AnalyticsScripts />
         <SpeedInsights />
+        <PWARegister />
       </body>
     </html>
   );

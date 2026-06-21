@@ -27,6 +27,9 @@ const PUBLIC_PREFIXES = [
   "/favicon",
   "/sitemap.xml",
   "/robots.txt",
+  "/manifest.webmanifest", // PWA manifest
+  "/sw.js", // PWA service worker
+  "/offline.html", // PWA offline fallback
 ];
 
 /** Allowed origins for cross-origin API requests (empty = same-origin only). */
