@@ -7,11 +7,11 @@ const isDev = process.env.NODE_ENV === "development";
 // 'unsafe-eval' only in dev (Next.js hot reload uses eval)
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.clarity.ms https://us-assets.i.posthog.com`,
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
+  `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.clarity.ms https://us-assets.i.posthog.com https://cdn.jsdelivr.net`,
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+  "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
   "img-src 'self' data: blob: https:",
-  "connect-src 'self' https://api.groq.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms",
+  "connect-src 'self' https://api.groq.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://cdn.jsdelivr.net",
   "worker-src 'self' blob:",
   "media-src 'self'",
   "object-src 'none'",
