@@ -372,7 +372,8 @@ Full release notes live in-app at `/changelog`. Recent highlights:
 
 | Version | Tag | Date | Highlights |
 | :--- | :--- | :--- | :--- |
-| **1.3.0** | 🟢 Latest | Jun 21, 2025 | Installable PWA (desktop + mobile, offline page, app icons), PostHog observability (analytics, error tracking, OpenTelemetry logs), Vercel Speed Insights, landing-page light/dark toggle, faster hero paint (FCP/LCP fix), and hardened CSP for analytics/Monaco/session replay. |
+| **1.4.0** | 🟢 Latest | Jun 22, 2025 | Full visual redesign on the **Geist design system** — new landing page (layered product mockups, bento feature grid, AI chat preview), neutral palette with blue focus rings, refined typography/radii/spacing across every page, new blue app/PWA icons, redesigned auth and beta/join, and all orange accents removed. |
+| **1.3.0** | 🔵 Stable | Jun 21, 2025 | Installable PWA (desktop + mobile, offline page, app icons), PostHog observability (analytics, error tracking, OpenTelemetry logs), Vercel Speed Insights, landing-page light/dark toggle, faster hero paint (FCP/LCP fix), and hardened CSP for analytics/Monaco/session replay. |
 | **1.2.0** | 🔵 Stable | Jun 18, 2025 | GitHub authentication (sign in with GitHub) and `/feedback` submissions now open a labelled GitHub issue in the repo, with email as a fallback. |
 | **1.1.1** | 🔵 Stable | Jun 18, 2025 | Fixed production build crash on `/robots.txt` & `/sitemap.xml` when the DB is unreachable (now render dynamically), resilient site-config loading, correct production site URL for SEO/robots/sitemap, graceful forgot-password email failures, and a modernized README. |
 | **1.1.0** | 🔵 Stable | Jun 17, 2025 | Admin Settings panel (SEO, Analytics, Email, AI, Runner, DB, Cache, OAuth & Payments from the UI), GA4 + Clarity + Search Console, `/feedback`, auto sitemap & robots.txt, advanced SEO (OG, Twitter Cards, JSON-LD), per-service Test Connection buttons. |

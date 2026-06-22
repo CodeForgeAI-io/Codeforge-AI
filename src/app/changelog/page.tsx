@@ -8,10 +8,30 @@ export const metadata = {
 
 const RELEASES = [
   {
-    version: "1.3.0",
-    date: "June 21, 2025",
+    version: "1.4.0",
+    date: "June 22, 2025",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Brand-new landing page — layered product mockups, animated accent cards, a bento feature grid with live UI previews, and an AI chat preview",
+        "Light / dark theme toggle now everywhere the new design reaches",
+      ],
+      improved: [
+        "Full visual redesign on the Geist design system — neutral surfaces, blue focus rings, refined typography, tighter radii, and consistent spacing across every page",
+        "New blue app icon, favicon and PWA icons replacing the orange mark",
+        "Cleaner auth screens and a redesigned beta/join page",
+      ],
+      fixed: [
+        "Removed every leftover orange accent across the app in favor of the new blue/amber palette",
+      ],
+    },
+  },
+  {
+    version: "1.3.0",
+    date: "June 21, 2025",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Installable app (PWA) — add CodeForge AI to your desktop or mobile home screen, with app icons and an offline fallback page",
