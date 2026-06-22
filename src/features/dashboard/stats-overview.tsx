@@ -26,7 +26,7 @@ import type { DashboardData } from "@/services/stats";
 import { ActivityHeatmap } from "./heatmap";
 
 const TIER_STYLES: Record<string, string> = {
-  bronze: "border-orange-400/40 bg-orange-400/10 text-orange-600 dark:text-orange-300",
+  bronze: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
   silver: "border-slate-400/40 bg-slate-400/10 text-slate-600 dark:text-slate-300",
   gold: "border-yellow-500/50 bg-yellow-400/10 text-yellow-600 dark:text-yellow-300",
 };

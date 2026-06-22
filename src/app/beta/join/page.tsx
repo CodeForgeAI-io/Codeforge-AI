@@ -24,15 +24,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/shared/logo";
 import { APP_NAME } from "@/lib/constants";
-import { cn } from "@/lib/utils";
 
 const BETA_LIMIT = 50;
 
 const PERKS = [
-  { icon: Zap, color: "text-orange-500", bg: "bg-orange-500/10 border-orange-500/20", label: "Go Plan free for 30 days", sub: "No credit card required" },
-  { icon: Bot, color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20", label: "Unlimited AI tools", sub: "Mentor, Pair Programmer & Coach" },
-  { icon: Trophy, color: "text-yellow-500", bg: "bg-yellow-500/10 border-yellow-500/20", label: "All contests & leaderboards", sub: "Weekly challenges + daily streaks" },
-  { icon: Flame, color: "text-red-400", bg: "bg-red-500/10 border-red-500/20", label: "Early access features", sub: "Shape the product with your feedback" },
+  { icon: Zap, label: "Go Plan free for 30 days", sub: "No credit card required" },
+  { icon: Bot, label: "Unlimited AI tools", sub: "Mentor, Pair Programmer & Coach" },
+  { icon: Trophy, label: "All contests & leaderboards", sub: "Weekly challenges + daily streaks" },
+  { icon: Flame, label: "Early access features", sub: "Shape the product with your feedback" },
 ];
 
 function GoogleIcon() {
@@ -117,7 +116,7 @@ export default function BetaJoinPage() {
               <CheckCircle2 className="size-10 text-green-500" />
             </div>
           </div>
-          <h2 className="mb-2 text-2xl font-black">You&apos;re in! 🎉</h2>
+          <h2 className="mb-2 text-2xl font-semibold tracking-tight">You&apos;re in!</h2>
           <p className="text-muted-foreground">Signing you in and heading to dashboard…</p>
           <Loader2 className="mx-auto mt-4 size-5 animate-spin text-primary" />
         </div>
@@ -127,19 +126,6 @@ export default function BetaJoinPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Background glow */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 size-125 -translate-x-1/2 rounded-full bg-orange-500/10 blur-[120px] sm:size-175" />
-        <div className="absolute -bottom-40 right-0 size-75 rounded-full bg-purple-500/10 blur-[100px] sm:size-125" />
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: "linear-gradient(hsl(var(--border)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }}
-        />
-      </div>
-
       <div className="relative z-10">
         {/* Nav */}
         <header className="flex items-center justify-between px-4 py-4 sm:px-8 sm:py-5">
@@ -155,19 +141,16 @@ export default function BetaJoinPage() {
 
             {/* ── Left: Hero copy ── */}
             <div>
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-400 sm:mb-6 sm:px-4 sm:py-1.5 sm:text-sm">
-                <Sparkles className="size-3 sm:size-3.5" />
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground sm:mb-6 sm:px-4 sm:py-1.5 sm:text-sm">
+                <Sparkles className="size-3 sm:size-3.5" style={{ color: "#006bff" }} />
                 Beta · Limited to {BETA_LIMIT} users
               </div>
 
-              <h1 className="mb-4 text-4xl font-black leading-[0.95] tracking-tight sm:mb-5 sm:text-5xl lg:text-6xl">
-                Join the{" "}
-                <span className="bg-gradient-to-r from-orange-500 via-amber-400 to-purple-500 bg-clip-text text-transparent">
-                  Beta.
-                </span>
+              <h1 className="mb-4 text-4xl font-semibold leading-[1.05] tracking-[-0.04em] sm:mb-5 sm:text-5xl lg:text-6xl">
+                Join the Beta.
                 <br />
                 Get Go Plan{" "}
-                <span className="text-foreground">Free.</span>
+                <span style={{ color: "#006bff" }}>Free.</span>
               </h1>
 
               <p className="mb-6 text-base leading-relaxed text-muted-foreground sm:mb-8 sm:text-lg">
@@ -176,49 +159,49 @@ export default function BetaJoinPage() {
               </p>
 
               {/* Spot counter */}
-              <div className="mb-6 rounded-2xl border border-border bg-card/50 p-4 backdrop-blur-sm sm:mb-8 sm:p-5">
+              <div className="mb-6 rounded-xl border border-border bg-card p-4 sm:mb-8 sm:p-5">
                 <div className="mb-3 flex items-center justify-between text-sm">
-                  <span className="font-semibold text-foreground">Beta spots claimed</span>
-                  <span className="font-black text-primary">
+                  <span className="font-medium text-foreground">Beta spots claimed</span>
+                  <span className="font-semibold tabular-nums text-foreground">
                     {claimed !== null ? claimed : "—"} / {BETA_LIMIT}
                   </span>
                 </div>
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-700"
-                    style={{ width: `${pct}%` }}
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${pct}%`, background: "#006bff" }}
                   />
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">
                   {spotsLeft !== null ? (
                     full
                       ? "All spots have been claimed. Follow us for future updates."
-                      : <><span className="font-bold text-orange-500">{spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left</span> — claim yours before it&apos;s gone!</>
+                      : <><span className="font-medium" style={{ color: "#006bff" }}>{spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left</span> — claim yours before it&apos;s gone!</>
                   ) : "Loading spots…"}
                 </p>
               </div>
 
               {/* Perks */}
               <ul className="space-y-2.5 sm:space-y-3">
-                {PERKS.map(({ icon: Icon, color, bg, label, sub }) => (
-                  <li key={label} className={cn("flex items-center gap-3 rounded-xl border p-3 sm:gap-4 sm:p-3.5", bg)}>
-                    <div className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg bg-background/60 sm:size-9", bg.split(" ")[0])}>
-                      <Icon className={cn("size-4", color)} />
+                {PERKS.map(({ icon: Icon, label, sub }) => (
+                  <li key={label} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 sm:gap-4 sm:p-3.5">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border sm:size-9">
+                      <Icon className="size-4" style={{ color: "#006bff" }} />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-semibold text-foreground">{label}</div>
+                      <div className="text-sm font-medium text-foreground">{label}</div>
                       <div className="text-xs text-muted-foreground">{sub}</div>
                     </div>
-                    <CheckCircle2 className={cn("ml-auto size-4 shrink-0", color)} />
+                    <CheckCircle2 className="ml-auto size-4 shrink-0 text-muted-foreground" />
                   </li>
                 ))}
               </ul>
             </div>
 
             {/* ── Right: Join form ── */}
-            <div className="rounded-2xl border border-border bg-card/60 p-5 shadow-2xl backdrop-blur-sm sm:rounded-3xl sm:p-8 lg:p-10">
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-[0_2px_2px_rgba(0,0,0,0.04)] dark:shadow-none sm:p-8 lg:p-10">
               <div className="mb-5 text-center sm:mb-7">
-                <h2 className="text-xl font-black tracking-tight sm:text-2xl">Create your account</h2>
+                <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Create your account</h2>
                 <p className="mt-1.5 text-sm text-muted-foreground">
                   {full ? "Beta is full — join the waitlist below" : "Secure your beta spot in seconds"}
                 </p>
