@@ -58,7 +58,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `${name} — Master Coding Interviews`,
       description: desc,
       site: cfg.twitterHandle ? `@${cfg.twitterHandle.replace(/^@/, "")}` : undefined,
-      images: ogImg ? [ogImg] : undefined,
+      images: ogImg ? [ogImg] : ["/opengraph-image"],
     },
     robots: {
       index: true,

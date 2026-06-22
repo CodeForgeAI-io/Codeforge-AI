@@ -30,6 +30,9 @@ const PUBLIC_PREFIXES = [
   "/manifest.webmanifest", // PWA manifest
   "/sw.js", // PWA service worker
   "/offline.html", // PWA offline fallback
+  "/opengraph-image", // social share image (crawlers, no auth)
+  "/twitter-image",
+  "/icon", // metadata icon route
 ];
 
 /** Allowed origins for cross-origin API requests (empty = same-origin only). */

@@ -213,7 +213,7 @@ function FloatChip({ className, children, delay = 0 }: { className?: string; chi
   const reduce = useReducedMotion();
   return (
     <motion.div
-      className={cn("absolute hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium shadow-[0_8px_30px_rgba(0,0,0,0.10)] lg:flex", card, ink)}
+      className={cn("absolute hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium shadow-[0_8px_30px_rgba(0,0,0,0.10)] lg:flex", card, ink, className)}
       animate={reduce ? undefined : { y: [0, -6, 0] }}
       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
     >
