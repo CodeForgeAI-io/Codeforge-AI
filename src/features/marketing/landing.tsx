@@ -24,9 +24,12 @@ import {
   GraduationCap,
   Map,
   Menu,
+  Sparkles,
+  Star,
   Trophy,
   Users,
   X,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/shared/logo";
@@ -80,22 +83,13 @@ const STATS = [
 
 const COMPANY_LOGOS = ["Google", "Meta", "Amazon", "Microsoft", "Netflix", "Uber", "Atlassian", "Apple"];
 
-const FEATURES = [
-  { icon: Code2, title: "VS Code–style Editor", body: "Full IntelliSense, multi-tab editing, 12 languages, hidden test cases and instant verdicts — zero config." },
-  { icon: Bot, title: "AI Mentor", body: "Progressive hints that nudge you to the pattern without spoiling the solution." },
-  { icon: Brain, title: "Spaced Repetition", body: "The SM-2 algorithm schedules reviews at the perfect moment so patterns stick." },
-  { icon: BarChart3, title: "Skill Analytics", body: "Acceptance by topic and difficulty. See exactly where to focus next." },
-  { icon: Flame, title: "Streaks & Gamification", body: "XP, levels, badges and leaderboards keep daily practice consistent." },
-  { icon: Trophy, title: "Contests & Roadmaps", body: "Weekly contests, daily challenges and guided tracks from zero to offer." },
-];
-
 const AI_TOOLS = [
-  { icon: GraduationCap, label: "Learning Coach" },
-  { icon: Users, label: "Pair Programmer" },
-  { icon: Map, label: "Roadmap Generator" },
-  { icon: FileText, label: "Resume Analyzer" },
-  { icon: Code2, label: "Code Reviewer" },
-  { icon: BarChart3, label: "Complexity Visualizer" },
+  { icon: GraduationCap, label: "Learning Coach", desc: "Personalized guidance for your weak areas" },
+  { icon: Users, label: "Pair Programmer", desc: "Conversational, real-time coding help" },
+  { icon: Map, label: "Roadmap Generator", desc: "A study path toward your target role" },
+  { icon: FileText, label: "Resume Analyzer", desc: "Feedback tuned to engineering roles" },
+  { icon: Code2, label: "Code Reviewer", desc: "Correctness, style and edge cases" },
+  { icon: BarChart3, label: "Complexity Visualizer", desc: "Big-O for any snippet, explained" },
 ];
 
 const TESTIMONIALS = [
@@ -136,10 +130,10 @@ function Reveal({ children, className, delay = 0 }: { children: ReactNode; class
   return (
     <motion.div
       className={className}
-      initial={reduce ? false : { opacity: 0, y: 12 }}
+      initial={reduce ? false : { opacity: 0, y: 14 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.4, delay, ease: [0.175, 0.885, 0.32, 1.1] }}
+      transition={{ duration: 0.45, delay, ease: [0.175, 0.885, 0.32, 1.1] }}
     >
       {children}
     </motion.div>
@@ -162,7 +156,8 @@ function CountUp({ value, suffix }: { value: number; suffix: string }) {
 
 function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <span className="text-[13px] font-medium tracking-tight" style={{ color: ACCENT }}>
+    <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight" style={{ color: ACCENT }}>
+      <span className="size-1.5 rounded-full" style={{ background: ACCENT }} />
       {children}
     </span>
   );
@@ -183,6 +178,48 @@ function slowScrollTo(id: string) {
   if (!el) return;
   const target = el.getBoundingClientRect().top + window.scrollY - 64;
   window.scrollTo({ top: target, behavior: "smooth" });
+}
+
+/* ── reusable mock visuals (the "images") ─────────────────────────── */
+
+function EditorMock() {
+  return (
+    <div className={cn("overflow-hidden rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)]", card)}>
+      <div className={cn("flex items-center gap-1.5 border-b px-4 py-3", border)}>
+        <span className="size-2.5 rounded-full bg-[#ff5f57]" />
+        <span className="size-2.5 rounded-full bg-[#febc2e]" />
+        <span className="size-2.5 rounded-full bg-[#28c840]" />
+        <span className={cn("ml-2 font-mono text-xs", ink3)}>solution.py</span>
+        <span className="ml-auto rounded-md px-1.5 py-0.5 text-[10px] font-medium" style={{ background: `${ACCENT}14`, color: ACCENT }}>AI</span>
+      </div>
+      <pre className={cn("overflow-x-auto p-5 font-mono text-[12.5px] leading-relaxed", ink2)}>
+{`def maxProfit(prices):
+    min_price = float("inf")
+    max_profit = 0
+    for price in prices:
+        min_price = min(min_price, price)
+        max_profit = max(max_profit, price - min_price)
+    return max_profit`}
+      </pre>
+      <div className={cn("flex items-center gap-2 border-t px-5 py-3 text-xs", border, ink3)}>
+        <Check className="size-4" style={{ color: ACCENT }} />
+        12/12 test cases passed · 48 ms · beats 97%
+      </div>
+    </div>
+  );
+}
+
+function FloatChip({ className, children, delay = 0 }: { className?: string; children: ReactNode; delay?: number }) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      className={cn("absolute hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium shadow-[0_8px_30px_rgba(0,0,0,0.10)] sm:flex", card, ink)}
+      animate={reduce ? undefined : { y: [0, -6, 0] }}
+      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 /* ── page ─────────────────────────────────────────────────────────── */
@@ -261,61 +298,71 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
 
       <main>
         {/* ── HERO ─────────────────────────────────────────────────── */}
-        <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:py-28">
-          <div>
-            <div className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[13px]", border, ink2)}>
-              <span className="size-1.5 rounded-full" style={{ background: ACCENT }} />
-              26+ features · 9 AI tools · 100% free
+        <section className="relative overflow-hidden">
+          {/* decorative backdrop: dotted grid + soft blue glow */}
+          <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(70%_60%_at_50%_0%,black,transparent)]" />
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(60%_60%_at_50%_0%,rgba(0,107,255,0.10),transparent)]" />
+
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:py-28">
+            <div>
+              <div className={cn("inline-flex items-center gap-2 rounded-full border bg-white/70 px-3 py-1 text-[13px] backdrop-blur dark:bg-neutral-900/70", border, ink2)}>
+                <Sparkles className="size-3.5" style={{ color: ACCENT }} />
+                26+ features · 9 AI tools · 100% free
+              </div>
+              <h1 className={cn("mt-6 text-balance text-5xl font-semibold leading-[1.05] tracking-[-0.04em] sm:text-6xl", ink)}>
+                Master coding interviews with{" "}
+                <span style={{ color: ACCENT }}>AI.</span>
+              </h1>
+              <p className={cn("mt-5 max-w-lg text-pretty text-lg leading-relaxed", ink3)}>
+                The only platform that combines LeetCode-style problems, AI pair programming, spaced repetition and skill analytics — all free.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <Button asChild size="lg" className={cn(primaryBtn, "h-11 px-5 text-base")}>
+                  <Link href={ctaHref}>Start for Free <ArrowRight className="size-4" /></Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className={cn("h-11 rounded-md px-5 text-base", border, ink2)}>
+                  <a href="#ai" onClick={navClick}>See AI in Action</a>
+                </Button>
+              </div>
+              <div className={cn("mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm", ink3)}>
+                {["No credit card", "12 languages", "9 AI tools", "Community forum"].map((item) => (
+                  <span key={item} className="flex items-center gap-1.5">
+                    <Check className="size-4" style={{ color: ACCENT }} /> {item}
+                  </span>
+                ))}
+              </div>
             </div>
-            <h1 className={cn("mt-6 text-balance text-5xl font-semibold leading-[1.05] tracking-[-0.04em] sm:text-6xl", ink)}>
-              Master coding interviews with AI.
-            </h1>
-            <p className={cn("mt-5 max-w-lg text-pretty text-lg leading-relaxed", ink3)}>
-              The only platform that combines LeetCode-style problems, AI pair programming, spaced repetition and skill analytics — all free.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Button asChild size="lg" className={cn(primaryBtn, "h-11 px-5 text-base")}>
-                <Link href={ctaHref}>Start for Free <ArrowRight className="size-4" /></Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className={cn("h-11 rounded-md px-5 text-base", border, ink2)}>
-                <a href="#ai" onClick={navClick}>See AI in Action</a>
-              </Button>
-            </div>
-            <div className={cn("mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm", ink3)}>
-              {["No credit card", "12 languages", "9 AI tools", "Community forum"].map((item) => (
-                <span key={item} className="flex items-center gap-1.5">
-                  <Check className="size-4" style={{ color: ACCENT }} /> {item}
-                </span>
-              ))}
+
+            {/* layered product mock + floating chips */}
+            <div className="relative">
+              <EditorMock />
+              <FloatChip className="-left-4 -top-5" delay={0.2}>
+                <Flame className="size-4" style={{ color: ACCENT }} /> 94-day streak
+              </FloatChip>
+              <FloatChip className="-bottom-5 -right-3" delay={1}>
+                <Trophy className="size-4" style={{ color: ACCENT }} /> Top 3% rank
+              </FloatChip>
+              <FloatChip className="-right-6 top-1/3" delay={1.6}>
+                <Bot className="size-4" style={{ color: ACCENT }} /> AI hint ready
+              </FloatChip>
             </div>
           </div>
 
-          {/* Code card — visible immediately (no opacity gate) */}
-          <div className={cn("overflow-hidden rounded-2xl shadow-[0_2px_2px_rgba(0,0,0,0.04)]", card)}>
-            <div className={cn("flex items-center gap-1.5 border-b px-4 py-3", border)}>
-              <span className="size-2.5 rounded-full bg-[#ff5f57]" />
-              <span className="size-2.5 rounded-full bg-[#febc2e]" />
-              <span className="size-2.5 rounded-full bg-[#28c840]" />
-              <span className={cn("ml-2 font-mono text-xs", ink3)}>solution.py</span>
-            </div>
-            <pre className={cn("overflow-x-auto p-5 font-mono text-[13px] leading-relaxed", ink2)}>
-{`def maxProfit(prices):
-    min_price = float("inf")
-    max_profit = 0
-    for price in prices:
-        min_price = min(min_price, price)
-        max_profit = max(max_profit, price - min_price)
-    return max_profit`}
-            </pre>
-            <div className={cn("flex items-center gap-2 border-t px-5 py-3 text-xs", border, ink3)}>
-              <Check className="size-4" style={{ color: ACCENT }} />
-              All 12 test cases passed · 48 ms · beats 97%
+          {/* language strip */}
+          <div className={cn("relative border-t", border)}>
+            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-2 px-4 py-5 sm:px-6">
+              {LANGUAGES.slice(0, 12).map((lang) => (
+                <span key={lang.id} className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium", border, ink3)}>
+                  <span className={cn("font-mono text-[10px]")} style={{ color: ACCENT }}>{lang.extension.replace(".", "").slice(0, 2).toUpperCase()}</span>
+                  {lang.label}
+                </span>
+              ))}
             </div>
           </div>
         </section>
 
         {/* ── COMPANY TRUST ────────────────────────────────────────── */}
-        <section className={cn("border-y py-12", border)}>
+        <section className={cn("border-b py-12", border)}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <p className={cn("mb-7 text-center text-[13px]", ink3)}>Engineers at world-class companies practice here</p>
             <div className={cn("flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-sm font-medium", ink3)}>
@@ -328,10 +375,10 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
 
         {/* ── STATS ────────────────────────────────────────────────── */}
         <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border sm:grid-cols-4 sm:border-0 sm:gap-6 sm:rounded-none">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
             {STATS.map((stat, i) => (
-              <Reveal key={stat.label} delay={i * 0.05} className={cn("p-6 text-center sm:rounded-xl sm:border", card, border)}>
-                <p className={cn("text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl", ink)}>
+              <Reveal key={stat.label} delay={i * 0.05} className={cn("p-6 text-center", card)}>
+                <p className="text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl" style={{ color: ACCENT }}>
                   <CountUp value={stat.value} suffix={stat.suffix} />
                 </p>
                 <p className={cn("mt-2 text-sm", ink3)}>{stat.label}</p>
@@ -340,20 +387,103 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
           </div>
         </section>
 
-        {/* ── FEATURES ─────────────────────────────────────────────── */}
+        {/* ── FEATURES BENTO ───────────────────────────────────────── */}
         <section id="features" className={cn("border-t py-24", border)}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <SectionHead eyebrow="Features" title={<>26+ features. Zero paywalls.</>} sub="One platform for algorithms, frontend, AI tools, community and analytics." />
-            <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {FEATURES.map((f, i) => (
-                <Reveal key={f.title} delay={(i % 3) * 0.05}>
-                  <div className={cn("h-full p-6 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/60", card)}>
-                    <f.icon className="size-5" style={{ color: ACCENT }} />
-                    <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>{f.title}</h3>
-                    <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>{f.body}</p>
+            <div className="mt-14 grid gap-4 lg:grid-cols-3">
+              {/* big — editor */}
+              <Reveal className="lg:col-span-2">
+                <div className={cn("flex h-full flex-col p-6", card)}>
+                  <Code2 className="size-5" style={{ color: ACCENT }} />
+                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>VS Code–style editor</h3>
+                  <p className={cn("mt-2 max-w-md text-sm leading-relaxed", ink3)}>Full IntelliSense, Vim mode, 12 languages, hidden test cases and instant verdicts — zero config.</p>
+                  <div className={cn("mt-5 overflow-hidden rounded-lg border", border)}>
+                    <div className={cn("flex items-center gap-1.5 border-b px-3 py-2", border)}>
+                      <span className="size-2 rounded-full bg-[#ff5f57]" /><span className="size-2 rounded-full bg-[#febc2e]" /><span className="size-2 rounded-full bg-[#28c840]" />
+                      <span className={cn("ml-1 font-mono text-[10px]", ink3)}>two_sum.ts</span>
+                    </div>
+                    <pre className={cn("overflow-x-auto p-3 font-mono text-[11px] leading-relaxed", ink2)}>
+{`const seen = new Map<number, number>();
+for (let i = 0; i < nums.length; i++) {
+  const need = target - nums[i];
+  if (seen.has(need)) return [seen.get(need)!, i];
+  seen.set(nums[i], i);
+}`}
+                    </pre>
                   </div>
-                </Reveal>
-              ))}
+                </div>
+              </Reveal>
+
+              {/* AI mentor chat */}
+              <Reveal delay={0.05}>
+                <div className={cn("flex h-full flex-col p-6", card)}>
+                  <Bot className="size-5" style={{ color: ACCENT }} />
+                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>AI Mentor</h3>
+                  <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>Progressive hints that never spoil the answer.</p>
+                  <div className="mt-4 space-y-2">
+                    <div className={cn("ml-6 rounded-lg px-3 py-2 text-xs", ink)} style={{ background: `${ACCENT}12` }}>Why is this O(n²)?</div>
+                    <div className={cn("mr-4 rounded-lg border px-3 py-2 text-xs", border, ink2)}>Use a hash map to look up complements in O(1) → O(n). ✓</div>
+                  </div>
+                </div>
+              </Reveal>
+
+              {/* streak heatmap */}
+              <Reveal delay={0.1}>
+                <div className={cn("flex h-full flex-col p-6", card)}>
+                  <Flame className="size-5" style={{ color: ACCENT }} />
+                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Streaks &amp; gamification</h3>
+                  <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>XP, levels and badges keep daily practice consistent.</p>
+                  <div className="mt-4 grid grid-cols-12 gap-1">
+                    {Array.from({ length: 36 }).map((_, i) => {
+                      const on = [2,3,4,7,8,9,10,13,14,16,17,18,21,22,23,24,27,28,30,31,32,33].includes(i);
+                      return (
+                        <span
+                          key={i}
+                          className={cn("aspect-square rounded-[3px]", !on && "bg-black/[0.06] dark:bg-white/[0.08]")}
+                          style={on ? { background: ACCENT } : undefined}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              </Reveal>
+
+              {/* analytics */}
+              <Reveal delay={0.05}>
+                <div className={cn("flex h-full flex-col p-6", card)}>
+                  <BarChart3 className="size-5" style={{ color: ACCENT }} />
+                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Skill analytics</h3>
+                  <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>See exactly where to focus next.</p>
+                  <div className="mt-4 space-y-2">
+                    {[["Arrays", 91], ["Strings", 78], ["DP", 34], ["Graphs", 19]].map(([t, v]) => (
+                      <div key={t as string}>
+                        <div className={cn("mb-1 flex justify-between text-[11px]", ink3)}><span>{t}</span><span>{v as number}%</span></div>
+                        <div className={cn("h-1.5 overflow-hidden rounded-full", "bg-black/[0.06] dark:bg-white/[0.08]")}>
+                          <div className="h-full rounded-full" style={{ width: `${v}%`, background: ACCENT }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Reveal>
+
+              {/* spaced repetition */}
+              <Reveal delay={0.1}>
+                <div className={cn("flex h-full flex-col p-6", card)}>
+                  <Brain className="size-5" style={{ color: ACCENT }} />
+                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Spaced repetition</h3>
+                  <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>SM-2 resurfaces problems at the perfect moment.</p>
+                  <div className="mt-4 space-y-1.5">
+                    {[["Two Sum", "Today"], ["Binary Search", "Day 6"], ["Merge K Lists", "Day 14"]].map(([t, d], i) => (
+                      <div key={t} className={cn("flex items-center justify-between text-xs", ink3)}>
+                        <span>{t}</span>
+                        <span style={i === 0 ? { color: ACCENT, fontWeight: 500 } : undefined}>{d}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Reveal>
             </div>
           </div>
         </section>
@@ -362,14 +492,15 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         <section id="ai" className={cn("border-t py-24", border)}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <SectionHead eyebrow="AI Suite" title={<>9 AI tools. One platform.</>} sub="From personalized coaching to pair programming — AI is woven into every part of your practice." />
-            <div className="mx-auto mt-14 grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {AI_TOOLS.map((tool, i) => (
                 <Reveal key={tool.label} delay={(i % 3) * 0.05}>
-                  <div className={cn("flex h-full items-center gap-3 p-5", card)}>
-                    <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-md border", border)}>
+                  <div className={cn("group flex h-full flex-col p-6 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/60", card)}>
+                    <span className={cn("flex size-9 items-center justify-center rounded-md border", border)} style={{ background: `${ACCENT}0d` }}>
                       <tool.icon className="size-4.5" style={{ color: ACCENT }} />
                     </span>
-                    <span className={cn("text-sm font-medium", ink)}>{tool.label}</span>
+                    <h3 className={cn("mt-4 text-sm font-semibold", ink)}>{tool.label}</h3>
+                    <p className={cn("mt-1.5 text-sm leading-relaxed", ink3)}>{tool.desc}</p>
                   </div>
                 </Reveal>
               ))}
@@ -385,7 +516,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               {STEPS.map((step, i) => (
                 <Reveal key={step.n} delay={i * 0.07}>
                   <div className={cn("h-full p-7", card)}>
-                    <span className="font-mono text-sm font-medium" style={{ color: ACCENT }}>{step.n}</span>
+                    <span className="inline-flex size-9 items-center justify-center rounded-lg font-mono text-sm font-semibold" style={{ background: `${ACCENT}12`, color: ACCENT }}>{step.n}</span>
                     <h3 className={cn("mt-4 text-lg font-semibold tracking-tight", ink)}>{step.title}</h3>
                     <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>{step.body}</p>
                   </div>
@@ -438,9 +569,12 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               {TESTIMONIALS.map((t, i) => (
                 <Reveal key={t.name} delay={(i % 3) * 0.05}>
                   <figure className={cn("flex h-full flex-col p-6", card)}>
+                    <div className="mb-3 flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, s) => <Star key={s} className="size-3.5" style={{ fill: ACCENT, color: ACCENT }} />)}
+                    </div>
                     <blockquote className={cn("flex-1 text-sm leading-relaxed", ink2)}>“{t.quote}”</blockquote>
                     <figcaption className={cn("mt-5 flex items-center gap-3 border-t pt-4", border)}>
-                      <span className={cn("flex size-9 items-center justify-center rounded-full text-sm font-medium", "bg-black/[0.05] dark:bg-white/[0.08]", ink)}>{t.avatar}</span>
+                      <span className="flex size-9 items-center justify-center rounded-full text-sm font-medium text-white" style={{ background: ACCENT }}>{t.avatar}</span>
                       <span>
                         <span className={cn("block text-sm font-medium", ink)}>{t.name}</span>
                         <span className={cn("block text-xs", ink3)}>{t.role}</span>
@@ -496,21 +630,31 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         </section>
 
         {/* ── FINAL CTA ────────────────────────────────────────────── */}
-        <section className={cn("border-t py-28", border)}>
-          <Reveal className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-            <h2 className={cn("text-4xl font-semibold tracking-[-0.04em] sm:text-5xl", ink)}>Your next offer starts now.</h2>
-            <p className={cn("mx-auto mt-5 max-w-lg text-lg", ink3)}>
-              Free forever. 26+ features. 9 AI tools. No credit card — just you, the editor, and an AI mentor that never sleeps.
-            </p>
-            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <Button asChild size="lg" className={cn(primaryBtn, "h-12 px-7 text-base")}>
-                <Link href={ctaHref}>Create Free Account <ArrowRight className="size-4" /></Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className={cn("h-12 rounded-md px-7 text-base", border, ink2)}>
-                <Link href="/problems">Browse Problems</Link>
-              </Button>
-            </div>
-          </Reveal>
+        <section className={cn("border-t py-24", border)}>
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <Reveal className="relative overflow-hidden rounded-2xl border px-6 py-16 text-center sm:px-12" >
+              <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(60%_60%_at_50%_40%,black,transparent)]" />
+              <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(50%_60%_at_50%_0%,rgba(0,107,255,0.12),transparent)]" />
+              <div className={cn("absolute inset-0 -z-10 rounded-2xl", card)} />
+              <div className="relative">
+                <span className="inline-flex size-12 items-center justify-center rounded-xl" style={{ background: `${ACCENT}14` }}>
+                  <Zap className="size-6" style={{ color: ACCENT }} />
+                </span>
+                <h2 className={cn("mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl", ink)}>Your next offer starts now.</h2>
+                <p className={cn("mx-auto mt-4 max-w-lg text-lg", ink3)}>
+                  Free forever. 26+ features. 9 AI tools. No credit card — just you, the editor, and an AI mentor that never sleeps.
+                </p>
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                  <Button asChild size="lg" className={cn(primaryBtn, "h-12 px-7 text-base")}>
+                    <Link href={ctaHref}>Create Free Account <ArrowRight className="size-4" /></Link>
+                  </Button>
+                  <Button asChild variant="outline" size="lg" className={cn("h-12 rounded-md bg-white px-7 text-base dark:bg-neutral-900", border, ink2)}>
+                    <Link href="/problems">Browse Problems</Link>
+                  </Button>
+                </div>
+              </div>
+            </Reveal>
+          </div>
         </section>
       </main>
 
