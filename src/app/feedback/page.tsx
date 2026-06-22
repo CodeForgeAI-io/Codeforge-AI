@@ -11,7 +11,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 const TYPES = [
   { value: "feature", label: "Feature Request", color: "border-blue-500/50 bg-blue-500/10 text-blue-500" },
   { value: "bug", label: "Bug Report", color: "border-red-500/50 bg-red-500/10 text-red-500" },
-  { value: "issue", label: "Issue / Other", color: "border-orange-500/50 bg-orange-500/10 text-orange-500" },
+  { value: "issue", label: "Issue / Other", color: "border-amber-500/50 bg-amber-500/10 text-amber-500" },
 ] as const;
 
 type FeedbackType = (typeof TYPES)[number]["value"];

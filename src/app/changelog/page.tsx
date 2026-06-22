@@ -155,7 +155,7 @@ const RELEASES = [
     version: "0.9.0",
     date: "June 10, 2025",
     tag: "Beta",
-    tagColor: "bg-orange-500/15 text-orange-500 border-orange-500/30",
+    tagColor: "bg-amber-500/15 text-amber-500 border-amber-500/30",
     changes: {
       new: [
         "Beta launch with core problem-solving features",
@@ -250,13 +250,13 @@ export default function ChangelogPage() {
 
                 {release.changes.fixed.length > 0 && (
                   <div>
-                    <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-orange-500">
+                    <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-blue-600">
                       ✗ Fixed
                     </h3>
                     <ul className="space-y-1.5">
                       {release.changes.fixed.map((item) => (
                         <li key={item} className="flex gap-2 text-sm text-muted-foreground">
-                          <span className="mt-0.5 shrink-0 text-orange-500">×</span>
+                          <span className="mt-0.5 shrink-0 text-blue-600">×</span>
                           {item}
                         </li>
                       ))}

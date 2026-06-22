@@ -126,15 +126,15 @@ export function BillingPanel({ billing }: { billing: BillingInfo }) {
                 <Crown className="size-4" /> Upgrade to {isFree ? PLANS.go.name : "paid plan"}
               </Button>
             ) : (
-              <div className="rounded-xl border border-orange-500/30 bg-orange-500/10 p-3 space-y-2">
-                <p className="flex items-center gap-1.5 text-xs font-semibold text-orange-400">
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-amber-400">
                   <Sparkles className="size-3.5" /> Paid plans coming soon
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Online payments aren&apos;t live yet. Join the beta to get Go Plan free for 30 days.
                 </p>
                 <Link href="/beta/join">
-                  <Button size="sm" variant="outline" className="w-full border-orange-500/40 text-orange-400 hover:bg-orange-500/10">
+                  <Button size="sm" variant="outline" className="w-full border-amber-500/40 text-amber-400 hover:bg-amber-500/10">
                     Claim free beta spot →
                   </Button>
                 </Link>

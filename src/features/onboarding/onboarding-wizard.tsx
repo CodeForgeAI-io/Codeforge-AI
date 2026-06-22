@@ -40,7 +40,7 @@ const GOALS = [
 const LEVELS = [
   { id: "beginner", icon: Sprout, label: "Beginner", desc: "Just getting started with coding challenges", color: "text-green-500" },
   { id: "intermediate", icon: Star, label: "Intermediate", desc: "Comfortable with basics, want to level up", color: "text-blue-500" },
-  { id: "advanced", icon: Flame, label: "Advanced", desc: "Experienced, targeting top-tier companies", color: "text-orange-500" },
+  { id: "advanced", icon: Flame, label: "Advanced", desc: "Experienced, targeting top-tier companies", color: "text-blue-600" },
 ];
 
 const TOPICS = [

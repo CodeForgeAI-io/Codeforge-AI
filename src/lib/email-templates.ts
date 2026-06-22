@@ -1,4 +1,4 @@
-const BRAND = "#f97316"; // orange-500
+const BRAND = "#006bff"; // Geist blue-700
 const BRAND_DARK = "#ea6c09";
 const BG = "#0f0f0f";
 const CARD = "#1a1a1a";

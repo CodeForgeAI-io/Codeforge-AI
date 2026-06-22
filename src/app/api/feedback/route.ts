@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
-      <h2 style="color:#f97316;">[${typeLabel}] ${title}</h2>
+      <h2 style="color:#006bff;">[${typeLabel}] ${title}</h2>
       <p style="color:#6b7280;font-size:13px;">Submitted ${from} via ${APP_NAME} feedback form</p>
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0"/>
       <div style="white-space:pre-wrap;font-size:14px;line-height:1.6;color:#111827;">${description.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>

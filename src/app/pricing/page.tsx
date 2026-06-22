@@ -46,8 +46,8 @@ export default async function PricingPage() {
 
         {/* Beta banner — shown only when payments are not yet live */}
         {!paymentsEnabled && (
-          <div className="mb-8 rounded-2xl border border-orange-500/30 bg-orange-500/10 p-5 text-center">
-            <div className="mb-2 flex items-center justify-center gap-2 text-sm font-semibold text-orange-400">
+          <div className="mb-8 rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5 text-center">
+            <div className="mb-2 flex items-center justify-center gap-2 text-sm font-semibold text-blue-400">
               <Sparkles className="size-4" />
               Paid plans launching soon
             </div>
@@ -58,7 +58,7 @@ export default async function PricingPage() {
             </p>
             <Link
               href="/beta/join"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-orange-500/40 bg-orange-500/15 px-4 py-2 text-sm font-bold text-orange-400 transition-colors hover:bg-orange-500/25"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-blue-500/40 bg-blue-500/15 px-4 py-2 text-sm font-bold text-blue-400 transition-colors hover:bg-blue-500/25"
             >
               Claim your free beta spot →
             </Link>

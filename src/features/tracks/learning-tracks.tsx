@@ -45,8 +45,8 @@ const TRACKS = [
     description: "Most frequently asked questions at FAANG companies",
     count: 100,
     difficulty: "Mixed",
-    color: "text-orange-500",
-    bg: "bg-orange-500/10 border-orange-500/20",
+    color: "text-blue-500",
+    bg: "bg-blue-500/10 border-blue-500/20",
     categories: ["Array", "String", "Tree", "DP", "Graph", "Design"],
   },
   {

@@ -21,49 +21,50 @@
   --lp-header-bg:   rgba(248,248,252,0.92);
   --lp-hero-fade:   #f8f8fc;
 
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.646 0.222 41.116);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.5 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.9 0 0);
-  --input: oklch(0.9 0 0);
-  --ring: oklch(0.646 0.222 41.116);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.627 0.17 149.2);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.205 0 0);
-  --chart-5: oklch(0.637 0.237 25.331);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.646 0.222 41.116);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.94 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.9 0 0);
-  --sidebar-ring: oklch(0.646 0.222 41.116);
-  --success: oklch(0.627 0.17 149.2);
-  --warning: oklch(0.769 0.188 70.08);
-  --easy: oklch(0.627 0.17 149.2);
-  --medium: oklch(0.769 0.188 70.08);
-  --hard: oklch(0.637 0.237 25.331);
-  --heat-0: oklch(0.94 0 0);
-  --heat-1: oklch(0.88 0.06 55);
-  --heat-2: oklch(0.8 0.12 50);
-  --heat-3: oklch(0.72 0.18 45);
-  --heat-4: oklch(0.646 0.222 41.116);
+  /* ── Geist design system — Light theme ── */
+  --radius: 0.5rem; /* controls 6px (md), cards 12px (xl) */
+  --background: #ffffff;
+  --foreground: #171717;        /* gray-1000 */
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #171717;           /* solid near-black primary action */
+  --primary-foreground: #ffffff;
+  --secondary: #fafafa;         /* background-200 */
+  --secondary-foreground: #171717;
+  --muted: #f7f7f7;
+  --muted-foreground: #666666;  /* secondary text, AA on white */
+  --accent: #f2f2f2;            /* gray-100 hover surface */
+  --accent-foreground: #171717;
+  --destructive: #e5484d;
+  --destructive-foreground: #ffffff;
+  --border: #ebebeb;            /* gray-200 */
+  --input: #e6e6e6;             /* gray-300 */
+  --ring: #006bff;              /* blue-700 focus */
+  --chart-1: #006bff;
+  --chart-2: #28a948;
+  --chart-3: #ffae00;
+  --chart-4: #a000f8;
+  --chart-5: #f22782;
+  --sidebar: #fafafa;
+  --sidebar-foreground: #171717;
+  --sidebar-primary: #171717;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f2f2f2;
+  --sidebar-accent-foreground: #171717;
+  --sidebar-border: #ebebeb;
+  --sidebar-ring: #006bff;
+  --success: #28a948;           /* green-700 */
+  --warning: #ffae00;           /* amber-700 */
+  --easy: #28a948;
+  --medium: #d97706;
+  --hard: #e5484d;
+  --heat-0: #ebebeb;
+  --heat-1: #cae7ff;            /* blue-400 */
+  --heat-2: #94ccff;            /* blue-500 */
+  --heat-3: #48aeff;            /* blue-600 */
+  --heat-4: #006bff;            /* blue-700 */
 }
 
 .dark {
@@ -84,48 +85,49 @@
   --lp-header-bg:   rgba(6,6,10,0.88);
   --lp-hero-fade:   #06060a;
 
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.185 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.185 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.705 0.213 47.604);
-  --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.25 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.25 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.27 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.705 0.213 47.604);
-  --chart-1: oklch(0.705 0.213 47.604);
-  --chart-2: oklch(0.765 0.177 163.223);
-  --chart-3: oklch(0.828 0.189 84.429);
-  --chart-4: oklch(0.985 0 0);
-  --chart-5: oklch(0.704 0.191 22.216);
-  --sidebar: oklch(0.165 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.705 0.213 47.604);
-  --sidebar-primary-foreground: oklch(0.145 0 0);
-  --sidebar-accent: oklch(0.25 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.705 0.213 47.604);
-  --success: oklch(0.765 0.177 163.223);
-  --warning: oklch(0.828 0.189 84.429);
-  --easy: oklch(0.765 0.177 163.223);
-  --medium: oklch(0.828 0.189 84.429);
-  --hard: oklch(0.704 0.191 22.216);
-  --heat-0: oklch(0.25 0 0);
-  --heat-1: oklch(0.42 0.09 50);
-  --heat-2: oklch(0.55 0.14 48);
-  --heat-3: oklch(0.65 0.18 46);
-  --heat-4: oklch(0.75 0.19 55);
+  /* ── Geist design system — Dark theme ── */
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card: #111111;
+  --card-foreground: #ededed;
+  --popover: #111111;
+  --popover-foreground: #ededed;
+  --primary: #ededed;           /* light primary action on dark */
+  --primary-foreground: #0a0a0a;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ededed;
+  --muted: #1a1a1a;
+  --muted-foreground: #a1a1a1;
+  --accent: #1f1f1f;
+  --accent-foreground: #ededed;
+  --destructive: #ff6166;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.16);
+  --ring: #3b82f6;              /* brighter blue focus on dark */
+  --chart-1: #3b82f6;
+  --chart-2: #4ce15e;
+  --chart-3: #ffc543;
+  --chart-4: #c979ff;
+  --chart-5: #f97ea7;
+  --sidebar: #0f0f0f;
+  --sidebar-foreground: #ededed;
+  --sidebar-primary: #ededed;
+  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-accent: #1f1f1f;
+  --sidebar-accent-foreground: #ededed;
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-ring: #3b82f6;
+  --success: #4ce15e;
+  --warning: #ffc543;
+  --easy: #4ce15e;
+  --medium: #ffc543;
+  --hard: #ff6166;
+  --heat-0: #1a1a1a;
+  --heat-1: #00305c;
+  --heat-2: #0059ec;
+  --heat-3: #48aeff;
+  --heat-4: #94ccff;
 }
 
 @theme inline {
@@ -485,8 +487,8 @@
 .swagger-wrapper .swagger-ui .opblock-body { background: var(--card); }
 .swagger-wrapper .swagger-ui section.models { border: 1px solid var(--border); border-radius: var(--radius); }
 .swagger-wrapper .swagger-ui section.models .model-container { background: var(--card); }
-.swagger-wrapper .swagger-ui .btn.authorize { background: oklch(0.646 0.222 41.116); color: #fff; border-color: oklch(0.646 0.222 41.116); border-radius: var(--radius); font-weight: 600; }
-.swagger-wrapper .swagger-ui .btn.execute { background: oklch(0.646 0.222 41.116); color: #fff; border-color: oklch(0.646 0.222 41.116); border-radius: var(--radius); font-weight: 600; }
+.swagger-wrapper .swagger-ui .btn.authorize { background: #006bff; color: #fff; border-color: #006bff; border-radius: var(--radius); font-weight: 600; }
+.swagger-wrapper .swagger-ui .btn.execute { background: #006bff; color: #fff; border-color: #006bff; border-radius: var(--radius); font-weight: 600; }
 .swagger-wrapper .swagger-ui .btn { border-radius: var(--radius); }
 .swagger-wrapper .swagger-ui input[type="text"],
 .swagger-wrapper .swagger-ui textarea,

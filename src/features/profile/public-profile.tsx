@@ -46,7 +46,7 @@ import { FollowButton } from "./follow-button";
 import { ShareButton } from "./share-button";
 
 const TIER_STYLES: Record<string, string> = {
-  bronze: "border-orange-400/40 bg-orange-400/10 text-orange-600 dark:text-orange-300",
+  bronze: "border-amber-400/40 bg-amber-400/10 text-amber-600 dark:text-amber-300",
   silver: "border-slate-400/40 bg-slate-400/10 text-slate-600 dark:text-slate-300",
   gold: "border-yellow-500/50 bg-yellow-400/10 text-yellow-600 dark:text-yellow-300",
 };

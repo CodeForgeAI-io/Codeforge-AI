@@ -21,7 +21,7 @@ interface Card_ {
 const QUALITY_LABELS = [
   { label: "Blackout", value: 0, color: "bg-destructive hover:bg-destructive/90" },
   { label: "Very Hard", value: 1, color: "bg-red-600 hover:bg-red-700" },
-  { label: "Hard", value: 2, color: "bg-orange-500 hover:bg-orange-600" },
+  { label: "Hard", value: 2, color: "bg-amber-500 hover:bg-amber-600" },
   { label: "Good", value: 3, color: "bg-medium hover:bg-medium/90" },
   { label: "Easy", value: 4, color: "bg-easy hover:bg-easy/90" },
   { label: "Perfect", value: 5, color: "bg-primary hover:bg-primary/90" },

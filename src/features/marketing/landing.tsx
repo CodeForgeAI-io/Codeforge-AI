@@ -1,52 +1,48 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
+  AnimatePresence,
   motion,
   useInView,
-  useMotionValue,
-  useScroll,
-  useSpring,
-  useTransform,
+  useReducedMotion,
   animate,
-  AnimatePresence,
 } from "framer-motion";
 import {
   ArrowRight,
   ArrowUpRight,
-  Award,
   BarChart3,
-  BookOpen,
   Bot,
   Brain,
-  CheckCircle2,
+  Check,
   ChevronDown,
   Code2,
+  FileText,
   Flame,
   GraduationCap,
-  Heart,
   Map,
+  Menu,
   Sparkles,
   Star,
-  Target,
   Trophy,
   Users,
-  Zap,
-  FileText,
-  Menu,
   X,
-  Play,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { DifficultyBadge } from "@/components/shared/difficulty-badge";
 const PricingCards = dynamic(
   () => import("@/features/subscription/pricing-cards").then((m) => m.PricingCards),
-  { ssr: false, loading: () => <div className="h-96 animate-pulse rounded-2xl lp-card" /> },
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-96 animate-pulse rounded-xl border border-black/[0.08] bg-neutral-50 dark:border-white/[0.08] dark:bg-neutral-900" />
+    ),
+  },
 );
 import { APP_NAME, APP_VERSION, LANGUAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -59,7 +55,24 @@ export interface LandingProblem {
   acceptanceRate: number | null;
 }
 
+/* ── design tokens (Geist) ────────────────────────────────────────── */
+const ACCENT = "#006bff";
+const card =
+  "rounded-xl border border-black/[0.08] bg-white dark:border-white/[0.10] dark:bg-neutral-900";
+const ink = "text-neutral-900 dark:text-neutral-50";
+const ink2 = "text-neutral-600 dark:text-neutral-300";
+const ink3 = "text-neutral-500 dark:text-neutral-400";
+const border = "border-black/[0.08] dark:border-white/[0.10]";
+
 /* ── data ─────────────────────────────────────────────────────────── */
+
+const NAV = [
+  ["Problems", "/problems"],
+  ["Features", "#features"],
+  ["AI Suite", "#ai"],
+  ["Pricing", "#pricing"],
+  ["Forum", "/forum"],
+] as const;
 
 const STATS = [
   { value: 500, suffix: "+", label: "Problems solved daily" },
@@ -70,296 +83,196 @@ const STATS = [
 
 const COMPANY_LOGOS = ["Google", "Meta", "Amazon", "Microsoft", "Netflix", "Uber", "Atlassian", "Apple"];
 
-
-const AI_FEATURES = [
-  {
-    icon: Bot,
-    title: "AI Mentor",
-    badge: "live",
-    badgeColor: "text-green-400",
-    color: "#a855f7",
-    messages: [
-      { role: "user", text: "Why is my solution O(n²)?" },
-      { role: "ai", text: "Your nested loop checks every pair. Use a hash map to look up complements in O(1) — bringing it to O(n). 🎯" },
-    ],
-    chips: ["Hint", "Debug", "Complexity", "Optimize"],
-  },
-  {
-    icon: Users,
-    title: "AI Pair Programmer",
-    badge: "streaming",
-    badgeColor: "text-orange-400",
-    color: "#f97316",
-    messages: [
-      { role: "user", text: "My DFS keeps timing out on large graphs" },
-      { role: "ai", text: "You're creating a new visited Set inside each call. Move it outside — that's O(n²) → O(n) instantly" },
-    ],
-    chips: ["Explain", "Refactor", "Test", "Review"],
-  },
-  {
-    icon: GraduationCap,
-    title: "Learning Coach",
-    badge: "personalized",
-    badgeColor: "text-blue-400",
-    color: "#3b82f6",
-    stats: { score: 72, focus: "Dynamic Programming", ready: "6 weeks", strong: "Arrays 91%" },
-  },
+const AI_TOOLS = [
+  { icon: GraduationCap, label: "Learning Coach", desc: "Personalized guidance for your weak areas" },
+  { icon: Users, label: "Pair Programmer", desc: "Conversational, real-time coding help" },
+  { icon: Map, label: "Roadmap Generator", desc: "A study path toward your target role" },
+  { icon: FileText, label: "Resume Analyzer", desc: "Feedback tuned to engineering roles" },
+  { icon: Code2, label: "Code Reviewer", desc: "Correctness, style and edge cases" },
+  { icon: BarChart3, label: "Complexity Visualizer", desc: "Big-O for any snippet, explained" },
 ];
 
 const TESTIMONIALS = [
-  { name: "Priya S.", role: "SDE @ FAANG", avatar: "P", quote: "The AI mentor is the closest thing to having a senior engineer next to you. Finally internalized sliding window.", stars: 5 },
-  { name: "Marcus T.", role: "Frontend Engineer", avatar: "M", quote: "Every other platform ignores frontend folks. The sandbox challenges with AI design review are exactly what I needed.", stars: 5 },
-  { name: "Aditi R.", role: "CS Student", avatar: "A", quote: "94-day streak and counting — went from failing easies to clearing mediums in one sitting.", stars: 5 },
-  { name: "Rohan K.", role: "Backend Dev → SDE-2", avatar: "R", quote: "AI Pair Programmer + Spaced Repetition changed how I retain algorithms. Stopped forgetting patterns after 2 weeks.", stars: 5 },
-  { name: "Sara M.", role: "Final Year Student", avatar: "S", quote: "Generated my entire 8-week study plan in 30 seconds. It even accounted for my weak topics.", stars: 5 },
-  { name: "James L.", role: "Senior SDE", avatar: "J", quote: "Weakness detection pinpointed my graph acceptance was 20%. Three weeks later it's 85%. Data-driven practice works.", stars: 5 },
+  { name: "Priya S.", role: "SDE @ FAANG", avatar: "P", quote: "The AI mentor is the closest thing to a senior engineer next to you. Finally internalized sliding window." },
+  { name: "Marcus T.", role: "Frontend Engineer", avatar: "M", quote: "Every other platform ignores frontend folks. The sandbox challenges with AI design review are exactly what I needed." },
+  { name: "Aditi R.", role: "CS Student", avatar: "A", quote: "94-day streak and counting — went from failing easies to clearing mediums in one sitting." },
+  { name: "Rohan K.", role: "Backend Dev → SDE-2", avatar: "R", quote: "Pair Programmer plus spaced repetition changed how I retain algorithms. Stopped forgetting patterns." },
+  { name: "Sara M.", role: "Final Year Student", avatar: "S", quote: "Generated my entire 8-week study plan in 30 seconds. It even accounted for my weak topics." },
+  { name: "James L.", role: "Senior SDE", avatar: "J", quote: "Weakness detection put my graph acceptance at 20%. Three weeks later it's 85%. Data-driven practice works." },
 ];
 
 const FAQS = [
   { q: "Is CodeForge AI really free?", a: "Yes. Problems, frontend challenges, contests, roadmaps, all 9 AI tools and the forum are completely free. Just create an account." },
   { q: "Which languages can I code in?", a: "JavaScript, TypeScript, Python, Java, C, C++, C#, Go, PHP, Rust, Kotlin and Swift — all in a secure cloud sandbox." },
-  { q: "How does the AI mentor differ from just asking ChatGPT?", a: "It sees your exact problem statement and current code in real-time, so hints are specific to your approach — not generic. It also won't give you the full solution, by design." },
-  { q: "What is spaced repetition?", a: "The SM-2 algorithm schedules problem reviews at increasing intervals based on recall quality. You review Two Sum at day 1, day 6, day 14 — cementing the pattern." },
-  { q: "Can I prepare for specific companies?", a: "Yes — pick Google, Amazon, Microsoft, Meta, Netflix, Uber or Atlassian and track your progress against each company's question patterns." },
-  { q: "What's the AI Pair Programmer?", a: "A real-time streaming AI that reads your code and converses with you — suggests approaches, debugs errors, explains concepts. Like a teammate who never sleeps." },
+  { q: "How does the AI mentor differ from just asking ChatGPT?", a: "It sees your exact problem statement and current code in real time, so hints are specific to your approach. It also won't give you the full solution, by design." },
+  { q: "What is spaced repetition?", a: "The SM-2 algorithm schedules reviews at increasing intervals based on recall quality. You review Two Sum at day 1, day 6, day 14 — cementing the pattern." },
+  { q: "Can I prepare for specific companies?", a: "Yes — pick Google, Amazon, Microsoft, Meta, Netflix, Uber or Atlassian and track progress against each company's question patterns." },
+  { q: "What's the AI Pair Programmer?", a: "A real-time streaming AI that reads your code and converses with you — suggests approaches, debugs errors and explains concepts." },
 ];
 
 const STEPS = [
-  { n: "01", icon: Users, title: "Create your free account", description: "Sign up with email, Google or GitHub. Pick your track: DSA, Frontend, or both. Takes 30 seconds.", color: "#f97316" },
-  { n: "02", icon: Code2, title: "Solve, practice, and learn", description: "Code in a full VS Code-style editor. AI mentor gives hints. Spaced repetition locks in patterns.", color: "#a855f7" },
-  { n: "03", icon: Trophy, title: "Level up and get hired", description: "Earn XP, maintain streaks, climb leaderboards, and walk into any interview fully prepared.", color: "#22c55e" },
+  { n: "01", title: "Create your free account", body: "Sign up with email, Google or GitHub. Pick your track: DSA, Frontend, or both. Takes 30 seconds." },
+  { n: "02", title: "Solve, practice, and learn", body: "Code in a full editor. The AI mentor gives hints. Spaced repetition locks in patterns." },
+  { n: "03", title: "Level up and get hired", body: "Earn XP, keep streaks, climb leaderboards, and walk into any interview prepared." },
 ];
 
 const FOOTER_COLS = [
   { heading: "Platform", links: [{ label: "Problems", href: "/problems" }, { label: "Challenges", href: "/challenges" }, { label: "Contests", href: "/contests" }, { label: "Roadmaps", href: "/roadmaps" }, { label: "Leaderboard", href: "/leaderboard" }] },
   { heading: "AI Tools", links: [{ label: "Learning Coach", href: "/ai-tools" }, { label: "Pair Programmer", href: "/ai-tools" }, { label: "Study Planner", href: "/ai-tools" }, { label: "Resume Analyzer", href: "/ai-tools" }] },
   { heading: "Community", links: [{ label: "Forum", href: "/forum" }, { label: "Discussions", href: "/discuss" }, { label: "Notes", href: "/notes" }, { label: "Company Prep", href: "/companies" }] },
-  { heading: "Legal", links: [{ label: "Terms & Conditions", href: "/terms" }, { label: "Privacy Policy", href: "/privacy" }, { label: "Changelog", href: "/changelog" }, { label: "Feedback", href: "/feedback" }] },
+  { heading: "Legal", links: [{ label: "Terms", href: "/terms" }, { label: "Privacy", href: "/privacy" }, { label: "Changelog", href: "/changelog" }, { label: "Feedback", href: "/feedback" }] },
 ];
 
-/* ── motion helpers ───────────────────────────────────────────────── */
+/* ── helpers ──────────────────────────────────────────────────────── */
 
-const fadeUp = {
-  initial: { opacity: 0, y: 28 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-60px" },
-  transition: { duration: 0.55 },
-};
+function Reveal({ children, className, delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      className={className}
+      initial={reduce ? false : { opacity: 0, y: 14 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.45, delay, ease: [0.175, 0.885, 0.32, 1.1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 function CountUp({ value, suffix }: { value: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
+  const reduce = useReducedMotion();
   const [display, setDisplay] = useState(0);
   useEffect(() => {
     if (!inView) return;
-    const controls = animate(0, value, { duration: 1.4, ease: "easeOut", onUpdate: (v) => setDisplay(Math.round(v)) });
+    if (reduce) { setDisplay(value); return; }
+    const controls = animate(0, value, { duration: 1.2, ease: "easeOut", onUpdate: (v) => setDisplay(Math.round(v)) });
     return () => controls.stop();
-  }, [inView, value]);
+  }, [inView, value, reduce]);
   return <span ref={ref}>{display}{suffix}</span>;
 }
 
-function TiltCard({ children, className, max = 8 }: { children: React.ReactNode; className?: string; max?: number }) {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [max, -max]), { stiffness: 180, damping: 18 });
-  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-max, max]), { stiffness: 180, damping: 18 });
+function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <div style={{ perspective: 1200 }} className={className}>
-      <motion.div
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        onMouseMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); x.set((e.clientX - r.left) / r.width - 0.5); y.set((e.clientY - r.top) / r.height - 0.5); }}
-        onMouseLeave={() => { x.set(0); y.set(0); }}
-        className="h-full"
-      >{children}</motion.div>
-    </div>
+    <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight" style={{ color: ACCENT }}>
+      <span className="size-1.5 rounded-full" style={{ background: ACCENT }} />
+      {children}
+    </span>
   );
 }
 
-function Cube3D({ size = 80, className }: { size?: number; className?: string }) {
-  const half = size / 2;
-  const faces = [
-    { transform: `rotateY(0deg) translateZ(${half}px)`, label: "{ }" },
-    { transform: `rotateY(90deg) translateZ(${half}px)`, label: "</>" },
-    { transform: `rotateY(180deg) translateZ(${half}px)`, label: "fn()" },
-    { transform: `rotateY(-90deg) translateZ(${half}px)`, label: "λ" },
-    { transform: `rotateX(90deg) translateZ(${half}px)`, label: "++" },
-    { transform: `rotateX(-90deg) translateZ(${half}px)`, label: "()" },
-  ];
+function SectionHead({ eyebrow, title, sub }: { eyebrow: string; title: ReactNode; sub?: string }) {
   return (
-    <div className={cn("pointer-events-none", className)} style={{ width: size, height: size, perspective: 600 }} aria-hidden>
-      <div className="cube-3d relative h-full w-full">
-        {faces.map((f) => (
-          <div key={f.label} className="cube-face" style={{ transform: f.transform, fontSize: size / 5 }}>{f.label}</div>
-        ))}
+    <Reveal className="mx-auto max-w-2xl text-center">
+      <Eyebrow>{eyebrow}</Eyebrow>
+      <h2 className={cn("mt-3 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl", ink)}>{title}</h2>
+      {sub && <p className={cn("mt-3 text-base sm:text-lg", ink3)}>{sub}</p>}
+    </Reveal>
+  );
+}
+
+function slowScrollTo(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const target = el.getBoundingClientRect().top + window.scrollY - 64;
+  window.scrollTo({ top: target, behavior: "smooth" });
+}
+
+/* ── reusable mock visuals (the "images") ─────────────────────────── */
+
+function EditorMock() {
+  return (
+    <div className={cn("overflow-hidden rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)]", card)}>
+      <div className={cn("flex items-center gap-1.5 border-b px-4 py-3", border)}>
+        <span className="size-2.5 rounded-full bg-[#ff5f57]" />
+        <span className="size-2.5 rounded-full bg-[#febc2e]" />
+        <span className="size-2.5 rounded-full bg-[#28c840]" />
+        <span className={cn("ml-2 font-mono text-xs", ink3)}>solution.py</span>
+        <span className="ml-auto rounded-md px-1.5 py-0.5 text-[10px] font-medium" style={{ background: `${ACCENT}14`, color: ACCENT }}>AI</span>
+      </div>
+      <pre className={cn("overflow-x-auto p-5 font-mono text-[12.5px] leading-relaxed", ink2)}>
+{`def maxProfit(prices):
+    min_price = float("inf")
+    max_profit = 0
+    for price in prices:
+        min_price = min(min_price, price)
+        max_profit = max(max_profit, price - min_price)
+    return max_profit`}
+      </pre>
+      <div className={cn("flex items-center gap-2 border-t px-5 py-3 text-xs", border, ink3)}>
+        <Check className="size-4" style={{ color: ACCENT }} />
+        12/12 test cases passed · 48 ms · beats 97%
       </div>
     </div>
   );
 }
 
-function OrbitSphere({ size = 120, className }: { size?: number; className?: string }) {
-  return (
-    <div className={cn("pointer-events-none relative flex items-center justify-center", className)} style={{ width: size, height: size }} aria-hidden>
-      {/* core glow */}
-      <div className="absolute rounded-full bg-orange-500/20 blur-xl" style={{ width: size * 0.5, height: size * 0.5 }} />
-      <div className="absolute rounded-full border border-orange-500/20 animate-orbit" style={{ width: size, height: size }} />
-      <div className="absolute rounded-full border border-purple-500/20 animate-orbit-reverse" style={{ width: size * 0.75, height: size * 0.75 }} />
-      <div className="absolute rounded-full border border-orange-400/30" style={{ width: size * 0.5, height: size * 0.5, transform: "rotateX(60deg)" }} />
-      <div className="size-2 rounded-full bg-orange-400" />
-    </div>
-  );
-}
-
-function GlowOrb({ color = "#f97316", size = 400, className }: { color?: string; size?: number; className?: string }) {
-  return (
-    <div
-      aria-hidden
-      className={cn("pointer-events-none absolute rounded-full", className)}
-      style={{ width: size, height: size, background: color, filter: `blur(${size * 0.35}px)`, opacity: 0.12 }}
-    />
-  );
-}
-
-function Particle({ delay = 0, x = 0, y = 0 }: { delay?: number; x?: number; y?: number }) {
+function FloatChip({ className, children, delay = 0 }: { className?: string; children: ReactNode; delay?: number }) {
+  const reduce = useReducedMotion();
   return (
     <motion.div
-      aria-hidden
-      className="absolute size-1 rounded-full bg-orange-400/60"
-      style={{ left: `${x}%`, top: `${y}%` }}
-      animate={{ y: [0, -30, 0], opacity: [0.4, 0.9, 0.4], scale: [1, 1.5, 1] }}
-      transition={{ duration: 4 + delay, repeat: Infinity, delay, ease: "easeInOut" }}
-    />
+      className={cn("absolute hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium shadow-[0_8px_30px_rgba(0,0,0,0.10)] sm:flex", card, ink)}
+      animate={reduce ? undefined : { y: [0, -6, 0] }}
+      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
+    >
+      {children}
+    </motion.div>
   );
 }
 
-function SectionLabel({ text }: { text: string }) {
-  return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-orange-400">
-      <span className="size-1.5 rounded-full bg-orange-400" />
-      {text}
-    </div>
-  );
-}
-
-/* ── Typing text animation ──────────────────────────────────────── */
-function TypingText({ texts, className }: { texts: string[]; className?: string }) {
-  const [idx, setIdx] = useState(0);
-  const [displayed, setDisplayed] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    const target = texts[idx];
-    const speed = isDeleting ? 40 : 80;
-    const timeout = setTimeout(() => {
-      if (!isDeleting && displayed === target) {
-        setTimeout(() => setIsDeleting(true), 1800);
-        return;
-      }
-      if (isDeleting && displayed === "") {
-        setIsDeleting(false);
-        setIdx((i) => (i + 1) % texts.length);
-        return;
-      }
-      setDisplayed(isDeleting ? displayed.slice(0, -1) : target.slice(0, displayed.length + 1));
-    }, speed);
-    return () => clearTimeout(timeout);
-  }, [displayed, isDeleting, idx, texts]);
-
-  return (
-    <span className={className}>
-      {displayed}
-      <span className="animate-blink ml-0.5 inline-block h-[0.9em] w-0.5 align-middle bg-orange-400" />
-    </span>
-  );
-}
-
-/* ── smooth scroll (900 ms, cubic ease-out) ─────────────────────── */
-function slowScrollTo(id: string) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const target = el.getBoundingClientRect().top + window.scrollY - 72; // 72 = header height
-  const start = window.scrollY;
-  const distance = target - start;
-  const duration = 900;
-  let startTime: number | null = null;
-  function step(now: number) {
-    if (!startTime) startTime = now;
-    const p = Math.min((now - startTime) / duration, 1);
-    const ease = 1 - Math.pow(1 - p, 3);
-    window.scrollTo(0, start + distance * ease);
-    if (p < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
-
-/* ── main page ────────────────────────────────────────────────────── */
+/* ── page ─────────────────────────────────────────────────────────── */
 
 export function Landing({ signedIn, problems, totalProblems }: { signedIn: boolean; problems: LandingProblem[]; totalProblems: number }) {
   const ctaHref = signedIn ? "/dashboard" : "/register";
-  const heroRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -80]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, -140]);
-  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
   const [mobileMenu, setMobileMenu] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  // Fewer particles — each one spawns a Framer Motion node
-  const particles = [
-    { x: 10, y: 20, delay: 0 }, { x: 85, y: 15, delay: 1.2 },
-    { x: 45, y: 70, delay: 2.4 }, { x: 70, y: 40, delay: 0.8 },
-    { x: 20, y: 65, delay: 1.9 }, { x: 92, y: 55, delay: 3 },
-  ];
-
-  // Intercept anchor (#section) links for slow smooth scroll
   const navClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
     const href = e.currentTarget.getAttribute("href") ?? "";
     if (href.startsWith("#")) {
       e.preventDefault();
       slowScrollTo(href.slice(1));
+      setMobileMenu(false);
     }
   }, []);
 
-  return (
-    /* force dark mode for consistent dark landing aesthetic */
-    <div className="min-h-svh lp-page lp-ink">
+  const primaryBtn = "h-10 rounded-md bg-neutral-900 px-4 text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200";
 
+  return (
+    <div className={cn("min-h-screen bg-white antialiased dark:bg-neutral-950", ink)}>
       {/* ── HEADER ─────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 border-b lp-border-faint lp-header-bg backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+      <header className={cn("sticky top-0 z-50 border-b bg-white/80 backdrop-blur-xl dark:bg-neutral-950/80", border)}>
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Logo />
-          <nav className="hidden items-center gap-7 text-sm font-medium lp-ink-3 md:flex">
-            {[
-              ["Problems", "/problems"],
-              ["Features", "#features"],
-              ["AI Suite", "#ai"],
-              ["Pricing", "#pricing"],
-              ["Forum", "/forum"],
-            ].map(([label, href]) => (
-              <a key={label} href={href} onClick={navClick} className="transition-colors duration-300 hover:lp-ink">
+          <nav className={cn("hidden items-center gap-7 text-sm md:flex", ink2)}>
+            {NAV.map(([label, href]) => (
+              <a key={label} href={href} onClick={navClick} className="transition-colors hover:text-neutral-900 dark:hover:text-white">
                 {label}
                 {label === "Problems" && totalProblems > 0 && (
-                  <span className="ml-1.5 rounded-full bg-orange-500/20 px-1.5 py-0.5 text-[10px] font-bold text-orange-400">{totalProblems}</span>
+                  <span className={cn("ml-1.5 rounded-full px-1.5 py-0.5 text-[11px] font-medium tabular-nums", ink3, "bg-black/[0.05] dark:bg-white/[0.08]")}>{totalProblems}</span>
                 )}
               </a>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <ThemeToggle />
             {signedIn ? (
-              <Button asChild size="sm" className="bg-orange-500 lp-ink hover:bg-orange-600">
+              <Button asChild size="sm" className={primaryBtn}>
                 <Link href="/dashboard">Dashboard <ArrowRight className="size-4" /></Link>
               </Button>
             ) : (
               <>
-                <Button asChild variant="ghost" size="sm" className="hidden lp-ink-2 hover:lp-ink sm:inline-flex">
-                  <Link href="/login">Sign in</Link>
+                <Button asChild variant="ghost" size="sm" className={cn("hidden sm:inline-flex h-10 rounded-md px-3", ink2)}>
+                  <Link href="/login">Sign In</Link>
                 </Button>
-                <Button asChild size="sm" className="bg-orange-500 lp-ink hover:bg-orange-600">
-                  <Link href="/register">Get started free</Link>
+                <Button asChild size="sm" className={primaryBtn}>
+                  <Link href="/register">Get Started</Link>
                 </Button>
               </>
             )}
-            <button className="md:hidden lp-ink-3 hover:lp-ink" onClick={() => setMobileMenu(!mobileMenu)}>
+            <button className={cn("md:hidden", ink2)} onClick={() => setMobileMenu(!mobileMenu)} aria-label="Menu">
               {mobileMenu ? <X className="size-5" /> : <Menu className="size-5" />}
             </button>
           </div>
@@ -367,15 +280,15 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         <AnimatePresence>
           {mobileMenu && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
-              className="border-t lp-border-faint md:hidden"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className={cn("overflow-hidden border-t md:hidden", border)}
             >
-              <nav className="flex flex-col gap-1 px-4 py-4">
-                {[["Problems", "/problems"], ["Forum", "/forum"], ["Pricing", "#pricing"]].map(([label, href]) => (
-                  <a key={label} href={href} onClick={(e) => { navClick(e); setMobileMenu(false); }} className="rounded-lg px-3 py-2.5 text-sm lp-ink-2 hover:lp-card hover:lp-ink transition-colors duration-300">
-                    {label}
-                  </a>
+              <nav className="flex flex-col gap-1 px-4 py-3">
+                {NAV.map(([label, href]) => (
+                  <a key={label} href={href} onClick={navClick} className={cn("rounded-md px-3 py-2.5 text-sm hover:bg-black/[0.04] dark:hover:bg-white/[0.06]", ink2)}>{label}</a>
                 ))}
               </nav>
             </motion.div>
@@ -384,742 +297,393 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
       </header>
 
       <main>
-        {/* ── HERO ───────────────────────────────────────────────────── */}
-        <section ref={heroRef} className="relative min-h-[90vh] overflow-hidden flex items-center">
-          {/* Background */}
-          <div className="absolute inset-0">
-            <div className="bg-grid absolute inset-0 opacity-100" />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--lp-hero-fade)]" />
-          </div>
+        {/* ── HERO ─────────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden">
+          {/* decorative backdrop: dotted grid + soft blue glow */}
+          <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(70%_60%_at_50%_0%,black,transparent)]" />
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(60%_60%_at_50%_0%,rgba(0,107,255,0.10),transparent)]" />
 
-          {/* Glow orbs */}
-          <GlowOrb color="#f97316" size={600} className="-top-40 left-1/4" />
-          <GlowOrb color="#a855f7" size={400} className="top-1/2 right-0" />
-          <GlowOrb color="#3b82f6" size={300} className="bottom-0 left-0" />
-
-          {/* Particles */}
-          <div className="absolute inset-0 overflow-hidden">
-            {particles.map((p, i) => <Particle key={i} {...p} />)}
-          </div>
-
-          {/* 3D decorative elements */}
-          <motion.div style={{ y: y1 }} className="absolute right-12 top-24 hidden xl:block" aria-hidden>
-            <Cube3D size={80} className="opacity-60" />
-          </motion.div>
-          <motion.div style={{ y: y2 }} className="absolute left-8 bottom-32 hidden xl:block" aria-hidden>
-            <OrbitSphere size={100} className="opacity-50" />
-          </motion.div>
-          <motion.div style={{ y: y1 }} className="absolute right-1/4 bottom-24 hidden lg:block" aria-hidden>
-            <Cube3D size={44} className="opacity-30" />
-          </motion.div>
-
-          <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 lg:grid-cols-[1fr_1.1fr] lg:py-28">
-            {/* Left — text */}
-            <motion.div initial={{ y: 24 }} animate={{ y: 0 }} transition={{ duration: 0.6 }}>
-              <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ delay: 0.1 }}>
-                <Badge className="mb-6 gap-2 border border-orange-500/30 bg-orange-500/10 px-4 py-1.5 text-orange-400 hover:bg-orange-500/15">
-                  <Sparkles className="size-3.5" /> 26+ features · 9 AI tools · 100% free
-                </Badge>
-              </motion.div>
-
-              <h1 className="text-balance text-5xl font-black leading-[1.02] tracking-tight sm:text-6xl xl:text-7xl">
-                <span className="text-gradient-hero">Master coding</span>
-                <br />
-                <span className="text-gradient-hero">interviews with</span>
-                <br />
-                <span className="text-gradient-orange animate-gradient bg-gradient-to-r from-orange-400 via-orange-500 to-red-500">
-                  AI power.
-                </span>
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:py-28">
+            <div>
+              <div className={cn("inline-flex items-center gap-2 rounded-full border bg-white/70 px-3 py-1 text-[13px] backdrop-blur dark:bg-neutral-900/70", border, ink2)}>
+                <Sparkles className="size-3.5" style={{ color: ACCENT }} />
+                26+ features · 9 AI tools · 100% free
+              </div>
+              <h1 className={cn("mt-6 text-balance text-5xl font-semibold leading-[1.05] tracking-[-0.04em] sm:text-6xl", ink)}>
+                Master coding interviews with{" "}
+                <span style={{ color: ACCENT }}>AI.</span>
               </h1>
-
-              <p className="mt-6 max-w-lg text-pretty text-lg lp-ink-3 leading-relaxed">
-                The{" "}
-                <span className="lp-ink-2 font-medium">
-                  <TypingText texts={["only platform", "smartest tool", "best way"]} />
-                </span>{" "}
-                that combines LeetCode-style problems, AI pair programming, spaced repetition and skill analytics — all free.
+              <p className={cn("mt-5 max-w-lg text-pretty text-lg leading-relaxed", ink3)}>
+                The only platform that combines LeetCode-style problems, AI pair programming, spaced repetition and skill analytics — all free.
               </p>
-
               <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Button asChild size="lg" className="h-12 px-7 text-base bg-orange-500 hover:bg-orange-600 lp-ink transition-all duration-300">
-                  <Link href={ctaHref}>
-                    Start for free <ArrowRight className="size-4" />
-                  </Link>
+                <Button asChild size="lg" className={cn(primaryBtn, "h-11 px-5 text-base")}>
+                  <Link href={ctaHref}>Start for Free <ArrowRight className="size-4" /></Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="h-12 gap-2 lp-border lp-ink-2 lp-card hover:lp-card-raised hover:lp-ink">
-                  <a href="#ai" onClick={navClick}>
-                    <Play className="size-4 fill-current" /> See AI in action
-                  </a>
+                <Button asChild variant="outline" size="lg" className={cn("h-11 rounded-md px-5 text-base", border, ink2)}>
+                  <a href="#ai" onClick={navClick}>See AI in Action</a>
                 </Button>
               </div>
-
-              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm lp-ink-3">
+              <div className={cn("mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm", ink3)}>
                 {["No credit card", "12 languages", "9 AI tools", "Community forum"].map((item) => (
                   <span key={item} className="flex items-center gap-1.5">
-                    <CheckCircle2 className="size-4 text-orange-400" /> {item}
+                    <Check className="size-4" style={{ color: ACCENT }} /> {item}
                   </span>
                 ))}
               </div>
-            </motion.div>
-
-            {/* Right — 3D editor mockup */}
-            <motion.div
-              initial={{ y: 30 }}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="relative mx-auto w-full max-w-xl"
-            >
-              {/* Glow behind card */}
-              <div className="absolute inset-0 rounded-2xl bg-orange-500/15 blur-3xl" />
-
-              <TiltCard max={6}>
-                <div className="relative overflow-hidden rounded-2xl border lp-border lp-card">
-                  {/* Shimmer overlay */}
-                  <div className="animate-shimmer pointer-events-none absolute inset-0 z-10" />
-                  {/* Editor chrome */}
-                  <div className="flex items-center gap-1.5 border-b lp-border-faint lp-card-raised px-4 py-3">
-                    <span className="size-2.5 rounded-full bg-[#ff5f57]" />
-                    <span className="size-2.5 rounded-full bg-[#ffbd2e]" />
-                    <span className="size-2.5 rounded-full bg-[#28c840]" />
-                    <div className="ml-3 flex gap-2">
-                      {["two-sum.js", "binary-search.py"].map((tab, i) => (
-                        <span key={tab} className={cn("rounded px-3 py-1 font-mono text-xs", i === 0 ? "lp-card-raised lp-ink-2" : "lp-ink-4")}>
-                          {tab}
-                        </span>
-                      ))}
-                    </div>
-                    <motion.span
-                      initial={{ opacity: 0, scale: 0.7 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 1.6, type: "spring", stiffness: 260 }}
-                      className="ml-auto rounded-md bg-green-500/20 px-2 py-0.5 text-[10px] font-bold text-green-400 border border-green-500/30"
-                    >
-                      ✓ ACCEPTED
-                    </motion.span>
-                  </div>
-                  {/* Code */}
-                  <pre className="p-5 font-mono text-xs leading-[1.9] sm:text-[13px]">
-                    <code>
-                      <span className="text-purple-400">function</span>{" "}
-                      <span className="text-blue-400">twoSum</span>
-                      <span className="lp-ink-3">{"(nums, target) {"}</span>{"\n"}
-                      {"  "}<span className="text-purple-400">const</span>{" seen = "}
-                      <span className="text-purple-400">new</span>{" Map();\n"}
-                      {"  "}<span className="text-orange-400">for</span>
-                      {" (let i = 0; i < nums.length; i++) {\n"}
-                      {"    "}<span className="text-purple-400">const</span>{" need = target - nums[i];\n"}
-                      {"    "}<span className="text-orange-400">if</span>{" (seen."}
-                      <span className="text-blue-400">has</span>{"(need))\n"}
-                      {"      "}<span className="text-orange-400">return</span>{" [seen."}
-                      <span className="text-blue-400">get</span>{"(need), i];\n"}
-                      {"    seen."}<span className="text-blue-400">set</span>{"(nums[i], i);\n"}
-                      {"  }\n"}<span className="lp-ink-3">{"}"}</span>{"\n\n"}
-                      <span className="lp-ink-4">{"// ✓ 12/12 tests · O(n) time · O(n) space"}</span>
-                    </code>
-                  </pre>
-                  {/* Bottom bar */}
-                  <div className="flex items-center gap-4 border-t lp-border-faint lp-card-raised px-4 py-2.5">
-                    <span className="flex items-center gap-1.5 text-[11px] lp-ink-4"><span className="size-1.5 rounded-full bg-green-400" /> JavaScript</span>
-                    <span className="text-[11px] lp-ink-4">Ln 8, Col 1</span>
-                    <span className="ml-auto text-[11px] lp-ink-4">UTF-8</span>
-                  </div>
-                </div>
-              </TiltCard>
-
-              {/* Floating notification cards */}
-              <motion.div style={{ y: y2 }} className="absolute -left-4 -top-5 sm:-left-12">
-                <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-                  className="flex items-center gap-2.5 rounded-xl border border-orange-500/20 lp-card-glass px-3.5 py-2.5 backdrop-blur-sm">
-                  <Zap className="size-4 text-orange-400" />
-                  <div>
-                    <p className="text-xs font-bold lp-ink">+25 XP earned</p>
-                    <p className="text-[10px] lp-ink-3">Two Sum solved</p>
-                  </div>
-                </motion.div>
-              </motion.div>
-
-              <motion.div style={{ y: y1 }} className="absolute -bottom-5 -right-3 sm:-right-10">
-                <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
-                  className="flex items-center gap-2.5 rounded-xl border border-orange-500/20 lp-card-glass px-3.5 py-2.5 backdrop-blur-sm">
-                  <Flame className="size-4 text-orange-400" />
-                  <div>
-                    <p className="text-xs font-bold lp-ink">🔥 14-day streak</p>
-                    <p className="text-[10px] lp-ink-3">Keep it going!</p>
-                  </div>
-                </motion.div>
-              </motion.div>
-
-              <motion.div style={{ y: y2 }} className="absolute right-0 top-1/3 hidden sm:block lg:-right-14">
-                <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.3 }}
-                  className="flex items-center gap-2.5 rounded-xl border border-purple-500/30 lp-card-glass px-3.5 py-2.5 backdrop-blur-sm">
-                  <Award className="size-4 text-purple-400" />
-                  <div>
-                    <p className="text-xs font-bold lp-ink">Badge unlocked!</p>
-                    <p className="text-[10px] lp-ink-3">Speed Solver 🏅</p>
-                  </div>
-                </motion.div>
-              </motion.div>
-            </motion.div>
-          </div>
-
-          {/* Language marquee */}
-          <motion.div style={{ opacity }} className="absolute bottom-0 left-0 right-0">
-            <div className="border-t lp-border-faint lp-card-subtle py-3">
-              <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-                <div className="animate-marquee flex w-max gap-3">
-                  {[...LANGUAGES, ...LANGUAGES].map((lang, i) => (
-                    <span key={`${lang.id}-${i}`} className="flex shrink-0 items-center gap-2 rounded-full border lp-border lp-card px-3.5 py-1.5 text-xs font-semibold lp-ink-3">
-                      <span className="flex size-5 items-center justify-center rounded lp-card-raised font-mono text-[9px] font-black">{lang.extension.slice(0, 2).toUpperCase()}</span>
-                      {lang.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
             </div>
-          </motion.div>
-        </section>
 
-        {/* ── COMPANY TRUST ─────────────────────────────────────────── */}
-        <section className="border-b lp-border-faint py-14">
-          <div className="mx-auto max-w-7xl px-4">
-            <motion.p {...fadeUp} className="mb-8 text-center text-xs font-semibold uppercase tracking-widest lp-ink-4">
-              Engineers at world-class companies practice here
-            </motion.p>
-            <motion.div {...fadeUp} className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
-              {COMPANY_LOGOS.map((name, i) => (
-                <motion.span
-                  key={name}
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.06 }}
-                  className="text-sm font-bold tracking-wide lp-ink-5 hover:lp-ink-3 transition-colors cursor-default"
-                >
-                  {name}
-                </motion.span>
-              ))}
-            </motion.div>
+            {/* layered product mock + floating chips */}
+            <div className="relative">
+              <EditorMock />
+              <FloatChip className="-left-4 -top-5" delay={0.2}>
+                <Flame className="size-4" style={{ color: ACCENT }} /> 94-day streak
+              </FloatChip>
+              <FloatChip className="-bottom-5 -right-3" delay={1}>
+                <Trophy className="size-4" style={{ color: ACCENT }} /> Top 3% rank
+              </FloatChip>
+              <FloatChip className="-right-6 top-1/3" delay={1.6}>
+                <Bot className="size-4" style={{ color: ACCENT }} /> AI hint ready
+              </FloatChip>
+            </div>
           </div>
-        </section>
 
-        {/* ── STATS ─────────────────────────────────────────────────── */}
-        <section className="border-b lp-border-faint py-20">
-          <div className="mx-auto max-w-7xl px-4">
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {STATS.map((stat, i) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  whileHover={{ scale: 1.03 }}
-                  className="group relative overflow-hidden rounded-2xl border lp-border-faint lp-card-subtle p-6 text-center"
-                >
-                  <div className="animate-shimmer pointer-events-none absolute inset-0" />
-                  <p className="text-4xl font-black text-gradient-orange sm:text-5xl">
-                    <CountUp value={stat.value} suffix={stat.suffix} />
-                  </p>
-                  <p className="mt-2 text-xs lp-ink-3 uppercase tracking-wide">{stat.label}</p>
-                </motion.div>
+          {/* language strip */}
+          <div className={cn("relative border-t", border)}>
+            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-2 px-4 py-5 sm:px-6">
+              {LANGUAGES.slice(0, 12).map((lang) => (
+                <span key={lang.id} className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium", border, ink3)}>
+                  <span className={cn("font-mono text-[10px]")} style={{ color: ACCENT }}>{lang.extension.replace(".", "").slice(0, 2).toUpperCase()}</span>
+                  {lang.label}
+                </span>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── FEATURES BENTO GRID ───────────────────────────────────── */}
-        <section id="features" className="border-b lp-border-faint py-24">
-          <div className="mx-auto max-w-7xl px-4">
-            <motion.div {...fadeUp} className="mx-auto mb-16 max-w-2xl text-center">
-              <SectionLabel text="Features" />
-              <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-hero">
-                26+ features.<br />Zero paywalls.
-              </h2>
-              <p className="mt-4 lp-ink-3 text-lg">
-                One platform for algorithms, frontend, AI tools, community and analytics.
-              </p>
-            </motion.div>
+        {/* ── COMPANY TRUST ────────────────────────────────────────── */}
+        <section className={cn("border-b py-12", border)}>
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <p className={cn("mb-7 text-center text-[13px]", ink3)}>Engineers at world-class companies practice here</p>
+            <div className={cn("flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-sm font-medium", ink3)}>
+              {COMPANY_LOGOS.map((name) => (
+                <span key={name} className="transition-colors hover:text-neutral-900 dark:hover:text-white">{name}</span>
+              ))}
+            </div>
+          </div>
+        </section>
 
-            <div className="grid auto-rows-[200px] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Large card — code editor */}
-              <motion.div {...fadeUp} className="sm:col-span-2 sm:row-span-2">
-                <TiltCard max={4} className="h-full">
-                  <div className="group relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-6">
-                    <Code2 className="mb-4 size-8 text-orange-400" />
-                    <h3 className="text-xl font-bold">VS Code–style Editor</h3>
-                    <p className="mt-2 text-sm lp-ink-3 max-w-sm">Full IntelliSense, multi-tab editing, 12 languages, hidden test cases and instant verdicts — everything your local setup has, zero config.</p>
-                    <div className="mt-6 overflow-hidden rounded-xl border lp-border-faint lp-card-raised">
-                      <div className="flex items-center gap-1.5 border-b lp-border-faint px-3 py-2">
-                        <span className="size-2 rounded-full bg-[#ff5f57]" /><span className="size-2 rounded-full bg-[#ffbd2e]" /><span className="size-2 rounded-full bg-[#28c840]" />
-                        <span className="ml-2 font-mono text-[10px] lp-ink-4">solution.py</span>
-                      </div>
-                      <pre className="p-3 font-mono text-[11px] leading-relaxed lp-ink-3">
-                        <span className="text-purple-400">def</span> <span className="text-blue-400">maxProfit</span>(prices):{"\n"}
-                        {"    "}<span className="lp-ink-4">{"min_price = float(\"inf\")"}</span>{"\n"}
-                        {"    "}<span className="lp-ink-4">max_profit = 0</span>{"\n"}
-                        {"    "}<span className="text-orange-400">for</span> price <span className="text-orange-400">in</span> prices:{"\n"}
-                        {"        "}min_price = <span className="text-blue-400">min</span>(min_price, price){"\n"}
-                        {"        "}max_profit = <span className="text-blue-400">max</span>(max_profit, price - min_price){"\n"}
-                        {"    "}<span className="text-orange-400">return</span> max_profit
-                      </pre>
+        {/* ── STATS ────────────────────────────────────────────────── */}
+        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
+            {STATS.map((stat, i) => (
+              <Reveal key={stat.label} delay={i * 0.05} className={cn("p-6 text-center", card)}>
+                <p className="text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl" style={{ color: ACCENT }}>
+                  <CountUp value={stat.value} suffix={stat.suffix} />
+                </p>
+                <p className={cn("mt-2 text-sm", ink3)}>{stat.label}</p>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        {/* ── FEATURES BENTO ───────────────────────────────────────── */}
+        <section id="features" className={cn("border-t py-24", border)}>
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <SectionHead eyebrow="Features" title={<>26+ features. Zero paywalls.</>} sub="One platform for algorithms, frontend, AI tools, community and analytics." />
+            <div className="mt-14 grid gap-4 lg:grid-cols-3">
+              {/* big — editor */}
+              <Reveal className="lg:col-span-2">
+                <div className={cn("flex h-full flex-col p-6", card)}>
+                  <Code2 className="size-5" style={{ color: ACCENT }} />
+                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>VS Code–style editor</h3>
+                  <p className={cn("mt-2 max-w-md text-sm leading-relaxed", ink3)}>Full IntelliSense, Vim mode, 12 languages, hidden test cases and instant verdicts — zero config.</p>
+                  <div className={cn("mt-5 overflow-hidden rounded-lg border", border)}>
+                    <div className={cn("flex items-center gap-1.5 border-b px-3 py-2", border)}>
+                      <span className="size-2 rounded-full bg-[#ff5f57]" /><span className="size-2 rounded-full bg-[#febc2e]" /><span className="size-2 rounded-full bg-[#28c840]" />
+                      <span className={cn("ml-1 font-mono text-[10px]", ink3)}>two_sum.ts</span>
                     </div>
+                    <pre className={cn("overflow-x-auto p-3 font-mono text-[11px] leading-relaxed", ink2)}>
+{`const seen = new Map<number, number>();
+for (let i = 0; i < nums.length; i++) {
+  const need = target - nums[i];
+  if (seen.has(need)) return [seen.get(need)!, i];
+  seen.set(nums[i], i);
+}`}
+                    </pre>
                   </div>
-                </TiltCard>
-              </motion.div>
+                </div>
+              </Reveal>
 
-              {/* Medium card — AI mentor */}
-              <motion.div {...fadeUp} transition={{ delay: 0.1 }} className="sm:col-span-1">
-                <TiltCard max={6} className="h-full">
-                  <div className="group relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
-                    <Bot className="mb-3 size-7 text-purple-400" />
-                    <h3 className="font-bold">AI Mentor</h3>
-                    <p className="mt-1.5 text-xs lp-ink-3">Progressive hints without spoiling. Nudges you to the pattern.</p>
-                    <div className="mt-4 space-y-2">
-                      <div className="ml-6 rounded-lg bg-purple-500/15 px-2.5 py-1.5 text-xs lp-ink-2">Why is this O(n²)?</div>
-                      <div className="rounded-lg border lp-border-faint lp-card-subtle px-2.5 py-1.5 text-xs lp-ink-3">Use a hash map — O(n) ✓</div>
-                    </div>
+              {/* AI mentor chat */}
+              <Reveal delay={0.05}>
+                <div className={cn("flex h-full flex-col p-6", card)}>
+                  <Bot className="size-5" style={{ color: ACCENT }} />
+                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>AI Mentor</h3>
+                  <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>Progressive hints that never spoil the answer.</p>
+                  <div className="mt-4 space-y-2">
+                    <div className={cn("ml-6 rounded-lg px-3 py-2 text-xs", ink)} style={{ background: `${ACCENT}12` }}>Why is this O(n²)?</div>
+                    <div className={cn("mr-4 rounded-lg border px-3 py-2 text-xs", border, ink2)}>Use a hash map to look up complements in O(1) → O(n). ✓</div>
                   </div>
-                </TiltCard>
-              </motion.div>
+                </div>
+              </Reveal>
 
-              {/* Small card — streaks */}
-              <motion.div {...fadeUp} transition={{ delay: 0.15 }}>
-                <TiltCard max={8} className="h-full">
-                  <div className="group relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
-                    <Flame className="mb-2 size-6 text-orange-400" />
-                    <h3 className="font-bold">Daily Streaks</h3>
-                    <div className="mt-3 flex gap-1">
-                      {[1,1,1,1,1,0,1].map((active, i) => (
-                        <div key={i} className={cn("h-7 flex-1 rounded-sm", active ? "bg-orange-500" : "lp-card-raised")} />
-                      ))}
-                    </div>
-                    <p className="mt-2 text-xs font-bold text-orange-400">🔥 94-day streak</p>
+              {/* streak heatmap */}
+              <Reveal delay={0.1}>
+                <div className={cn("flex h-full flex-col p-6", card)}>
+                  <Flame className="size-5" style={{ color: ACCENT }} />
+                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Streaks &amp; gamification</h3>
+                  <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>XP, levels and badges keep daily practice consistent.</p>
+                  <div className="mt-4 grid grid-cols-12 gap-1">
+                    {Array.from({ length: 36 }).map((_, i) => {
+                      const on = [2,3,4,7,8,9,10,13,14,16,17,18,21,22,23,24,27,28,30,31,32,33].includes(i);
+                      return (
+                        <span
+                          key={i}
+                          className={cn("aspect-square rounded-[3px]", !on && "bg-black/[0.06] dark:bg-white/[0.08]")}
+                          style={on ? { background: ACCENT } : undefined}
+                        />
+                      );
+                    })}
                   </div>
-                </TiltCard>
-              </motion.div>
+                </div>
+              </Reveal>
 
-              {/* Small card — spaced repetition */}
-              <motion.div {...fadeUp} transition={{ delay: 0.2 }}>
-                <TiltCard max={8} className="h-full">
-                  <div className="relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
-                    <Brain className="mb-2 size-6 text-blue-400" />
-                    <h3 className="font-bold">Spaced Repetition</h3>
-                    <p className="mt-1 text-xs lp-ink-3">SM-2 algorithm. Review at the perfect moment.</p>
-                    <div className="mt-2 space-y-1">
-                      {[["Two Sum", "Today", true], ["Binary Search", "Day 6", false], ["Merge K Lists", "Day 14", false]].map(([t, d, u]) => (
-                        <div key={t as string} className="flex items-center justify-between text-[10px]">
-                          <span className="lp-ink-3">{t}</span>
-                          <span className={cn("font-semibold", u ? "text-orange-400" : "lp-ink-4")}>{d}</span>
+              {/* analytics */}
+              <Reveal delay={0.05}>
+                <div className={cn("flex h-full flex-col p-6", card)}>
+                  <BarChart3 className="size-5" style={{ color: ACCENT }} />
+                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Skill analytics</h3>
+                  <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>See exactly where to focus next.</p>
+                  <div className="mt-4 space-y-2">
+                    {[["Arrays", 91], ["Strings", 78], ["DP", 34], ["Graphs", 19]].map(([t, v]) => (
+                      <div key={t as string}>
+                        <div className={cn("mb-1 flex justify-between text-[11px]", ink3)}><span>{t}</span><span>{v as number}%</span></div>
+                        <div className={cn("h-1.5 overflow-hidden rounded-full", "bg-black/[0.06] dark:bg-white/[0.08]")}>
+                          <div className="h-full rounded-full" style={{ width: `${v}%`, background: ACCENT }} />
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </TiltCard>
-              </motion.div>
-
-              {/* Small card — skill analytics */}
-              <motion.div {...fadeUp} transition={{ delay: 0.25 }}>
-                <TiltCard max={8} className="h-full">
-                  <div className="relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
-                    <BarChart3 className="mb-2 size-6 text-green-400" />
-                    <h3 className="font-bold">Skill Analytics</h3>
-                    <div className="mt-2 space-y-1.5">
-                      {[["Arrays", 91, "bg-green-400"], ["Strings", 84, "bg-green-400"], ["DP", 32, "bg-orange-400"], ["Graphs", 18, "bg-red-400"]].map(([c, v, col]) => (
-                        <div key={c as string} className="space-y-0.5">
-                          <div className="flex justify-between text-[9px] lp-ink-3"><span>{c}</span><span>{v}%</span></div>
-                          <div className="h-1 rounded-full lp-card"><div className={cn("h-full rounded-full", col)} style={{ width: `${v}%` }} /></div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </TiltCard>
-              </motion.div>
-
-              {/* Wide card — gamification */}
-              <motion.div {...fadeUp} transition={{ delay: 0.2 }} className="sm:col-span-2 lg:col-span-1">
-                <div className="relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-5">
-                  <Trophy className="mb-3 size-6 text-orange-400" />
-                  <h3 className="font-bold">Gamification System</h3>
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    {[
-                      { icon: Zap, label: "XP & Levels", value: "Lvl 14", color: "text-orange-400" },
-                      { icon: Award, label: "Badges", value: "8 earned", color: "text-yellow-400" },
-                      { icon: Trophy, label: "Leaderboard", value: "Top 3%", color: "text-green-400" },
-                      { icon: Target, label: "Accuracy", value: "82%", color: "text-blue-400" },
-                    ].map((item) => (
-                      <div key={item.label} className="rounded-lg border lp-border-faint lp-card-subtle p-2.5">
-                        <item.icon className={cn("mb-1 size-4", item.color)} />
-                        <p className={cn("text-sm font-bold", item.color)}>{item.value}</p>
-                        <p className="text-[10px] lp-ink-4">{item.label}</p>
                       </div>
                     ))}
                   </div>
                 </div>
-              </motion.div>
-            </div>
-          </div>
-        </section>
+              </Reveal>
 
-        {/* ── AI SUITE ──────────────────────────────────────────────── */}
-        <section id="ai" className="relative border-b lp-border-faint py-24 overflow-hidden">
-          <GlowOrb color="#a855f7" size={500} className="top-0 left-0 -translate-x-1/2" />
-          <GlowOrb color="#f97316" size={400} className="bottom-0 right-0 translate-x-1/3" />
-          <div className="relative mx-auto max-w-7xl px-4">
-            <motion.div {...fadeUp} className="mx-auto mb-16 max-w-2xl text-center">
-              <SectionLabel text="AI Suite" />
-              <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-hero">
-                9 AI tools.<br />One platform.
-              </h2>
-              <p className="mt-4 lp-ink-3 text-lg">
-                From personalized coaching to pair programming — AI is woven into every part of your practice.
-              </p>
-            </motion.div>
-
-            <div className="grid gap-5 lg:grid-cols-3">
-              {AI_FEATURES.map((feat, i) => (
-                <motion.div key={feat.title} {...fadeUp} transition={{ delay: i * 0.12 }}>
-                  <TiltCard max={5} className="h-full">
-                    <div className="group relative h-full overflow-hidden rounded-2xl border lp-border lp-card">
-
-                      <div className="relative p-5">
-                        <div className="mb-4 flex items-center gap-2.5">
-                          <div className="flex size-9 items-center justify-center rounded-xl border lp-border" style={{ background: `${feat.color}20` }}>
-                            <feat.icon className="size-5" style={{ color: feat.color }} />
-                          </div>
-                          <span className="font-bold text-sm">{feat.title}</span>
-                          <span className={cn("ml-auto text-xs font-semibold", feat.badgeColor)}>● {feat.badge}</span>
-                        </div>
-
-                        {feat.messages && (
-                          <div className="space-y-2.5">
-                            {feat.messages.map((msg, mi) => (
-                              <motion.div
-                                key={mi}
-                                initial={{ opacity: 0, x: msg.role === "user" ? 10 : -10 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.3 + mi * 0.2 }}
-                                className={cn("rounded-xl px-3 py-2 text-xs leading-relaxed", msg.role === "user" ? "ml-8 lp-ink-2" : "mr-2 border lp-border-faint lp-card lp-ink-3")}
-                                style={msg.role === "user" ? { background: `${feat.color}25`, border: `1px solid ${feat.color}40` } : {}}
-                              >
-                                {msg.text}
-                                {mi === feat.messages!.length - 1 && msg.role === "ai" && (
-                                  <span className="animate-blink ml-1 inline-block h-3 w-0.5 align-middle bg-white/40" />
-                                )}
-                              </motion.div>
-                            ))}
-                            <div className="flex flex-wrap gap-1.5 pt-1">
-                              {feat.chips?.map((c) => (
-                                <span key={c} className="rounded-full border lp-border px-2 py-0.5 text-[10px] lp-ink-4 hover:lp-border-strong hover:lp-ink-3 transition-colors cursor-pointer">{c}</span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {feat.stats && (
-                          <div className="space-y-3">
-                            <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-3.5 py-3">
-                              <p className="text-xs font-semibold text-blue-400">Interview Readiness</p>
-                              <div className="mt-1 flex items-end gap-2">
-                                <span className="text-3xl font-black lp-ink">{feat.stats.score}</span>
-                                <span className="mb-0.5 text-xs lp-ink-3">/100 · Intermediate</span>
-                              </div>
-                              <div className="mt-2 h-1.5 overflow-hidden rounded-full lp-card-raised">
-                                <motion.div
-                                  className="h-full rounded-full bg-blue-400"
-                                  initial={{ width: 0 }}
-                                  whileInView={{ width: `${feat.stats.score}%` }}
-                                  viewport={{ once: true }}
-                                  transition={{ duration: 1, delay: 0.3 }}
-                                />
-                              </div>
-                            </div>
-                            <div className="space-y-1.5 text-xs lp-ink-3">
-                              <p>🎯 Focus: {feat.stats.focus}</p>
-                              <p>📅 Ready in: {feat.stats.ready}</p>
-                              <p>💪 Strong: {feat.stats.strong}</p>
-                            </div>
-                          </div>
-                        )}
+              {/* spaced repetition */}
+              <Reveal delay={0.1}>
+                <div className={cn("flex h-full flex-col p-6", card)}>
+                  <Brain className="size-5" style={{ color: ACCENT }} />
+                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Spaced repetition</h3>
+                  <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>SM-2 resurfaces problems at the perfect moment.</p>
+                  <div className="mt-4 space-y-1.5">
+                    {[["Two Sum", "Today"], ["Binary Search", "Day 6"], ["Merge K Lists", "Day 14"]].map(([t, d], i) => (
+                      <div key={t} className={cn("flex items-center justify-between text-xs", ink3)}>
+                        <span>{t}</span>
+                        <span style={i === 0 ? { color: ACCENT, fontWeight: 500 } : undefined}>{d}</span>
                       </div>
-                    </div>
-                  </TiltCard>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* More AI tools row */}
-            <motion.div {...fadeUp} transition={{ delay: 0.3 }} className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              {[
-                { icon: BookOpen, label: "Study Planner", color: "#f97316" },
-                { icon: Map, label: "Roadmap Generator", color: "#a855f7" },
-                { icon: FileText, label: "Resume Analyzer", color: "#3b82f6" },
-                { icon: Code2, label: "Code Reviewer", color: "#22c55e" },
-                { icon: BarChart3, label: "Complexity Visualizer", color: "#eab308" },
-                { icon: Trophy, label: "Contest Generator", color: "#f97316" },
-              ].map((tool, i) => (
-                <motion.div
-                  key={tool.label}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.07 }}
-                  whileHover={{ y: -3, scale: 1.02 }}
-                  className="rounded-xl border lp-border-faint lp-card-subtle p-3.5 text-center hover:lp-border transition-all"
-                >
-                  <div className="mx-auto mb-2 flex size-9 items-center justify-center rounded-lg" style={{ background: `${tool.color}20` }}>
-                    <tool.icon className="size-4.5" style={{ color: tool.color }} />
+                    ))}
                   </div>
-                  <p className="text-xs font-medium lp-ink-3">{tool.label}</p>
-                </motion.div>
-              ))}
-            </motion.div>
+                </div>
+              </Reveal>
+            </div>
           </div>
         </section>
 
-        {/* ── HOW IT WORKS ──────────────────────────────────────────── */}
-        <section className="border-b lp-border-faint py-24">
-          <div className="mx-auto max-w-7xl px-4">
-            <motion.div {...fadeUp} className="mx-auto mb-16 max-w-2xl text-center">
-              <SectionLabel text="How it works" />
-              <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-hero">
-                From zero to offer<br />in three steps
-              </h2>
-            </motion.div>
-            <div className="grid gap-6 md:grid-cols-3">
-              {STEPS.map((step, i) => (
-                <motion.div
-                  key={step.n}
-                  initial={{ opacity: 0, y: 28 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.13 }}
-                >
-                  <TiltCard max={5} className="h-full">
-                    <div className="relative h-full overflow-hidden rounded-2xl border lp-border lp-card p-7">
-                      <div className="absolute right-4 top-4 font-mono text-6xl font-black text-white/[0.03] select-none">{step.n}</div>
-                      <div className="mb-5 flex size-12 items-center justify-center rounded-2xl border lp-border" style={{ background: `${step.color}20` }}>
-                        <step.icon className="size-6" style={{ color: step.color }} />
-                      </div>
-                      <h3 className="mb-2.5 text-lg font-bold">{step.title}</h3>
-                      <p className="text-sm lp-ink-3 leading-relaxed">{step.description}</p>
-                      <div className="mt-5 h-0.5 w-12 rounded-full" style={{ background: step.color }} />
-                    </div>
-                  </TiltCard>
-                </motion.div>
+        {/* ── AI SUITE ─────────────────────────────────────────────── */}
+        <section id="ai" className={cn("border-t py-24", border)}>
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <SectionHead eyebrow="AI Suite" title={<>9 AI tools. One platform.</>} sub="From personalized coaching to pair programming — AI is woven into every part of your practice." />
+            <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {AI_TOOLS.map((tool, i) => (
+                <Reveal key={tool.label} delay={(i % 3) * 0.05}>
+                  <div className={cn("group flex h-full flex-col p-6 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/60", card)}>
+                    <span className={cn("flex size-9 items-center justify-center rounded-md border", border)} style={{ background: `${ACCENT}0d` }}>
+                      <tool.icon className="size-4.5" style={{ color: ACCENT }} />
+                    </span>
+                    <h3 className={cn("mt-4 text-sm font-semibold", ink)}>{tool.label}</h3>
+                    <p className={cn("mt-1.5 text-sm leading-relaxed", ink3)}>{tool.desc}</p>
+                  </div>
+                </Reveal>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── PROBLEMS PREVIEW ──────────────────────────────────────── */}
+        {/* ── HOW IT WORKS ─────────────────────────────────────────── */}
+        <section className={cn("border-t py-24", border)}>
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <SectionHead eyebrow="How it works" title={<>From zero to offer in three steps</>} />
+            <div className="mt-14 grid gap-6 md:grid-cols-3">
+              {STEPS.map((step, i) => (
+                <Reveal key={step.n} delay={i * 0.07}>
+                  <div className={cn("h-full p-7", card)}>
+                    <span className="inline-flex size-9 items-center justify-center rounded-lg font-mono text-sm font-semibold" style={{ background: `${ACCENT}12`, color: ACCENT }}>{step.n}</span>
+                    <h3 className={cn("mt-4 text-lg font-semibold tracking-tight", ink)}>{step.title}</h3>
+                    <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>{step.body}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── PROBLEMS PREVIEW ─────────────────────────────────────── */}
         {problems.length > 0 && (
-          <section className="border-b lp-border-faint py-24">
-            <div className="mx-auto max-w-7xl px-4">
-              <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.4fr]">
-                <motion.div {...fadeUp}>
-                  <SectionLabel text="Problem bank" />
-                  <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-hero">
-                    {totalProblems}+ real interview<br />questions, ready to run.
-                  </h2>
-                  <p className="mt-4 lp-ink-3">DSA classics, JavaScript deep-dives and React pattern exercises — every problem executes against hidden test cases in the cloud.</p>
-                  <Button asChild size="lg" className="mt-7 bg-orange-500 hover:bg-orange-600 lp-ink">
-                    <Link href="/problems">Browse all problems <ArrowRight className="size-4" /></Link>
-                  </Button>
-                </motion.div>
-                <div className="overflow-hidden rounded-2xl border lp-border lp-card">
-                  {problems.map((problem, index) => (
-                    <motion.div
-                      key={problem.slug}
-                      initial={{ opacity: 0, x: 20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.07 }}
-                    >
-                      <Link href={`/problems/${problem.slug}`} className={cn("group flex items-center gap-3 px-5 py-4 transition-colors hover:bg-orange-500/5", index !== 0 && "border-t lp-border-faint")}>
-                        <span className="font-mono text-xs lp-ink-5">{String(index + 1).padStart(2, "0")}</span>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold lp-ink-2 group-hover:lp-ink">{problem.title}</p>
-                          <p className="text-xs lp-ink-4">{problem.category}</p>
-                        </div>
-                        <DifficultyBadge difficulty={problem.difficulty} />
-                        <ArrowUpRight className="size-4 lp-ink-5 transition-all group-hover:text-orange-400 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                      </Link>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
+          <section className={cn("border-t py-24", border)}>
+            <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_1.3fr]">
+              <Reveal>
+                <Eyebrow>Problem bank</Eyebrow>
+                <h2 className={cn("mt-3 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl", ink)}>
+                  {totalProblems}+ real interview questions, ready to run.
+                </h2>
+                <p className={cn("mt-4", ink3)}>DSA classics, JavaScript deep-dives and React pattern exercises — every problem executes against hidden test cases in the cloud.</p>
+                <Button asChild size="lg" className={cn(primaryBtn, "mt-7 h-11 px-5")}>
+                  <Link href="/problems">Browse All Problems <ArrowRight className="size-4" /></Link>
+                </Button>
+              </Reveal>
+              <Reveal delay={0.05} className={cn("overflow-hidden rounded-xl", card)}>
+                {problems.map((problem, index) => (
+                  <Link
+                    key={problem.slug}
+                    href={`/problems/${problem.slug}`}
+                    className={cn("group flex items-center gap-3 px-5 py-4 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/60", index !== 0 && "border-t", border)}
+                  >
+                    <span className={cn("font-mono text-xs tabular-nums", ink3)}>{String(index + 1).padStart(2, "0")}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className={cn("truncate text-sm font-medium", ink)}>{problem.title}</p>
+                      <p className={cn("text-xs", ink3)}>{problem.category}</p>
+                    </div>
+                    <DifficultyBadge difficulty={problem.difficulty} />
+                    <ArrowUpRight className={cn("size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5", ink3)} />
+                  </Link>
+                ))}
+              </Reveal>
             </div>
           </section>
         )}
 
-        {/* ── TESTIMONIALS ──────────────────────────────────────────── */}
-        <section className="border-b lp-border-faint py-24">
-          <div className="mx-auto max-w-7xl px-4">
-            <motion.div {...fadeUp} className="mx-auto mb-16 max-w-2xl text-center">
-              <SectionLabel text="Testimonials" />
-              <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-hero">
-                Loved by thousands<br />of coders
-              </h2>
-            </motion.div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {/* ── TESTIMONIALS ─────────────────────────────────────────── */}
+        <section className={cn("border-t py-24", border)}>
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <SectionHead eyebrow="Testimonials" title={<>Loved by thousands of coders</>} />
+            <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {TESTIMONIALS.map((t, i) => (
-                <motion.figure
-                  key={t.name}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: (i % 3) * 0.1 }}
-                  whileHover={{ y: -5, scale: 1.01 }}
-                  className="group flex h-full flex-col rounded-2xl border lp-border-faint lp-card-subtle p-6 hover:border-orange-500/20 hover:bg-orange-500/[0.03] transition-all duration-300"
-                >
-                  <div className="mb-3 flex gap-0.5">
-                    {Array(t.stars).fill(0).map((_, si) => (
-                      <Star key={si} className="size-3.5 fill-orange-400 text-orange-400" />
-                    ))}
-                  </div>
-                  <blockquote className="flex-1 text-sm leading-relaxed lp-ink-3">
-                    &ldquo;{t.quote}&rdquo;
-                  </blockquote>
-                  <figcaption className="mt-5 flex items-center gap-3 border-t lp-border-faint pt-4">
-                    <span className="flex size-9 items-center justify-center rounded-full bg-orange-500/20 text-sm font-black text-orange-400">
-                      {t.avatar}
-                    </span>
-                    <span>
-                      <span className="block text-sm font-bold lp-ink-2">{t.name}</span>
-                      <span className="block text-xs lp-ink-4">{t.role}</span>
-                    </span>
-                  </figcaption>
-                </motion.figure>
+                <Reveal key={t.name} delay={(i % 3) * 0.05}>
+                  <figure className={cn("flex h-full flex-col p-6", card)}>
+                    <div className="mb-3 flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, s) => <Star key={s} className="size-3.5" style={{ fill: ACCENT, color: ACCENT }} />)}
+                    </div>
+                    <blockquote className={cn("flex-1 text-sm leading-relaxed", ink2)}>“{t.quote}”</blockquote>
+                    <figcaption className={cn("mt-5 flex items-center gap-3 border-t pt-4", border)}>
+                      <span className="flex size-9 items-center justify-center rounded-full text-sm font-medium text-white" style={{ background: ACCENT }}>{t.avatar}</span>
+                      <span>
+                        <span className={cn("block text-sm font-medium", ink)}>{t.name}</span>
+                        <span className={cn("block text-xs", ink3)}>{t.role}</span>
+                      </span>
+                    </figcaption>
+                  </figure>
+                </Reveal>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── PRICING ───────────────────────────────────────────────── */}
-        <section id="pricing" className="border-b lp-border-faint py-24">
-          <div className="mx-auto max-w-5xl px-4">
-            <motion.div {...fadeUp} className="mx-auto mb-12 max-w-2xl text-center">
-              <SectionLabel text="Pricing" />
-              <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl text-gradient-hero">
-                Start free,<br />level up fast.
-              </h2>
-              <p className="mt-4 lp-ink-3">7-day free trial on all paid plans. No credit card required.</p>
-            </motion.div>
-            <motion.div {...fadeUp} transition={{ delay: 0.15 }}>
+        {/* ── PRICING ──────────────────────────────────────────────── */}
+        <section id="pricing" className={cn("border-t py-24", border)}>
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <SectionHead eyebrow="Pricing" title={<>Start free, level up fast.</>} sub="7-day free trial on all paid plans. No credit card required." />
+            <Reveal delay={0.1} className="mt-12">
               <PricingCards />
-            </motion.div>
+            </Reveal>
           </div>
         </section>
 
-        {/* ── FAQ ───────────────────────────────────────────────────── */}
-        <section id="faq" className="border-b lp-border-faint py-24">
-          <div className="mx-auto max-w-3xl px-4">
-            <motion.div {...fadeUp} className="mb-12 text-center">
-              <SectionLabel text="FAQ" />
-              <h2 className="mt-5 text-4xl font-black tracking-tight text-gradient-hero">Frequently asked</h2>
-            </motion.div>
-            <div className="space-y-2">
+        {/* ── FAQ ──────────────────────────────────────────────────── */}
+        <section id="faq" className={cn("border-t py-24", border)}>
+          <div className="mx-auto max-w-3xl px-4 sm:px-6">
+            <SectionHead eyebrow="FAQ" title="Frequently asked" />
+            <div className="mt-12 space-y-2">
               {FAQS.map((faq, i) => (
-                <motion.div
-                  key={faq.q}
-                  initial={{ opacity: 0, y: 12 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.06 }}
-                  className={cn("overflow-hidden rounded-xl border lp-card-subtle transition-all", openFaq === i ? "border-orange-500/30" : "lp-border-faint")}
-                >
+                <div key={faq.q} className={cn("overflow-hidden rounded-xl border", border)}>
                   <button
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-sm font-semibold lp-ink-2 hover:lp-ink"
+                    className={cn("flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-sm font-medium", ink)}
                   >
                     {faq.q}
-                    <motion.div animate={{ rotate: openFaq === i ? 180 : 0 }} transition={{ duration: 0.25 }}>
-                      <ChevronDown className="size-4 shrink-0 lp-ink-4" />
-                    </motion.div>
+                    <ChevronDown className={cn("size-4 shrink-0 transition-transform", ink3, openFaq === i && "rotate-180")} />
                   </button>
-                  <AnimatePresence>
+                  <AnimatePresence initial={false}>
                     {openFaq === i && (
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.25 }}
                       >
-                        <p className="border-t lp-border-faint px-5 py-4 text-sm lp-ink-3 leading-relaxed">
-                          {faq.a}
-                        </p>
+                        <p className={cn("border-t px-5 py-4 text-sm leading-relaxed", border, ink3)}>{faq.a}</p>
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── FINAL CTA ─────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden py-32">
-          <div className="absolute inset-0 bg-grid-sm opacity-50" />
-          <GlowOrb color="#f97316" size={700} className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute right-16 top-12 hidden lg:block" aria-hidden>
-            <Cube3D size={72} className="opacity-40" />
-          </div>
-          <div className="absolute left-16 bottom-12 hidden lg:block" aria-hidden>
-            <OrbitSphere size={90} className="opacity-30" />
-          </div>
-          <div className="relative mx-auto max-w-4xl px-4 text-center">
-            <motion.div {...fadeUp}>
-              <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl border border-orange-500/30 bg-orange-500/10"
-              >
-                <Flame className="size-8 text-orange-400" />
-              </motion.div>
-              <h2 className="text-5xl font-black tracking-tight sm:text-6xl lg:text-7xl text-gradient-hero leading-[1.02]">
-                Your next offer<br />starts now.
-              </h2>
-              <p className="mx-auto mt-6 max-w-lg text-lg lp-ink-3">
-                Free forever. 26+ features. 9 AI tools. No credit card. Just you, the editor, and an AI mentor that never sleeps.
-              </p>
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-                <Button asChild size="lg" className="h-14 px-10 text-lg bg-orange-500 hover:bg-orange-600 lp-ink transition-all duration-300">
-                  <Link href={ctaHref}>Create free account <ArrowRight className="size-5" /></Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="h-14 lp-border lp-ink-3 hover:lp-ink hover:lp-card hover:lp-border-strong">
-                  <Link href="/problems">Browse problems</Link>
-                </Button>
+        {/* ── FINAL CTA ────────────────────────────────────────────── */}
+        <section className={cn("border-t py-24", border)}>
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <Reveal className="relative overflow-hidden rounded-2xl border px-6 py-16 text-center sm:px-12" >
+              <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(60%_60%_at_50%_40%,black,transparent)]" />
+              <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(50%_60%_at_50%_0%,rgba(0,107,255,0.12),transparent)]" />
+              <div className={cn("absolute inset-0 -z-10 rounded-2xl", card)} />
+              <div className="relative">
+                <span className="inline-flex size-12 items-center justify-center rounded-xl" style={{ background: `${ACCENT}14` }}>
+                  <Zap className="size-6" style={{ color: ACCENT }} />
+                </span>
+                <h2 className={cn("mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl", ink)}>Your next offer starts now.</h2>
+                <p className={cn("mx-auto mt-4 max-w-lg text-lg", ink3)}>
+                  Free forever. 26+ features. 9 AI tools. No credit card — just you, the editor, and an AI mentor that never sleeps.
+                </p>
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                  <Button asChild size="lg" className={cn(primaryBtn, "h-12 px-7 text-base")}>
+                    <Link href={ctaHref}>Create Free Account <ArrowRight className="size-4" /></Link>
+                  </Button>
+                  <Button asChild variant="outline" size="lg" className={cn("h-12 rounded-md bg-white px-7 text-base dark:bg-neutral-900", border, ink2)}>
+                    <Link href="/problems">Browse Problems</Link>
+                  </Button>
+                </div>
               </div>
-              <p className="mt-6 text-sm lp-ink-4">No credit card · 12 languages · 9 AI tools</p>
-            </motion.div>
+            </Reveal>
           </div>
         </section>
       </main>
 
-      {/* ── FOOTER ────────────────────────────────────────────────────── */}
-      <footer className="border-t lp-border-faint">
-        <div className="mx-auto max-w-7xl px-4 py-16">
+      {/* ── FOOTER ───────────────────────────────────────────────────── */}
+      <footer className={cn("border-t", border)}>
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="grid gap-12 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
             <div>
               <Logo />
-              <p className="mt-4 max-w-xs text-sm lp-ink-4 leading-relaxed">
+              <p className={cn("mt-4 max-w-xs text-sm leading-relaxed", ink3)}>
                 The AI-powered platform for mastering data structures, algorithms and frontend engineering — built for your next interview.
               </p>
-              <div className="mt-6 flex gap-2">
-                <a href="https://github.com/nitheeshdr/codeforge-ai" target="_blank" rel="noopener noreferrer" aria-label="GitHub"
-                  className="flex size-9 items-center justify-center rounded-lg border lp-border lp-ink-4 hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-400 transition-all">
-                  <GithubIcon className="size-4" />
-                </a>
-              </div>
+              <a
+                href="https://github.com/nitheeshdr/codeforge-ai"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub"
+                className={cn("mt-6 inline-flex size-9 items-center justify-center rounded-md border transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]", border, ink3)}
+              >
+                <GithubIcon className="size-4" />
+              </a>
             </div>
             {FOOTER_COLS.map((col) => (
               <nav key={col.heading}>
-                <h3 className="mb-4 text-xs font-bold uppercase tracking-widest lp-ink-4">{col.heading}</h3>
+                <h3 className={cn("mb-4 text-[13px] font-medium", ink3)}>{col.heading}</h3>
                 <ul className="space-y-3">
                   {col.links.map((link) => (
                     <li key={link.label}>
-                      <Link href={link.href} className="text-sm lp-ink-3 hover:text-orange-400 transition-colors">{link.label}</Link>
+                      <Link href={link.href} className={cn("text-sm transition-colors hover:text-neutral-900 dark:hover:text-white", ink3)}>{link.label}</Link>
                     </li>
                   ))}
                 </ul>
@@ -1127,21 +691,18 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
             ))}
           </div>
         </div>
-        <div className="border-t lp-border-faint">
-          <div className="mx-auto grid max-w-7xl grid-cols-1 gap-y-3 px-4 py-5 text-xs lp-ink-5 sm:grid-cols-3 sm:items-center">
+        <div className={cn("border-t", border)}>
+          <div className={cn("mx-auto grid max-w-6xl grid-cols-1 gap-y-3 px-4 py-5 text-xs sm:grid-cols-3 sm:items-center sm:px-6", ink3)}>
             <p>© {new Date().getFullYear()} {APP_NAME}</p>
-            <div className="flex items-center justify-center gap-1.5">
-              from the
-              <Heart className="size-3 fill-red-500 text-red-500" />
-              <img src="/white.png" alt="Setups Works" className="h-6 w-auto hidden dark:inline-block" />
-              <img src="/black.png" alt="Setups Works" className="h-6 w-auto inline-block dark:hidden" />
+            <div className="flex items-center justify-center gap-2">
+              <span>from</span>
+              <img src="/white.png" alt="Setups Works" className="hidden h-5 w-auto dark:inline-block" />
+              <img src="/black.png" alt="Setups Works" className="inline-block h-5 w-auto dark:hidden" />
             </div>
             <div className="flex items-center gap-4 sm:justify-end">
-              <Link href="/terms" className="hover:text-orange-400 transition-colors">Terms</Link>
-              <Link href="/privacy" className="hover:text-orange-400 transition-colors">Privacy</Link>
-              <Link href="/changelog" className="hover:text-orange-400 transition-colors">Changelog</Link>
-              <Link href="/feedback" className="hover:text-orange-400 transition-colors">Feedback</Link>
-              <span className="rounded-full border lp-border-faint px-2 py-0.5 font-mono">v{APP_VERSION}</span>
+              <Link href="/terms" className="hover:text-neutral-900 dark:hover:text-white">Terms</Link>
+              <Link href="/privacy" className="hover:text-neutral-900 dark:hover:text-white">Privacy</Link>
+              <span className={cn("rounded-full border px-2 py-0.5 font-mono", border)}>v{APP_VERSION}</span>
             </div>
           </div>
         </div>
@@ -1150,7 +711,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
   );
 }
 
-/* ── SVG icons ────────────────────────────────────────────────────── */
+/* ── icons ────────────────────────────────────────────────────────── */
 function GithubIcon({ className }: { className?: string }) {
   return <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.88-.01-1.73-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.34 1.12 2.91.86.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.7 0 0 .84-.28 2.75 1.05a9.36 9.36 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.4.2 2.44.1 2.7.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.04 10.04 0 0 0 22 12.25C22 6.58 17.52 2 12 2" /></svg>;
 }

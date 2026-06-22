@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 const MEDAL_COLORS = [
   "text-yellow-500",
   "text-slate-400",
-  "text-orange-500",
+  "text-amber-500",
 ];
 
 export default async function LeaderboardPage() {

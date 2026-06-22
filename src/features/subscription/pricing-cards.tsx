@@ -89,7 +89,7 @@ export function PricingCards({
         name: "CodeForge AI",
         description: `${PLANS[plan].name} — ${cycle}`,
         order_id: order.orderId,
-        theme: { color: "#f97316" },
+        theme: { color: "#006bff" },
         prefill: { name: session.user.name, email: session.user.email },
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
           const verify = await fetch("/api/subscription/verify", {
@@ -179,7 +179,7 @@ export function PricingCards({
                     </span>
                   )}
                   {!isFree && !paymentsEnabled && !isCurrentPlan && (
-                    <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-2 py-0.5 text-[10px] font-semibold text-orange-500">
+                    <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-500">
                       Coming soon
                     </span>
                   )}
@@ -232,7 +232,7 @@ export function PricingCards({
                   </Button>
                   {plan.id === "go" && (
                     <Link href="/beta/join" className="block">
-                      <Button className="w-full gap-1.5 border-orange-500/40 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20" variant="outline">
+                      <Button className="w-full gap-1.5 border-blue-500/40 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20" variant="outline">
                         Get Go free via Beta →
                       </Button>
                     </Link>

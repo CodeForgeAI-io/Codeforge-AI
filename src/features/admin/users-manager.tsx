@@ -71,7 +71,7 @@ interface AdminUser {
 
 const PLAN_META = {
   free: { label: "Free", color: "text-muted-foreground", bg: "bg-muted/50 border-border", icon: null },
-  go:   { label: "Go",   color: "text-orange-400",      bg: "bg-orange-500/10 border-orange-500/30", icon: Zap },
+  go:   { label: "Go",   color: "text-blue-400",      bg: "bg-blue-500/10 border-blue-500/30", icon: Zap },
   plus: { label: "Plus", color: "text-yellow-400",      bg: "bg-yellow-500/10 border-yellow-500/30", icon: Crown },
 } as const;
 
@@ -304,7 +304,7 @@ function UserDetailSheet({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-9 w-full gap-1.5 border-orange-500/40 text-orange-400 hover:bg-orange-500/10 text-xs font-semibold"
+                  className="h-9 w-full gap-1.5 border-blue-500/40 text-blue-400 hover:bg-blue-500/10 text-xs font-semibold"
                   onClick={grantGoPlan30Days}
                 >
                   <Zap className="size-3.5" /> Grant Go · 30d
@@ -345,7 +345,7 @@ function UserDetailSheet({
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Streak</p>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex items-center gap-3 rounded-xl border bg-muted/20 px-3.5 py-3">
-                  <Flame className="size-5 text-orange-500 shrink-0" />
+                  <Flame className="size-5 text-amber-500 shrink-0" />
                   <div>
                     <p className="text-lg font-black leading-none">{user.streak}</p>
                     <p className="text-[10px] text-muted-foreground mt-1">Current</p>
@@ -491,7 +491,7 @@ export function UsersManager() {
           <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
             <span>{users.length} users</span>
             {paidCount > 0 && (
-              <span className="flex items-center gap-1 text-orange-400">
+              <span className="flex items-center gap-1 text-blue-400">
                 <Zap className="size-3" /> {paidCount} paid
               </span>
             )}
@@ -570,7 +570,7 @@ export function UsersManager() {
                   <TableCell>
                     {user.streak > 0 ? (
                       <span className="flex items-center gap-1 text-sm">
-                        <Flame className="size-3.5 text-orange-500" />
+                        <Flame className="size-3.5 text-amber-500" />
                         {user.streak}
                       </span>
                     ) : (
