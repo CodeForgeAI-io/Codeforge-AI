@@ -213,7 +213,7 @@ function FloatChip({ className, children, delay = 0 }: { className?: string; chi
   const reduce = useReducedMotion();
   return (
     <motion.div
-      className={cn("absolute hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium shadow-[0_8px_30px_rgba(0,0,0,0.10)] sm:flex", card, ink)}
+      className={cn("absolute hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium shadow-[0_8px_30px_rgba(0,0,0,0.10)] lg:flex", card, ink)}
       animate={reduce ? undefined : { y: [0, -6, 0] }}
       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
     >
@@ -303,13 +303,13 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
           <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(70%_60%_at_50%_0%,black,transparent)]" />
           <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(60%_60%_at_50%_0%,rgba(0,107,255,0.10),transparent)]" />
 
-          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:py-28">
+          <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:gap-12 sm:px-6 sm:py-20 lg:grid-cols-[1.05fr_1fr] lg:py-28">
             <div>
               <div className={cn("inline-flex items-center gap-2 rounded-full border bg-white/70 px-3 py-1 text-[13px] backdrop-blur dark:bg-neutral-900/70", border, ink2)}>
                 <Sparkles className="size-3.5" style={{ color: ACCENT }} />
                 26+ features · 9 AI tools · 100% free
               </div>
-              <h1 className={cn("mt-6 text-balance text-5xl font-semibold leading-[1.05] tracking-[-0.04em] sm:text-6xl", ink)}>
+              <h1 className={cn("mt-6 text-balance text-4xl font-semibold leading-[1.07] tracking-[-0.04em] sm:text-5xl lg:text-6xl", ink)}>
                 Master coding interviews with{" "}
                 <span style={{ color: ACCENT }}>AI.</span>
               </h1>
@@ -374,7 +374,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         </section>
 
         {/* ── STATS ────────────────────────────────────────────────── */}
-        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
             {STATS.map((stat, i) => (
               <Reveal key={stat.label} delay={i * 0.05} className={cn("p-6 text-center", card)}>
@@ -388,7 +388,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         </section>
 
         {/* ── FEATURES BENTO ───────────────────────────────────────── */}
-        <section id="features" className={cn("border-t py-24", border)}>
+        <section id="features" className={cn("border-t py-16 sm:py-24", border)}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <SectionHead eyebrow="Features" title={<>26+ features. Zero paywalls.</>} sub="One platform for algorithms, frontend, AI tools, community and analytics." />
             <div className="mt-14 grid gap-4 lg:grid-cols-3">
@@ -489,7 +489,7 @@ for (let i = 0; i < nums.length; i++) {
         </section>
 
         {/* ── AI SUITE ─────────────────────────────────────────────── */}
-        <section id="ai" className={cn("border-t py-24", border)}>
+        <section id="ai" className={cn("border-t py-16 sm:py-24", border)}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <SectionHead eyebrow="AI Suite" title={<>9 AI tools. One platform.</>} sub="From personalized coaching to pair programming — AI is woven into every part of your practice." />
             <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -509,7 +509,7 @@ for (let i = 0; i < nums.length; i++) {
         </section>
 
         {/* ── HOW IT WORKS ─────────────────────────────────────────── */}
-        <section className={cn("border-t py-24", border)}>
+        <section className={cn("border-t py-16 sm:py-24", border)}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <SectionHead eyebrow="How it works" title={<>From zero to offer in three steps</>} />
             <div className="mt-14 grid gap-6 md:grid-cols-3">
@@ -528,7 +528,7 @@ for (let i = 0; i < nums.length; i++) {
 
         {/* ── PROBLEMS PREVIEW ─────────────────────────────────────── */}
         {problems.length > 0 && (
-          <section className={cn("border-t py-24", border)}>
+          <section className={cn("border-t py-16 sm:py-24", border)}>
             <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_1.3fr]">
               <Reveal>
                 <Eyebrow>Problem bank</Eyebrow>
@@ -562,7 +562,7 @@ for (let i = 0; i < nums.length; i++) {
         )}
 
         {/* ── TESTIMONIALS ─────────────────────────────────────────── */}
-        <section className={cn("border-t py-24", border)}>
+        <section className={cn("border-t py-16 sm:py-24", border)}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <SectionHead eyebrow="Testimonials" title={<>Loved by thousands of coders</>} />
             <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -588,7 +588,7 @@ for (let i = 0; i < nums.length; i++) {
         </section>
 
         {/* ── PRICING ──────────────────────────────────────────────── */}
-        <section id="pricing" className={cn("border-t py-24", border)}>
+        <section id="pricing" className={cn("border-t py-16 sm:py-24", border)}>
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <SectionHead eyebrow="Pricing" title={<>Start free, level up fast.</>} sub="7-day free trial on all paid plans. No credit card required." />
             <Reveal delay={0.1} className="mt-12">
@@ -598,7 +598,7 @@ for (let i = 0; i < nums.length; i++) {
         </section>
 
         {/* ── FAQ ──────────────────────────────────────────────────── */}
-        <section id="faq" className={cn("border-t py-24", border)}>
+        <section id="faq" className={cn("border-t py-16 sm:py-24", border)}>
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <SectionHead eyebrow="FAQ" title="Frequently asked" />
             <div className="mt-12 space-y-2">
@@ -630,9 +630,9 @@ for (let i = 0; i < nums.length; i++) {
         </section>
 
         {/* ── FINAL CTA ────────────────────────────────────────────── */}
-        <section className={cn("border-t py-24", border)}>
+        <section className={cn("border-t py-16 sm:py-24", border)}>
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <Reveal className="relative overflow-hidden rounded-2xl border px-6 py-16 text-center sm:px-12" >
+            <Reveal className="relative overflow-hidden rounded-2xl border px-5 py-12 text-center sm:px-12 sm:py-16" >
               <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(60%_60%_at_50%_40%,black,transparent)]" />
               <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(50%_60%_at_50%_0%,rgba(0,107,255,0.12),transparent)]" />
               <div className={cn("absolute inset-0 -z-10 rounded-2xl", card)} />
