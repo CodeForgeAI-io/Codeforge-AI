@@ -11,6 +11,7 @@ const PUBLIC_PREFIXES = [
   "/profile", // public profiles
   "/problems", // browsing problems is public; solving requires auth
   "/api/questions", // public question listing/search APIs
+  "/api/search", // global command-palette search (published content only)
   "/api/discussions", // public discussion listing/reading
   "/forum", // public forum — posting/commenting requires auth (handled in page)
   "/pricing", // public pricing page

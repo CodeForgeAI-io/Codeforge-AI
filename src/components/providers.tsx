@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PostHogProvider } from "@/components/posthog-provider";
+import { CommandPalette } from "@/components/command-palette";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -33,6 +34,7 @@ export function Providers({ children }: { children: ReactNode }) {
             disableTransitionOnChange
           >
             <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+            <CommandPalette />
             <Toaster richColors position="bottom-right" />
           </ThemeProvider>
         </QueryClientProvider>
