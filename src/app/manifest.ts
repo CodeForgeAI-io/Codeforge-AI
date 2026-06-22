@@ -7,7 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: APP_NAME,
     description: APP_DESCRIPTION,
     id: "/",
-    start_url: "/",
+    // Launch into the app: /login redirects to /dashboard when already signed in.
+    start_url: "/login",
     scope: "/",
     display: "standalone",
     orientation: "any",
