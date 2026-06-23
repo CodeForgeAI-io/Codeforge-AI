@@ -39,6 +39,7 @@
     "emmet-monaco-es": "^5.7.0",
     "framer-motion": "^12.40.0",
     "groq-sdk": "^1.2.1",
+    "langsmith": "^0.7.10",
     "monaco-editor": "^0.55.1",
     "monaco-vim": "^0.4.4",
     "mongoose": "^9.7.0",

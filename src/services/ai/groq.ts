@@ -1,4 +1,5 @@
 import Groq from "groq-sdk";
+import { wrapOpenAI } from "langsmith/wrappers";
 
 export const GROQ_MODEL =
   process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile";
@@ -16,7 +17,13 @@ export function getGroqClient(): Groq {
     );
   }
   if (!client) {
-    client = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    // Groq's SDK is OpenAI-API-compatible, so wrapOpenAI adds LangSmith LLM
+    // tracing (token usage, model, latency). It's a passthrough unless
+    // LANGSMITH_TRACING=true and LANGSMITH_API_KEY are set.
+    const groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    client = wrapOpenAI(
+      groqClient as unknown as Parameters<typeof wrapOpenAI>[0],
+    ) as unknown as Groq;
   }
   return client;
 }
