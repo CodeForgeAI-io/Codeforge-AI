@@ -50,7 +50,11 @@ export async function getEffectiveConfig() {
     siteKeywords: cfg.siteKeywords ?? "",
     ogImage: cfg.ogImage ?? "",
     twitterHandle: cfg.twitterHandle ?? "",
-    gaId: resolve(cfg.gaId, process.env.NEXT_PUBLIC_GA_ID),
+    gaId: resolve(
+      cfg.gaId,
+      process.env.NEXT_PUBLIC_GA_ID ??
+        (process.env.NODE_ENV === "production" ? "G-3QG2R8NKRC" : undefined),
+    ),
     clarityId: resolve(cfg.clarityId, process.env.NEXT_PUBLIC_CLARITY_ID),
     gscVerification: resolve(cfg.gscVerification, process.env.GOOGLE_SITE_VERIFICATION),
   };

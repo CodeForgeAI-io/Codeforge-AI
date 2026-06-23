@@ -35,7 +35,6 @@ import {
   Zap,
 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { DifficultyBadge } from "@/components/shared/difficulty-badge";
 const PricingCards = dynamic(
@@ -97,6 +96,18 @@ const ink = "text-neutral-900 dark:text-neutral-50";
 const ink2 = "text-neutral-600 dark:text-neutral-300";
 const ink3 = "text-neutral-500 dark:text-neutral-400";
 const border = "border-black/[0.08] dark:border-white/[0.10]";
+
+/** PNG logo lockup (theme-aware) used on the landing header & footer. */
+function LogoImg({ className }: { className?: string }) {
+  return (
+    <Link href="/" aria-label={APP_NAME} className={cn("inline-flex items-center", className)}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.png" alt={APP_NAME} width={257} height={62} className="h-7 w-auto dark:hidden" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo-dark.png" alt={APP_NAME} width={257} height={62} className="hidden h-7 w-auto dark:inline-block" />
+    </Link>
+  );
+}
 
 /* ── data ─────────────────────────────────────────────────────────── */
 
@@ -407,7 +418,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
       {/* ── HEADER ─────────────────────────────────────────────────── */}
       <header className={cn("sticky top-0 z-50 border-b bg-white/80 backdrop-blur-xl dark:bg-neutral-950/80", border)}>
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Logo />
+          <LogoImg />
           <nav className={cn("hidden items-center gap-7 text-sm md:flex", ink2)}>
             {NAV.map(([label, href]) => (
               <a key={label} href={href} onClick={navClick} className="transition-colors hover:text-neutral-900 dark:hover:text-white">
@@ -885,7 +896,7 @@ for (let i = 0; i < nums.length; i++) {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="grid gap-12 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
             <div>
-              <Logo />
+              <LogoImg />
               <p className={cn("mt-4 max-w-xs text-sm leading-relaxed", ink3)}>
                 The AI-powered platform for mastering data structures, algorithms and frontend engineering — built for your next interview.
               </p>
