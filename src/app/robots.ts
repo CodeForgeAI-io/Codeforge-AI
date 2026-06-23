@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const cfg = await getEffectiveConfig();
-  const base = (cfg.siteUrl || "https://codeforge.ai").replace(/\/$/, "");
+  const base = (cfg.siteUrl || "https://codeforgeai.io").replace(/\/$/, "");
 
   return {
     rules: [

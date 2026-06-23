@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const cfg = await getEffectiveConfig();
   const name = cfg.siteName || APP_NAME;
   const desc = cfg.siteDescription || APP_DESCRIPTION;
-  const url = cfg.siteUrl || "https://codeforge.ai";
+  const url = cfg.siteUrl || "https://codeforgeai.io";
   const ogImg = cfg.ogImage || undefined;
 
   return {
@@ -87,7 +87,7 @@ export default async function RootLayout({
   const cfg = await getEffectiveConfig();
   const name = cfg.siteName || APP_NAME;
   const desc = cfg.siteDescription || APP_DESCRIPTION;
-  const url = cfg.siteUrl || "https://codeforge.ai";
+  const url = cfg.siteUrl || "https://codeforgeai.io";
 
   const jsonLd = {
     "@context": "https://schema.org",

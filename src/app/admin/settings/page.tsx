@@ -219,13 +219,13 @@ export default function SettingsPage() {
         <TabsContent value="seo" className="mt-6 space-y-4">
           <p className="text-xs text-muted-foreground">Controls Open Graph, Twitter cards, and search engine metadata.</p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="siteUrl" label="Site URL" value={s.siteUrl} onChange={set("siteUrl")} placeholder="https://codeforge.ai" />
+            <Field id="siteUrl" label="Site URL" value={s.siteUrl} onChange={set("siteUrl")} placeholder="https://codeforgeai.io" />
             <Field id="siteName" label="Site Name" value={s.siteName} onChange={set("siteName")} placeholder="CodeForge AI" />
           </div>
           <Field id="siteDescription" label="Meta Description" value={s.siteDescription} onChange={set("siteDescription")} placeholder="AI-powered coding interview prep…" />
           <Field id="siteKeywords" label="Keywords (comma-separated)" value={s.siteKeywords} onChange={set("siteKeywords")} placeholder="coding interview, DSA, LeetCode alternative" />
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="ogImage" label="OG Image URL" value={s.ogImage} onChange={set("ogImage")} placeholder="https://codeforge.ai/og.png" />
+            <Field id="ogImage" label="OG Image URL" value={s.ogImage} onChange={set("ogImage")} placeholder="https://codeforgeai.io/og.png" />
             <Field id="twitterHandle" label="Twitter Handle" value={s.twitterHandle} onChange={set("twitterHandle")} placeholder="codeforgeai" />
           </div>
         </TabsContent>

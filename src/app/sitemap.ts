@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const cfg = await getEffectiveConfig();
-  const base = (cfg.siteUrl || "https://codeforge.ai").replace(/\/$/, "");
+  const base = (cfg.siteUrl || "https://codeforgeai.io").replace(/\/$/, "");
   const now = new Date();
 
   const staticRoutes: MetadataRoute.Sitemap = [
