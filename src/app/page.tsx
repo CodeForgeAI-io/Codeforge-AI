@@ -1,8 +1,20 @@
 import { auth } from "@/lib/auth";
 import { listQuestions } from "@/services/questions";
 import { Landing, type LandingProblem } from "@/features/marketing/landing";
+import { FAQS } from "@/features/marketing/faqs";
 
 export const dynamic = "force-dynamic";
+
+/** FAQPage structured data — eligible for FAQ rich results in search. */
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQS.map((faq) => ({
+    "@type": "Question",
+    name: faq.q,
+    acceptedAnswer: { "@type": "Answer", text: faq.a },
+  })),
+};
 
 export default async function HomePage() {
   const session = await auth();
@@ -25,10 +37,16 @@ export default async function HomePage() {
   }
 
   return (
-    <Landing
-      signedIn={!!session?.user}
-      problems={problems}
-      totalProblems={totalProblems}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <Landing
+        signedIn={!!session?.user}
+        problems={problems}
+        totalProblems={totalProblems}
+      />
+    </>
   );
 }

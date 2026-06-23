@@ -47,6 +47,7 @@ const PricingCards = dynamic(
   },
 );
 import { APP_NAME, APP_VERSION, LANGUAGES } from "@/lib/constants";
+import { FAQS } from "./faqs";
 import {
   SiJavascript,
   SiTypescript,
@@ -147,15 +148,7 @@ const TESTIMONIALS = [
   { name: "James L.", role: "Senior SDE", avatar: "J", quote: "Weakness detection put my graph acceptance at 20%. Three weeks later it's 85%. Data-driven practice works." },
 ];
 
-const FAQS = [
-  { q: "Is CodeForge AI really free?", a: "Yes. Problems, the online compiler, frontend challenges, contests, roadmaps, all 9 AI tools and the forum are completely free. Just create an account." },
-  { q: "Can I just run code without a problem?", a: "Yes — the built-in Compiler gives you a blank editor for any of 12 languages with custom stdin, real stdout/stderr and runtime + memory stats. No problem or test cases required. Open it from the nav or head to /compiler." },
-  { q: "Which languages can I code in?", a: "JavaScript, TypeScript, Python, Java, C, C++, C#, Go, PHP, Rust, Kotlin and Swift — all in a secure cloud sandbox, in both problems and the compiler." },
-  { q: "How does the AI mentor differ from just asking ChatGPT?", a: "It sees your exact problem statement and current code in real time, so hints are specific to your approach. It also won't give you the full solution, by design." },
-  { q: "What is spaced repetition?", a: "The SM-2 algorithm schedules reviews at increasing intervals based on recall quality. You review Two Sum at day 1, day 6, day 14 — cementing the pattern." },
-  { q: "Can I prepare for specific companies?", a: "Yes — pick Google, Amazon, Microsoft, Meta, Netflix, Uber or Atlassian and track progress against each company's question patterns." },
-  { q: "What's the AI Pair Programmer?", a: "A real-time streaming AI that reads your code and converses with you — suggests approaches, debugs errors and explains concepts." },
-];
+// FAQs live in ./faqs so the home page can also emit FAQPage JSON-LD (SEO).
 
 const STEPS = [
   { n: "01", title: "Create your free account", body: "Sign up with email, Google or GitHub. Pick your track: DSA, Frontend, or both. Takes 30 seconds." },

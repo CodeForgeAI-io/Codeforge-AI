@@ -89,15 +89,41 @@ export default async function RootLayout({
   const desc = cfg.siteDescription || APP_DESCRIPTION;
   const url = cfg.siteUrl || "https://codeforgeai.io";
 
+  const ogImage = cfg.ogImage || `${url}/opengraph-image`;
+  const twitter = cfg.twitterHandle ? cfg.twitterHandle.replace(/^@/, "") : "";
+  const sameAs = [
+    "https://github.com/CodeForgeAI-io/Codeforge-AI",
+    ...(twitter ? [`https://twitter.com/${twitter}`, `https://x.com/${twitter}`] : []),
+  ];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${url}/#org`,
+        name,
+        url,
+        description: desc,
+        logo: {
+          "@type": "ImageObject",
+          "@id": `${url}/#logo`,
+          url: `${url}/icon-512.png`,
+          width: 512,
+          height: 512,
+          caption: name,
+        },
+        image: { "@id": `${url}/#logo` },
+        sameAs,
+      },
       {
         "@type": "WebSite",
         "@id": `${url}/#website`,
         url,
         name,
         description: desc,
+        publisher: { "@id": `${url}/#org` },
+        inLanguage: "en",
         potentialAction: {
           "@type": "SearchAction",
           target: { "@type": "EntryPoint", urlTemplate: `${url}/problems?q={search_term_string}` },
@@ -105,12 +131,33 @@ export default async function RootLayout({
         },
       },
       {
-        "@type": "Organization",
-        "@id": `${url}/#org`,
-        url,
+        "@type": ["WebApplication", "SoftwareApplication"],
+        "@id": `${url}/#app`,
         name,
-        logo: cfg.ogImage || undefined,
-        sameAs: ["https://github.com/CodeForgeAI-io/Codeforge-AI"],
+        url,
+        description: desc,
+        applicationCategory: "EducationalApplication",
+        operatingSystem: "Web",
+        browserRequirements: "Requires JavaScript and a modern web browser.",
+        inLanguage: "en",
+        isAccessibleForFree: true,
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+        },
+        featureList: [
+          "AI coding mentor and pair programmer",
+          "Online compiler for 12 languages",
+          "LeetCode-style data-structures & algorithms problems",
+          "Spaced-repetition revision (SM-2)",
+          "Coding contests and leaderboards",
+          "Company-specific interview preparation",
+        ],
+        screenshot: ogImage,
+        image: { "@id": `${url}/#logo` },
+        publisher: { "@id": `${url}/#org` },
       },
     ],
   };
