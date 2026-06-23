@@ -19,5 +19,12 @@ export const submitRequestSchema = z.object({
   contestSlug: z.string().max(120).optional(),
 });
 
+export const compilerRequestSchema = z.object({
+  language: z.enum(LANGUAGE_IDS),
+  code: z.string().min(1).max(EXECUTION_LIMITS.maxCodeLength),
+  stdin: z.string().max(EXECUTION_LIMITS.maxStdinLength).default(""),
+});
+
 export type RunRequest = z.infer<typeof runRequestSchema>;
 export type SubmitRequest = z.infer<typeof submitRequestSchema>;
+export type CompilerRequest = z.infer<typeof compilerRequestSchema>;

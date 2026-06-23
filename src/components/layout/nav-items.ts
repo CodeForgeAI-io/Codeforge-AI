@@ -14,6 +14,7 @@ import {
   Paintbrush,
   Sparkles,
   StickyNote,
+  Terminal,
   Trophy,
   Users,
   type LucideIcon,
@@ -29,6 +30,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, group: "Main" },
   { title: "Problems", href: "/problems", icon: Code2, group: "Main" },
+  { title: "Compiler", href: "/compiler", icon: Terminal, group: "Main" },
   { title: "Generate", href: "/generate", icon: Sparkles, group: "Main" },
   { title: "Challenges", href: "/challenges", icon: Paintbrush, group: "Main" },
   { title: "Roadmaps", href: "/roadmaps", icon: Map, group: "Main" },
