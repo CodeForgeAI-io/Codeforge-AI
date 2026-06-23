@@ -21,7 +21,10 @@ export default function GeneratePage() {
       </div>
       <Tabs defaultValue="ai">
         <TabsList className="mb-4 grid w-full grid-cols-2">
-          <TabsTrigger value="ai">Generate with AI</TabsTrigger>
+          <TabsTrigger value="ai" className="gap-1.5 font-semibold">
+            <Sparkles className="size-3.5" style={{ color: "#7c3aed" }} />
+            <span className="ai-gradient-text">Generate with AI</span>
+          </TabsTrigger>
           <TabsTrigger value="json">Upload JSON</TabsTrigger>
         </TabsList>
         <TabsContent value="ai">

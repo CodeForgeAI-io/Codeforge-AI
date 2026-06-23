@@ -37,7 +37,8 @@ export default async function ProblemsPage() {
             )}
             <Button asChild variant="outline" size="sm">
               <Link href={signedIn ? "/generate" : "/login?callbackUrl=/generate"}>
-                <Sparkles className="size-4 text-primary" /> Generate with AI
+                <Sparkles className="size-4" style={{ color: "#7c3aed" }} />
+                <span className="ai-gradient-text font-semibold">Generate with AI</span>
               </Link>
             </Button>
           </div>
