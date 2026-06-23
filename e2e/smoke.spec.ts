@@ -4,10 +4,10 @@ test.describe("public pages smoke", () => {
   test("landing page renders hero and CTAs", async ({ page }) => {
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: /forge your skills/i }),
+      page.getByRole("heading", { name: /master coding interviews/i }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: /start solving free/i }),
+      page.getByRole("link", { name: /start for free/i }).first(),
     ).toBeVisible();
   });
 
