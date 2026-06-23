@@ -110,7 +110,7 @@ export default async function RootLayout({
         url,
         name,
         logo: cfg.ogImage || undefined,
-        sameAs: ["https://github.com/nitheeshdr/codeforge-ai"],
+        sameAs: ["https://github.com/CodeForgeAI-io/Codeforge-AI"],
       },
     ],
   };

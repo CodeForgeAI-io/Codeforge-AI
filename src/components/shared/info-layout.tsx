@@ -43,7 +43,7 @@ export function InfoLayout({ children }: { children: React.ReactNode }) {
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
             <Link href="/changelog" className="hover:text-foreground transition-colors">Changelog</Link>
             <Link href="/feedback" className="hover:text-foreground transition-colors">Feedback</Link>
-            <a href="https://github.com/nitheeshdr/codeforge-ai" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GitHub</a>
+            <a href="https://github.com/CodeForgeAI-io/Codeforge-AI" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GitHub</a>
             <span className="rounded-full border px-2 py-0.5 font-mono">v{APP_VERSION}</span>
           </div>
         </div>

@@ -4,13 +4,13 @@
  * Configure with env vars:
  *   GITHUB_FEEDBACK_TOKEN  — a Personal Access Token (classic: `repo` scope,
  *                            or fine-grained: Issues read/write on the repo)
- *   GITHUB_FEEDBACK_REPO   — "owner/name", e.g. "nitheeshdr/codeforge-ai"
+ *   GITHUB_FEEDBACK_REPO   — "owner/name", e.g. "CodeForgeAI-io/Codeforge-AI"
  *
  * If the token isn't set, issue creation is skipped (the caller can fall back
  * to email) and `isGithubFeedbackEnabled()` returns false.
  */
 
-const DEFAULT_REPO = "nitheeshdr/codeforge-ai";
+const DEFAULT_REPO = "CodeForgeAI-io/Codeforge-AI";
 
 export function isGithubFeedbackEnabled(): boolean {
   return Boolean(process.env.GITHUB_FEEDBACK_TOKEN);

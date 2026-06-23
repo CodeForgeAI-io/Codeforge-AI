@@ -890,7 +890,7 @@ for (let i = 0; i < nums.length; i++) {
                 The AI-powered platform for mastering data structures, algorithms and frontend engineering — built for your next interview.
               </p>
               <a
-                href="https://github.com/nitheeshdr/codeforge-ai"
+                href="https://github.com/CodeForgeAI-io/Codeforge-AI"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
