@@ -220,6 +220,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 💬 Community & Social
+- **Community Hub** (`/community`) — forum, discussions, leaderboard, recent threads & top members in one place.
 - **Discussion Forum** (`/discuss`) — threaded solutions & doubts.
 - **Follow System** & **Public Profiles** with badges, stats & heatmaps.
 - **Feedback Channel** routed to admins.
@@ -374,7 +375,8 @@ Full release notes live in-app at `/changelog`. Recent highlights:
 
 | Version | Tag | Date | Highlights |
 | :--- | :--- | :--- | :--- |
-| **1.5.0** | 🟢 Latest | Jun 23, 2026 | **Online Compiler** — a standalone `/compiler` editor that runs any of 12 languages with custom stdin, real stdout/stderr and runtime + memory stats (reuses the execution-provider router, no test cases). Surfaced across the landing page (hero, dedicated feature highlight with a live run preview, FAQ) and the main nav. New **fire app icon** (favicon, PWA + Apple touch icons), refreshed OG/Twitter share cards, real language brand logos on the landing strip, and a project-wide migration to **Font Awesome** icons. |
+| **1.6.0** | 🟢 Latest | Jun 23, 2026 | **Community hub** at `/community` (forum, discussions, leaderboard, live counts, recent threads & top members). Landing page gains a **horizontal feature slider** (swipe + click-drag) with an embedded live social-share-card preview, and a **mobile bottom navigation** (Dashboard, Problems, Challenges, Compiler, More). Full **mobile pass** on the landing (no overflow from 320px up), a **redesigned changelog** matching the brand theme, hidden slider scrollbar, plus fixes for the mobile More menu position and clipped hero on narrow phones. |
+| **1.5.0** | 🔵 Stable | Jun 23, 2026 | **Online Compiler** — a standalone `/compiler` editor that runs any of 12 languages with custom stdin, real stdout/stderr and runtime + memory stats (reuses the execution-provider router, no test cases). Surfaced across the landing page (hero, dedicated feature highlight with a live run preview, FAQ) and the main nav. New **fire app icon** (favicon, PWA + Apple touch icons), refreshed OG/Twitter share cards, real language brand logos on the landing strip, and a project-wide migration to **Font Awesome** icons. |
 | **1.4.0** | 🔵 Stable | Jun 22, 2025 | Full visual redesign on the **Geist design system** — new landing page (layered product mockups, bento feature grid, AI chat preview), neutral palette with blue focus rings, refined typography/radii/spacing across every page, new blue app/PWA icons, redesigned auth and beta/join, and all orange accents removed. |
 | **1.3.0** | 🔵 Stable | Jun 21, 2025 | Installable PWA (desktop + mobile, offline page, app icons), PostHog observability (analytics, error tracking, OpenTelemetry logs), Vercel Speed Insights, landing-page light/dark toggle, faster hero paint (FCP/LCP fix), and hardened CSP for analytics/Monaco/session replay. |
 | **1.2.0** | 🔵 Stable | Jun 18, 2025 | GitHub authentication (sign in with GitHub) and `/feedback` submissions now open a labelled GitHub issue in the repo, with email as a fallback. |

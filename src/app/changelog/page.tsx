@@ -17,10 +17,33 @@ export const metadata = {
 
 const RELEASES = [
   {
-    version: "1.5.0",
+    version: "1.6.0",
     date: "June 23, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Community hub at /community — one place for the forum, discussions and leaderboard, with live member & discussion counts, recent threads and a top-members list",
+        "Horizontal feature slider on the landing page — swipe or click-and-drag through highlights, with a live social-share-card preview embedded in the bento",
+        "Mobile bottom navigation — Dashboard, Problems, Challenges, Compiler and a More menu (Roadmaps, Contests) for quick thumb access",
+      ],
+      improved: [
+        "Mobile-friendly landing page — eliminated horizontal overflow from 320px up, full-width hero CTAs, a more compact hero, and tighter section spacing on phones",
+        "Redesigned changelog to match the brand theme — card-based releases, blue accent, and clearer New / Improved / Fixed sections",
+        "Hidden the scrollbar on the feature slider for a cleaner look",
+        "Leaderboard now uses a medal icon to make room for the new Community entry",
+      ],
+      fixed: [
+        "Mobile More menu opening in the top-left corner instead of above the nav bar (invalid CSS calc dropped the positioning)",
+        "Hero content getting clipped on narrow phones because the grid column didn't shrink to the viewport",
+      ],
+    },
+  },
+  {
+    version: "1.5.0",
+    date: "June 23, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Online Compiler — a standalone, blank-canvas editor at /compiler that runs code in any of 12 languages with custom stdin, real stdout/stderr and runtime + memory stats. No problem or test cases required",
