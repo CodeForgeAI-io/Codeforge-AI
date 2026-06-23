@@ -49,9 +49,22 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "AI Tools", href: "/ai-tools", icon: Sparkles, group: "AI" },
 ];
 
-/** Subset shown in the mobile bottom navigation */
-export const MOBILE_NAV_ITEMS = NAV_ITEMS.filter((item) =>
-  ["/dashboard", "/problems", "/challenges", "/contests", "/roadmaps"].includes(
-    item.href,
-  ),
-);
+const byHref = (href: string): NavItem => {
+  const item = NAV_ITEMS.find((i) => i.href === href);
+  if (!item) throw new Error(`nav-items: no NAV_ITEM for ${href}`);
+  return item;
+};
+
+/** Primary items pinned in the mobile bottom navigation bar (in display order). */
+export const MOBILE_NAV_ITEMS: NavItem[] = [
+  "/dashboard",
+  "/problems",
+  "/challenges",
+  "/compiler",
+].map(byHref);
+
+/** Items revealed by the "More" button in the mobile bottom navigation. */
+export const MOBILE_MORE_ITEMS: NavItem[] = [
+  "/roadmaps",
+  "/contests",
+].map(byHref);

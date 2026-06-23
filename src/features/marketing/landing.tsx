@@ -18,6 +18,8 @@ import {
   Brain,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Code2,
   FileText,
   Flame,
@@ -226,7 +228,7 @@ function EditorMock() {
         <span className={cn("ml-2 font-mono text-xs", ink3)}>solution.py</span>
         <span className="ml-auto rounded-md px-1.5 py-0.5 text-[10px] font-medium" style={{ background: `${ACCENT}14`, color: ACCENT }}>AI</span>
       </div>
-      <pre className={cn("overflow-x-auto p-5 font-mono text-[12.5px] leading-relaxed", ink2)}>
+      <pre className={cn("overflow-x-auto p-4 font-mono text-[11.5px] leading-relaxed sm:p-5 sm:text-[12.5px]", ink2)}>
 {`def maxProfit(prices):
     min_price = float("inf")
     max_profit = 0
@@ -288,6 +290,95 @@ for i in range(3):
       <div className={cn("flex items-center gap-2 border-t px-5 py-2.5 text-xs", border, ink3)}>
         <span className="size-1.5 rounded-full bg-[#28c840]" />
         exited 0 · 14 ms · 9.2 MB
+      </div>
+    </div>
+  );
+}
+
+/** Fixed-width snap card for the horizontal feature slider. */
+function Slide({ children }: { children: ReactNode }) {
+  return (
+    <div data-card className="w-[280px] shrink-0 snap-start sm:w-[340px]">
+      {children}
+    </div>
+  );
+}
+
+/** Horizontal scroll-snap slider with prev/next controls and edge fades. */
+function CardSlider({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(true);
+
+  const update = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    setCanPrev(el.scrollLeft > 8);
+    setCanNext(el.scrollLeft < el.scrollWidth - el.clientWidth - 8);
+  }, []);
+
+  useEffect(() => {
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [update]);
+
+  const nudge = (dir: number) => {
+    const el = ref.current;
+    if (!el) return;
+    const cardEl = el.querySelector<HTMLElement>("[data-card]");
+    const amount = cardEl ? cardEl.offsetWidth + 16 : el.clientWidth * 0.8;
+    el.scrollBy({ left: dir * amount, behavior: "smooth" });
+  };
+
+  // Click-and-drag to scroll (desktop). Touch keeps native momentum scrolling.
+  const drag = useRef({ active: false, startX: 0, startScroll: 0 });
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse") return;
+    const el = ref.current;
+    if (!el) return;
+    drag.current = { active: true, startX: e.clientX, startScroll: el.scrollLeft };
+    el.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!drag.current.active) return;
+    const el = ref.current;
+    if (!el) return;
+    el.scrollLeft = drag.current.startScroll - (e.clientX - drag.current.startX);
+  };
+  const onPointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!drag.current.active) return;
+    drag.current.active = false;
+    try {
+      ref.current?.releasePointerCapture(e.pointerId);
+    } catch {
+      /* pointer already released */
+    }
+  };
+
+  const arrowBtn =
+    "flex size-9 items-center justify-center rounded-full border transition-colors enabled:hover:bg-black/[0.04] dark:enabled:hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-30";
+
+  return (
+    <div>
+      <div className="mb-4 flex justify-end gap-2">
+        <button type="button" aria-label="Previous features" onClick={() => nudge(-1)} disabled={!canPrev} className={cn(arrowBtn, border, ink2)}>
+          <ChevronLeft className="size-4" />
+        </button>
+        <button type="button" aria-label="Next features" onClick={() => nudge(1)} disabled={!canNext} className={cn(arrowBtn, border, ink2)}>
+          <ChevronRight className="size-4" />
+        </button>
+      </div>
+      <div
+        ref={ref}
+        onScroll={update}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerEnd}
+        className="flex cursor-grab snap-x snap-mandatory select-none gap-4 overflow-x-auto pb-2 active:cursor-grabbing [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&_img]:pointer-events-none"
+      >
+        {children}
       </div>
     </div>
   );
@@ -374,24 +465,24 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
           <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(70%_60%_at_50%_0%,black,transparent)]" />
           <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(60%_60%_at_50%_0%,rgba(0,107,255,0.10),transparent)]" />
 
-          <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:gap-12 sm:px-6 sm:py-20 lg:grid-cols-[1.05fr_1fr] lg:py-28">
+          <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-10 sm:gap-12 sm:px-6 sm:py-20 lg:grid-cols-[1.05fr_1fr] lg:py-28">
             <div>
-              <div className={cn("inline-flex items-center gap-2 rounded-full border bg-white/70 px-3 py-1 text-[13px] backdrop-blur dark:bg-neutral-900/70", border, ink2)}>
-                <Sparkles className="size-3.5" style={{ color: ACCENT }} />
-                27+ features · 9 AI tools · 100% free
+              <div className={cn("inline-flex max-w-full items-center gap-2 rounded-full border bg-white/70 px-3 py-1 text-[12px] backdrop-blur sm:text-[13px] dark:bg-neutral-900/70", border, ink2)}>
+                <Sparkles className="size-3.5 shrink-0" style={{ color: ACCENT }} />
+                <span className="truncate">27+ features · 9 AI tools · 100% free</span>
               </div>
-              <h1 className={cn("mt-6 text-balance text-4xl font-semibold leading-[1.07] tracking-[-0.04em] sm:text-5xl lg:text-6xl", ink)}>
+              <h1 className={cn("mt-5 text-balance text-[2rem] font-semibold leading-[1.1] tracking-[-0.03em] sm:mt-6 sm:text-5xl sm:leading-[1.07] sm:tracking-[-0.04em] lg:text-6xl", ink)}>
                 Master coding interviews with{" "}
                 <span style={{ color: ACCENT }}>AI.</span>
               </h1>
-              <p className={cn("mt-5 max-w-lg text-pretty text-lg leading-relaxed", ink3)}>
+              <p className={cn("mt-4 max-w-lg text-pretty text-base leading-relaxed sm:mt-5 sm:text-lg", ink3)}>
                 The only platform that combines LeetCode-style problems, AI pair programming, spaced repetition and skill analytics — all free.
               </p>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Button asChild size="lg" className={cn(primaryBtn, "h-11 px-5 text-base")}>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <Button asChild size="lg" className={cn(primaryBtn, "h-11 w-full px-5 text-base sm:w-auto")}>
                   <Link href={ctaHref}>Start for Free <ArrowRight className="size-4" /></Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className={cn("h-11 rounded-md px-5 text-base", border, ink2)}>
+                <Button asChild variant="outline" size="lg" className={cn("h-11 w-full rounded-md px-5 text-base sm:w-auto", border, ink2)}>
                   <Link href="/compiler">Try the Compiler</Link>
                 </Button>
               </div>
@@ -472,134 +563,153 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
         </section>
 
         {/* ── FEATURES BENTO ───────────────────────────────────────── */}
-        <section id="features" className={cn("border-t py-16 sm:py-24", border)}>
+        <section id="features" className={cn("border-t py-14 sm:py-24", border)}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <SectionHead eyebrow="Features" title={<>26+ features. Zero paywalls.</>} sub="One platform for algorithms, frontend, AI tools, community and analytics." />
-            <div className="mt-14 grid gap-4 lg:grid-cols-3">
-              {/* big — editor */}
-              <Reveal className="lg:col-span-2">
-                <div className={cn("flex h-full flex-col p-6", card)}>
-                  <Code2 className="size-5" style={{ color: ACCENT }} />
-                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>VS Code–style editor</h3>
-                  <p className={cn("mt-2 max-w-md text-sm leading-relaxed", ink3)}>Full IntelliSense, Vim mode, 12 languages, hidden test cases and instant verdicts — zero config.</p>
-                  <div className={cn("mt-5 overflow-hidden rounded-lg border", border)}>
-                    <div className={cn("flex items-center gap-1.5 border-b px-3 py-2", border)}>
-                      <span className="size-2 rounded-full bg-[#ff5f57]" /><span className="size-2 rounded-full bg-[#febc2e]" /><span className="size-2 rounded-full bg-[#28c840]" />
-                      <span className={cn("ml-1 font-mono text-[10px]", ink3)}>two_sum.ts</span>
-                    </div>
-                    <pre className={cn("overflow-x-auto p-3 font-mono text-[11px] leading-relaxed", ink2)}>
+            <SectionHead eyebrow="Features" title={<>27+ features. Zero paywalls.</>} sub="One platform for algorithms, the instant compiler, AI tools, community and analytics. Swipe through the highlights." />
+            <div className="mt-12">
+              <CardSlider>
+                {/* editor */}
+                <Slide>
+                  <div className={cn("flex h-full flex-col p-6", card)}>
+                    <Code2 className="size-5" style={{ color: ACCENT }} />
+                    <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>VS Code–style editor</h3>
+                    <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>Full IntelliSense, Vim mode, 12 languages, hidden test cases and instant verdicts — zero config.</p>
+                    <div className={cn("mt-5 overflow-hidden rounded-lg border", border)}>
+                      <div className={cn("flex items-center gap-1.5 border-b px-3 py-2", border)}>
+                        <span className="size-2 rounded-full bg-[#ff5f57]" /><span className="size-2 rounded-full bg-[#febc2e]" /><span className="size-2 rounded-full bg-[#28c840]" />
+                        <span className={cn("ml-1 font-mono text-[10px]", ink3)}>two_sum.ts</span>
+                      </div>
+                      <pre className={cn("overflow-x-auto p-3 font-mono text-[11px] leading-relaxed", ink2)}>
 {`const seen = new Map<number, number>();
 for (let i = 0; i < nums.length; i++) {
   const need = target - nums[i];
   if (seen.has(need)) return [seen.get(need)!, i];
   seen.set(nums[i], i);
 }`}
-                    </pre>
+                      </pre>
+                    </div>
                   </div>
-                </div>
-              </Reveal>
+                </Slide>
 
-              {/* AI mentor chat */}
-              <Reveal delay={0.05}>
-                <div className={cn("flex h-full flex-col p-6", card)}>
-                  <Bot className="size-5" style={{ color: ACCENT }} />
-                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>AI Mentor</h3>
-                  <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>Progressive hints that never spoil the answer.</p>
-                  <div className="mt-4 space-y-2">
-                    <div className={cn("ml-6 rounded-lg px-3 py-2 text-xs", ink)} style={{ background: `${ACCENT}12` }}>Why is this O(n²)?</div>
-                    <div className={cn("mr-4 rounded-lg border px-3 py-2 text-xs", border, ink2)}>Use a hash map to look up complements in O(1) → O(n). ✓</div>
+                {/* AI mentor chat */}
+                <Slide>
+                  <div className={cn("flex h-full flex-col p-6", card)}>
+                    <Bot className="size-5" style={{ color: ACCENT }} />
+                    <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>AI Mentor</h3>
+                    <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>Progressive hints that never spoil the answer.</p>
+                    <div className="mt-4 space-y-2">
+                      <div className={cn("ml-6 rounded-lg px-3 py-2 text-xs", ink)} style={{ background: `${ACCENT}12` }}>Why is this O(n²)?</div>
+                      <div className={cn("mr-4 rounded-lg border px-3 py-2 text-xs", border, ink2)}>Use a hash map to look up complements in O(1) → O(n). ✓</div>
+                    </div>
                   </div>
-                </div>
-              </Reveal>
+                </Slide>
 
-              {/* streak heatmap */}
-              <Reveal delay={0.1}>
-                <div className={cn("flex h-full flex-col p-6", card)}>
-                  <Flame className="size-5" style={{ color: ACCENT }} />
-                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Streaks &amp; gamification</h3>
-                  <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>XP, levels and badges keep daily practice consistent.</p>
-                  <div className="mt-4 grid grid-cols-12 gap-1">
-                    {Array.from({ length: 36 }).map((_, i) => {
-                      const on = [2,3,4,7,8,9,10,13,14,16,17,18,21,22,23,24,27,28,30,31,32,33].includes(i);
-                      return (
-                        <span
-                          key={i}
-                          className={cn("aspect-square rounded-[3px]", !on && "bg-black/[0.06] dark:bg-white/[0.08]")}
-                          style={on ? { background: ACCENT } : undefined}
-                        />
-                      );
-                    })}
+                {/* streak heatmap */}
+                <Slide>
+                  <div className={cn("flex h-full flex-col p-6", card)}>
+                    <Flame className="size-5" style={{ color: ACCENT }} />
+                    <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Streaks &amp; gamification</h3>
+                    <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>XP, levels and badges keep daily practice consistent.</p>
+                    <div className="mt-4 grid grid-cols-12 gap-1">
+                      {Array.from({ length: 36 }).map((_, i) => {
+                        const on = [2,3,4,7,8,9,10,13,14,16,17,18,21,22,23,24,27,28,30,31,32,33].includes(i);
+                        return (
+                          <span
+                            key={i}
+                            className={cn("aspect-square rounded-[3px]", !on && "bg-black/[0.06] dark:bg-white/[0.08]")}
+                            style={on ? { background: ACCENT } : undefined}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              </Reveal>
+                </Slide>
 
-              {/* analytics */}
-              <Reveal delay={0.05}>
-                <div className={cn("flex h-full flex-col p-6", card)}>
-                  <BarChart3 className="size-5" style={{ color: ACCENT }} />
-                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Skill analytics</h3>
-                  <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>See exactly where to focus next.</p>
-                  <div className="mt-4 space-y-2">
-                    {[["Arrays", 91], ["Strings", 78], ["DP", 34], ["Graphs", 19]].map(([t, v]) => (
-                      <div key={t as string}>
-                        <div className={cn("mb-1 flex justify-between text-[11px]", ink3)}><span>{t}</span><span>{v as number}%</span></div>
-                        <div className={cn("h-1.5 overflow-hidden rounded-full", "bg-black/[0.06] dark:bg-white/[0.08]")}>
-                          <div className="h-full rounded-full" style={{ width: `${v}%`, background: ACCENT }} />
+                {/* analytics */}
+                <Slide>
+                  <div className={cn("flex h-full flex-col p-6", card)}>
+                    <BarChart3 className="size-5" style={{ color: ACCENT }} />
+                    <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Skill analytics</h3>
+                    <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>See exactly where to focus next.</p>
+                    <div className="mt-4 space-y-2">
+                      {[["Arrays", 91], ["Strings", 78], ["DP", 34], ["Graphs", 19]].map(([t, v]) => (
+                        <div key={t as string}>
+                          <div className={cn("mb-1 flex justify-between text-[11px]", ink3)}><span>{t}</span><span>{v as number}%</span></div>
+                          <div className={cn("h-1.5 overflow-hidden rounded-full", "bg-black/[0.06] dark:bg-white/[0.08]")}>
+                            <div className="h-full rounded-full" style={{ width: `${v}%`, background: ACCENT }} />
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Reveal>
-
-              {/* spaced repetition */}
-              <Reveal delay={0.1}>
-                <div className={cn("flex h-full flex-col p-6", card)}>
-                  <Brain className="size-5" style={{ color: ACCENT }} />
-                  <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Spaced repetition</h3>
-                  <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>SM-2 resurfaces problems at the perfect moment.</p>
-                  <div className="mt-4 space-y-1.5">
-                    {[["Two Sum", "Today"], ["Binary Search", "Day 6"], ["Merge K Lists", "Day 14"]].map(([t, d], i) => (
-                      <div key={t} className={cn("flex items-center justify-between text-xs", ink3)}>
-                        <span>{t}</span>
-                        <span style={i === 0 ? { color: ACCENT, fontWeight: 500 } : undefined}>{d}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Reveal>
-
-              {/* compiler — full-width highlight */}
-              <Reveal delay={0.05} className="lg:col-span-3">
-                <div id="compiler" className={cn("grid scroll-mt-20 gap-8 p-6 sm:p-8 lg:grid-cols-2 lg:items-center", card)}>
-                  <div>
-                    <span className={cn("flex size-9 items-center justify-center rounded-md border", border)} style={{ background: `${ACCENT}0d` }}>
-                      <Terminal className="size-4.5" style={{ color: ACCENT }} />
-                    </span>
-                    <h3 className={cn("mt-4 text-xl font-semibold tracking-tight sm:text-2xl", ink)}>Instant online compiler</h3>
-                    <p className={cn("mt-2 max-w-md text-sm leading-relaxed", ink3)}>
-                      Skip the boilerplate. Open a blank editor, paste code in any of 12 languages, pipe in custom stdin, and run it in a secure cloud sandbox — no problem, no test cases, no local setup.
-                    </p>
-                    <div className={cn("mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm", ink3)}>
-                      {["12 languages", "Custom stdin", "Real stdout & stderr", "Runtime + memory stats"].map((item) => (
-                        <span key={item} className="flex items-center gap-1.5">
-                          <Check className="size-4" style={{ color: ACCENT }} /> {item}
-                        </span>
                       ))}
                     </div>
-                    <Button asChild size="lg" className={cn(primaryBtn, "mt-7 h-11 px-5")}>
-                      <Link href="/compiler">Open the Compiler <ArrowRight className="size-4" /></Link>
-                    </Button>
                   </div>
-                  <CompilerMock />
-                </div>
-              </Reveal>
+                </Slide>
+
+                {/* spaced repetition */}
+                <Slide>
+                  <div className={cn("flex h-full flex-col p-6", card)}>
+                    <Brain className="size-5" style={{ color: ACCENT }} />
+                    <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Spaced repetition</h3>
+                    <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>SM-2 resurfaces problems at the perfect moment.</p>
+                    <div className="mt-4 space-y-1.5">
+                      {[["Two Sum", "Today"], ["Binary Search", "Day 6"], ["Merge K Lists", "Day 14"]].map(([t, d], i) => (
+                        <div key={t} className={cn("flex items-center justify-between text-xs", ink3)}>
+                          <span>{t}</span>
+                          <span style={i === 0 ? { color: ACCENT, fontWeight: 500 } : undefined}>{d}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </Slide>
+
+                {/* social share card — live OG image */}
+                <Slide>
+                  <div className={cn("flex h-full flex-col p-6", card)}>
+                    <Sparkles className="size-5" style={{ color: ACCENT }} />
+                    <h3 className={cn("mt-4 text-base font-semibold tracking-tight", ink)}>Share-ready by default</h3>
+                    <p className={cn("mt-2 text-sm leading-relaxed", ink3)}>Every link unfurls into a branded Open Graph &amp; Twitter card.</p>
+                    <div className={cn("mt-4 overflow-hidden rounded-lg border", border)}>
+                      <div className={cn("flex items-center gap-1.5 border-b px-3 py-2", border)}>
+                        <span className="size-2 rounded-full bg-[#ff5f57]" /><span className="size-2 rounded-full bg-[#febc2e]" /><span className="size-2 rounded-full bg-[#28c840]" />
+                        <span className={cn("ml-1 font-mono text-[10px]", ink3)}>og:image</span>
+                      </div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/opengraph-image" alt="CodeForge AI social share card" loading="lazy" className="block aspect-[1200/630] w-full object-cover" />
+                    </div>
+                  </div>
+                </Slide>
+              </CardSlider>
             </div>
+
+            {/* compiler — full-width highlight */}
+            <Reveal delay={0.05} className="mt-4">
+              <div id="compiler" className={cn("grid scroll-mt-20 gap-8 p-6 sm:p-8 lg:grid-cols-2 lg:items-center", card)}>
+                <div>
+                  <span className={cn("flex size-9 items-center justify-center rounded-md border", border)} style={{ background: `${ACCENT}0d` }}>
+                    <Terminal className="size-4.5" style={{ color: ACCENT }} />
+                  </span>
+                  <h3 className={cn("mt-4 text-xl font-semibold tracking-tight sm:text-2xl", ink)}>Instant online compiler</h3>
+                  <p className={cn("mt-2 max-w-md text-sm leading-relaxed", ink3)}>
+                    Skip the boilerplate. Open a blank editor, paste code in any of 12 languages, pipe in custom stdin, and run it in a secure cloud sandbox — no problem, no test cases, no local setup.
+                  </p>
+                  <div className={cn("mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm", ink3)}>
+                    {["12 languages", "Custom stdin", "Real stdout & stderr", "Runtime + memory stats"].map((item) => (
+                      <span key={item} className="flex items-center gap-1.5">
+                        <Check className="size-4" style={{ color: ACCENT }} /> {item}
+                      </span>
+                    ))}
+                  </div>
+                  <Button asChild size="lg" className={cn(primaryBtn, "mt-7 h-11 px-5")}>
+                    <Link href="/compiler">Open the Compiler <ArrowRight className="size-4" /></Link>
+                  </Button>
+                </div>
+                <CompilerMock />
+              </div>
+            </Reveal>
           </div>
         </section>
 
         {/* ── AI SUITE ─────────────────────────────────────────────── */}
-        <section id="ai" className={cn("border-t py-16 sm:py-24", border)}>
+        <section id="ai" className={cn("border-t py-14 sm:py-24", border)}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <SectionHead eyebrow="AI Suite" title={<>9 AI tools. One platform.</>} sub="From personalized coaching to pair programming — AI is woven into every part of your practice." />
             <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -619,7 +729,7 @@ for (let i = 0; i < nums.length; i++) {
         </section>
 
         {/* ── HOW IT WORKS ─────────────────────────────────────────── */}
-        <section className={cn("border-t py-16 sm:py-24", border)}>
+        <section className={cn("border-t py-14 sm:py-24", border)}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <SectionHead eyebrow="How it works" title={<>From zero to offer in three steps</>} />
             <div className="mt-14 grid gap-6 md:grid-cols-3">
@@ -638,7 +748,7 @@ for (let i = 0; i < nums.length; i++) {
 
         {/* ── PROBLEMS PREVIEW ─────────────────────────────────────── */}
         {problems.length > 0 && (
-          <section className={cn("border-t py-16 sm:py-24", border)}>
+          <section className={cn("border-t py-14 sm:py-24", border)}>
             <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_1.3fr]">
               <Reveal>
                 <Eyebrow>Problem bank</Eyebrow>
@@ -672,7 +782,7 @@ for (let i = 0; i < nums.length; i++) {
         )}
 
         {/* ── TESTIMONIALS ─────────────────────────────────────────── */}
-        <section className={cn("border-t py-16 sm:py-24", border)}>
+        <section className={cn("border-t py-14 sm:py-24", border)}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <SectionHead eyebrow="Testimonials" title={<>Loved by thousands of coders</>} />
             <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -698,7 +808,7 @@ for (let i = 0; i < nums.length; i++) {
         </section>
 
         {/* ── PRICING ──────────────────────────────────────────────── */}
-        <section id="pricing" className={cn("border-t py-16 sm:py-24", border)}>
+        <section id="pricing" className={cn("border-t py-14 sm:py-24", border)}>
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <SectionHead eyebrow="Pricing" title={<>Start free, level up fast.</>} sub="7-day free trial on all paid plans. No credit card required." />
             <Reveal delay={0.1} className="mt-12">
@@ -708,7 +818,7 @@ for (let i = 0; i < nums.length; i++) {
         </section>
 
         {/* ── FAQ ──────────────────────────────────────────────────── */}
-        <section id="faq" className={cn("border-t py-16 sm:py-24", border)}>
+        <section id="faq" className={cn("border-t py-14 sm:py-24", border)}>
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <SectionHead eyebrow="FAQ" title="Frequently asked" />
             <div className="mt-12 space-y-2">
@@ -740,7 +850,7 @@ for (let i = 0; i < nums.length; i++) {
         </section>
 
         {/* ── FINAL CTA ────────────────────────────────────────────── */}
-        <section className={cn("border-t py-16 sm:py-24", border)}>
+        <section className={cn("border-t py-14 sm:py-24", border)}>
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <Reveal className="relative overflow-hidden rounded-2xl border px-5 py-12 text-center sm:px-12 sm:py-16" >
               <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(60%_60%_at_50%_40%,black,transparent)]" />

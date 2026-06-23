@@ -31,6 +31,7 @@ import {
   faChartLine,
   faCheck,
   faChevronDown,
+  faChevronLeft,
   faChevronRight,
   faChevronUp,
   faCircle,
@@ -51,6 +52,7 @@ import {
   faDatabase,
   faDesktop,
   faDownload,
+  faEllipsis,
   faEnvelope,
   faExpand,
   faEye,
@@ -172,6 +174,7 @@ export const CheckIcon = make(faCheck);
 export const CheckSquare = make(faSquareCheck);
 export const ChevronDown = make(faChevronDown);
 export const ChevronDownIcon = make(faChevronDown);
+export const ChevronLeft = make(faChevronLeft);
 export const ChevronRight = make(faChevronRight);
 export const ChevronRightIcon = make(faChevronRight);
 export const ChevronUp = make(faChevronUp);
@@ -191,6 +194,7 @@ export const CreditCard = make(faCreditCard);
 export const Crown = make(faCrown);
 export const Database = make(faDatabase);
 export const Download = make(faDownload);
+export const Ellipsis = make(faEllipsis);
 export const ExternalLink = make(faUpRightFromSquare);
 export const Eye = make(faEye);
 export const EyeOff = make(faEyeSlash);
