@@ -15,20 +15,31 @@ export function Logo({
   return (
     <Link
       href={href}
-      className={cn(
-        "flex items-center gap-2 font-semibold tracking-tight",
-        className,
-      )}
+      aria-label={APP_NAME}
+      className={cn("inline-flex items-center", className)}
     >
-      <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-        <Flame className="size-4" />
-      </span>
-      {!compact && (
+      {compact ? (
+        <span className="flex size-7 items-center justify-center rounded-lg bg-[#006bff] text-white">
+          <Flame className="size-4" />
+        </span>
+      ) : (
         <>
-          <span className="text-base">{APP_NAME}</span>
-          <span className="rounded-md border border-black-500/30 bg-black-500/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white-400">
-            Beta
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt={APP_NAME}
+            width={257}
+            height={62}
+            className="h-7 w-auto dark:hidden"
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-dark.png"
+            alt={APP_NAME}
+            width={257}
+            height={62}
+            className="hidden h-7 w-auto dark:inline-block"
+          />
         </>
       )}
     </Link>
