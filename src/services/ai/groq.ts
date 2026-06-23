@@ -1,5 +1,4 @@
 import Groq from "groq-sdk";
-import { wrapOpenAI } from "langsmith/wrappers";
 import { traceable } from "langsmith/traceable";
 
 export const GROQ_MODEL =
@@ -18,13 +17,11 @@ export function getGroqClient(): Groq {
     );
   }
   if (!client) {
-    // Groq's SDK is OpenAI-API-compatible, so wrapOpenAI adds LangSmith LLM
-    // tracing (token usage, model, latency). It's a passthrough unless
-    // LANGSMITH_TRACING=true and LANGSMITH_API_KEY are set.
-    const groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY });
-    client = wrapOpenAI(
-      groqClient as unknown as Parameters<typeof wrapOpenAI>[0],
-    ) as unknown as Groq;
+    // NOTE: do NOT wrap with langsmith's wrapOpenAI — it expects the OpenAI
+    // SDK's `.completions` namespace, which groq-sdk doesn't have, and throws
+    // at construction. LangSmith tracing comes from the `traceable` wrappers
+    // on complete()/streamCompletion() below instead.
+    client = new Groq({ apiKey: process.env.GROQ_API_KEY });
   }
   return client;
 }
@@ -35,8 +32,7 @@ export interface ChatMessage {
 }
 
 /** Non-streaming completion that returns plain text.
- *  traceable adds a named LangSmith span; the wrapped client (wrapOpenAI)
- *  records the nested LLM run with token usage. */
+ *  traceable adds a named LangSmith span (input/output) when tracing is on. */
 export const complete = traceable(
   async (
     messages: ChatMessage[],
