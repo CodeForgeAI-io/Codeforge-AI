@@ -2,6 +2,7 @@ import { QUESTION_CATEGORIES } from "@/lib/constants";
 import { Question } from "@/models";
 import { questionInputSchema, type QuestionInput } from "@/schemas/question";
 import { uniqueSlug } from "@/lib/slug";
+import { traceable } from "langsmith/traceable";
 import { complete } from "./groq";
 import { getPrompt } from "./prompts";
 
@@ -14,7 +15,7 @@ export interface GenerationOutcome {
  * Generate questions from an admin prompt via Groq, validate each through
  * the same Zod schema as JSON imports, and save them as unpublished drafts.
  */
-export async function generateQuestionsFromPrompt(
+async function generateQuestionsImpl(
   request: string,
   count: number,
   creatorId: string,
@@ -94,6 +95,11 @@ export async function generateQuestionsFromPrompt(
 
   return outcome;
 }
+
+/** Generation pipeline as a single traced LangSmith run (prompt → LLM → parse). */
+export const generateQuestionsFromPrompt = traceable(generateQuestionsImpl, {
+  name: "generateQuestions",
+});
 
 export async function saveQuestionDraft(
   input: QuestionInput,

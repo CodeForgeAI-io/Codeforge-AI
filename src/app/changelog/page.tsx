@@ -17,10 +17,32 @@ export const metadata = {
 
 const RELEASES = [
   {
-    version: "1.6.0",
+    version: "1.7.0",
     date: "June 23, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "CodeForge AI now lives on its own domain — codeforgeai.io",
+        "Sharper SEO — richer structured data (Organization, web-app and FAQ schema) plus a canonical sitemap for better search visibility",
+        "Google Analytics and LangSmith AI tracing for product and AI observability",
+      ],
+      improved: [
+        "Refreshed logo across the whole app — the new fire wordmark on every page",
+        "Better dark mode — lifted surface contrast so cards, the dashboard and sidebars stand out instead of blending into a flat black",
+        "Feedback now arrives straight to our inbox by email, with a simpler form",
+      ],
+      fixed: [
+        "Sitemap pointed at the preview deployment URL, which Google Search Console rejected — it now uses codeforgeai.io",
+        "Landing hero heading and CTA now match across the marketing pages and tests",
+      ],
+    },
+  },
+  {
+    version: "1.6.0",
+    date: "June 23, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Community hub at /community — one place for the forum, discussions and leaderboard, with live member & discussion counts, recent threads and a top-members list",
