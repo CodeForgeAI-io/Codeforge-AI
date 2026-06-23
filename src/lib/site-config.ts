@@ -40,11 +40,25 @@ export function resolve(dbVal: string | undefined, envVal: string | undefined): 
   return (dbVal && dbVal.trim()) ? dbVal.trim() : (envVal ?? "");
 }
 
+/** Canonical production domain — used when nothing better is configured and to
+ *  override Vercel preview URLs that must never appear in canonical/sitemap/OG. */
+const CANONICAL_SITE_URL = "https://codeforgeai.io";
+
 /** Merged config with env fallbacks — used for SEO metadata and scripts. */
 export async function getEffectiveConfig() {
   const cfg = await getSiteConfig();
+  const resolvedSiteUrl = resolve(
+    cfg.siteUrl,
+    process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXTAUTH_URL,
+  );
+  // Never advertise the Vercel preview domain (or an empty value) for SEO —
+  // Search Console rejects cross-domain sitemap URLs, so pin the real domain.
+  const siteUrl =
+    !resolvedSiteUrl || resolvedSiteUrl.includes("vercel.app")
+      ? CANONICAL_SITE_URL
+      : resolvedSiteUrl.replace(/\/$/, "");
   return {
-    siteUrl: resolve(cfg.siteUrl, process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXTAUTH_URL),
+    siteUrl,
     siteName: resolve(cfg.siteName, APP_NAME),
     siteDescription: resolve(cfg.siteDescription, APP_DESCRIPTION),
     siteKeywords: cfg.siteKeywords ?? "",
