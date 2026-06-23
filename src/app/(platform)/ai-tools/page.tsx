@@ -24,7 +24,15 @@ const TOOLS = [
   { id: "project", label: "Project Review" },
 ];
 
-export default function AiToolsPage() {
+export default async function AiToolsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tool?: string }>;
+}) {
+  const { tool } = await searchParams;
+  // Active tab is driven by the ?tool= param so the sidebar submenu deep-links.
+  const active = TOOLS.some((t) => t.id === tool) ? (tool as string) : "coach";
+
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
       <div className="flex items-center gap-3">
@@ -37,7 +45,7 @@ export default function AiToolsPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="coach">
+      <Tabs key={active} defaultValue={active}>
         <div className="overflow-x-auto pb-1">
           <TabsList className="flex w-max gap-0.5">
             {TOOLS.map((t) => (

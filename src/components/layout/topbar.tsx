@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { LogOut, Search, Settings, User } from "@/components/icons";
+import { LogOut, Menu, Search, Settings, User } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -14,14 +15,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Logo } from "@/components/shared/logo";
+import { SidebarNav } from "./sidebar-nav";
 import { CommandSearch, useCommandSearch } from "./command-search";
 
 export function Topbar() {
   const { data: session } = useSession();
   const router = useRouter();
   const { setOpen } = useCommandSearch();
+  const [navOpen, setNavOpen] = useState(false);
 
   const user = session?.user;
   const initials = (user?.name ?? "U")
@@ -33,7 +42,22 @@ export function Topbar() {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b px-3 glass-strong sm:gap-3 sm:px-4">
-      <div className="md:hidden">
+      {/* mobile: full-nav drawer + compact logo */}
+      <div className="flex items-center gap-1 md:hidden">
+        <Sheet open={navOpen} onOpenChange={setNavOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" aria-label="Open navigation">
+              <Menu className="size-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="flex w-72 flex-col gap-0 p-0">
+            <SheetTitle className="sr-only">Navigation</SheetTitle>
+            <div className="flex h-14 items-center border-b px-4">
+              <Logo href="/dashboard" />
+            </div>
+            <SidebarNav onNavigate={() => setNavOpen(false)} />
+          </SheetContent>
+        </Sheet>
         <Logo href="/dashboard" compact />
       </div>
       {/* desktop: wide search field */}

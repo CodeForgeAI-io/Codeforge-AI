@@ -70,3 +70,16 @@ export const MOBILE_MORE_ITEMS: NavItem[] = [
   "/roadmaps",
   "/contests",
 ].map(byHref);
+
+/** AI tools — rendered as a submenu under "AI Tools" → /ai-tools?tool=<tool>. */
+export const AI_TOOLS: { label: string; tool: string }[] = [
+  { label: "Learning Coach", tool: "coach" },
+  { label: "Pair Programmer", tool: "pair" },
+  { label: "Study Planner", tool: "study" },
+  { label: "Complexity", tool: "complexity" },
+  { label: "Code Review", tool: "code" },
+  { label: "Roadmap", tool: "roadmap" },
+  { label: "Contest Gen", tool: "contest" },
+  { label: "Resume", tool: "resume" },
+  { label: "Project Review", tool: "project" },
+];

@@ -3,99 +3,19 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { ShieldCheck, Settings, Crown, Ellipsis } from "@/components/icons";
-import { PlanBadge } from "@/features/subscription/plan-badge";
+import { Ellipsis } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/shared/logo";
-import { NAV_ITEMS, MOBILE_NAV_ITEMS, MOBILE_MORE_ITEMS } from "./nav-items";
+import { SidebarNav } from "./sidebar-nav";
+import { MOBILE_NAV_ITEMS, MOBILE_MORE_ITEMS } from "./nav-items";
 
 export function AppSidebar() {
-  const pathname = usePathname();
-  const { data: session } = useSession();
-  const isAdmin = session?.user?.role === "admin";
-  const plan = session?.user?.plan ?? "free";
-
   return (
     <aside className="sticky top-0 hidden h-svh w-56 shrink-0 flex-col border-r bg-sidebar md:flex">
       <div className="flex h-14 items-center border-b px-4">
         <Logo href="/dashboard" />
       </div>
-      <nav className="flex-1 overflow-y-auto p-2">
-        {(() => {
-          const groups: Record<string, typeof NAV_ITEMS> = {};
-          for (const item of NAV_ITEMS) {
-            const g = item.group ?? "Main";
-            if (!groups[g]) groups[g] = [];
-            groups[g].push(item);
-          }
-          return Object.entries(groups).map(([group, items], gi) => (
-            <div key={group} className={gi > 0 ? "mt-3" : ""}>
-              {gi > 0 && (
-                <p className="mb-0.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-                  {group}
-                </p>
-              )}
-              <div className="space-y-0.5">
-                {items.map((item) => {
-                  const active =
-                    pathname === item.href || pathname.startsWith(`${item.href}/`);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-                        active
-                          ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-                          : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
-                      )}
-                    >
-                      <item.icon className="size-4" />
-                      {item.title}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ));
-        })()}
-      </nav>
-      <div className="border-t p-2 space-y-0.5">
-        {/* Plan badge + upgrade prompt */}
-        <Link
-          href="/settings"
-          className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-sidebar-accent/60 transition-colors"
-        >
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {plan === "plus" ? <Crown className="size-3.5 text-primary" /> : <Settings className="size-3.5" />}
-            <span>Account</span>
-          </div>
-          <PlanBadge plan={plan} size="xs" />
-        </Link>
-        {plan === "free" && (
-          <Link
-            href="/pricing"
-            className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/20 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors"
-          >
-            <Crown className="size-3.5" /> Upgrade plan
-          </Link>
-        )}
-        {isAdmin && (
-          <Link
-            href="/admin"
-            className={cn(
-              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-              pathname.startsWith("/admin")
-                ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-                : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
-            )}
-          >
-            <ShieldCheck className="size-4" />
-            Admin Panel
-          </Link>
-        )}
-      </div>
+      <SidebarNav />
     </aside>
   );
 }
