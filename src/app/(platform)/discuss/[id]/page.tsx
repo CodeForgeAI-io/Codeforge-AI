@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { Discussion } from "@/models";
 import { getSession } from "@/lib/session";
 import { DiscussionDetail } from "@/features/discussions/discussion-detail";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@/components/icons";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 

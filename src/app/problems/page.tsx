@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bookmark, Sparkles } from "lucide-react";
+import { Bookmark, Sparkles } from "@/components/icons";
 import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicHeader } from "@/components/layout/public-header";

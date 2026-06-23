@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronUp, ChevronDown, CornerDownRight, MessageSquare, Send, Share2, Sparkles, Trash2 } from "lucide-react";
+import { ChevronUp, ChevronDown, CornerDownRight, MessageSquare, Send, Share2, Sparkles, Trash2 } from "@/components/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

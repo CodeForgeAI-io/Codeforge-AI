@@ -10,7 +10,7 @@ import {
   Search,
   Tag,
   TrendingUp,
-} from "lucide-react";
+} from "@/components/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";

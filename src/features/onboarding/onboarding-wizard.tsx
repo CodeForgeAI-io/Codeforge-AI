@@ -26,7 +26,7 @@ import {
   Coffee,
   Sprout,
   Star,
-} from "lucide-react";
+} from "@/components/icons";
 
 /* ── data ──────────────────────────────────────────────────────── */
 

@@ -6,7 +6,14 @@ import { AnalyticsScripts } from "@/components/analytics";
 import { PWARegister } from "@/components/pwa-register";
 import { getEffectiveConfig } from "@/lib/site-config";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants";
+import { config } from "@fortawesome/fontawesome-svg-core";
+import "@fortawesome/fontawesome-svg-core/styles.css";
 import "./globals.css";
+
+// Font Awesome inserts its own CSS at runtime by default; we import the
+// stylesheet above and disable auto-insertion to avoid a flash of oversized
+// icons and keep it CSP-friendly.
+config.autoAddCss = false;
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });

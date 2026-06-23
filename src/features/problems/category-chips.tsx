@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 interface CategoryCount {

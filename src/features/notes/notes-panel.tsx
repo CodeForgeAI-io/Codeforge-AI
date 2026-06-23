@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { StickyNote, Plus, Trash2, Save, Lock, Globe } from "lucide-react";
+import { StickyNote, Plus, Trash2, Save, Lock, Globe } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

@@ -1,4 +1,4 @@
-import { BarChart3 } from "lucide-react";
+import { BarChart3 } from "@/components/icons";
 import { WeaknessDashboard } from "@/features/weakness/weakness-dashboard";
 
 export const metadata = { title: "Weakness Detection" };

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bot, Loader2, SendHorizonal, Sparkles, X } from "lucide-react";
+import { Bot, Loader2, SendHorizonal, Sparkles, X } from "@/components/icons";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";

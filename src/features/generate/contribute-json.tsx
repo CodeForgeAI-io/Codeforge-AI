@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ClipboardCopy, FileUp, Loader2, UploadCloud } from "lucide-react";
+import { ClipboardCopy, FileUp, Loader2, UploadCloud } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {

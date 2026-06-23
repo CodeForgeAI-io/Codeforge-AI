@@ -6,7 +6,7 @@
 
 ### Your AI-powered coding interview prep workspace
 
-LeetCode-style DSA problems · Frontend sandbox challenges · Live contests · Personalized roadmaps · Spaced-repetition revision · A community forum · Local mock interviews · A real-time streaming **AI Mentor** — all in one cohesive developer workspace.
+LeetCode-style DSA problems · An **instant online compiler** · Frontend sandbox challenges · Live contests · Personalized roadmaps · Spaced-repetition revision · A community forum · Local mock interviews · A real-time streaming **AI Mentor** — all in one cohesive developer workspace.
 
 <br/>
 
@@ -115,7 +115,7 @@ sequenceDiagram
     API-->>U: verdict + diff + metrics
 ```
 
-The provider is chosen at runtime by `EXECUTION_PROVIDER`; all providers conform to one interface in `src/services/execution`, and outputs pass through a `normalize` step so verdicts are consistent regardless of backend.
+The provider is chosen at runtime by `EXECUTION_PROVIDER`; all providers conform to one interface in `src/services/execution`, and outputs pass through a `normalize` step so verdicts are consistent regardless of backend. The standalone **Online Compiler** at `/api/compiler` reuses the same provider router — it executes a single program with optional stdin and returns raw stdout/stderr plus runtime and memory, skipping the test-case/verdict step.
 
 ### AI Mentor Pipeline
 
@@ -135,6 +135,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 
 ### 🧑‍💻 Hybrid Coding Workspaces
 - **DSA Workspace** — Monaco editor with themes, font controls, **Vim** keybindings, Emmet, fullscreen, split-pane output, and auto-save (local + MongoDB).
+- **Online Compiler** (`/compiler`) — a blank-canvas editor that runs code in any of 12 languages with custom **stdin**, real stdout/stderr, and runtime + memory stats. No problem or test cases required.
 - **Frontend Sandbox** — In-browser Sandpack for HTML/CSS, Vanilla JS, React & Tailwind with live hot-reload and a console emulator.
 - **12 Languages** — JS, TS, Python, Java, C, C++, C#, Go, PHP, Rust, Kotlin, Swift.
 - **Pluggable Engines** — Paiza, Judge0, or self-hosted Piston.
@@ -266,6 +267,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 | **Payments** | Razorpay | Subscriptions, trials & billing |
 | **Sandbox** | @codesandbox/sandpack | Client-side frontend compiler |
 | **Editor** | @monaco-editor/react | In-browser IDE editing |
+| **Icons** | Font Awesome (SVG) | Consistent icon set across the app |
 | **State** | Zustand + React Query | Client & server-state management |
 | **Email** | Nodemailer | Beta & password-reset email |
 
@@ -372,7 +374,8 @@ Full release notes live in-app at `/changelog`. Recent highlights:
 
 | Version | Tag | Date | Highlights |
 | :--- | :--- | :--- | :--- |
-| **1.4.0** | 🟢 Latest | Jun 22, 2025 | Full visual redesign on the **Geist design system** — new landing page (layered product mockups, bento feature grid, AI chat preview), neutral palette with blue focus rings, refined typography/radii/spacing across every page, new blue app/PWA icons, redesigned auth and beta/join, and all orange accents removed. |
+| **1.5.0** | 🟢 Latest | Jun 23, 2026 | **Online Compiler** — a standalone `/compiler` editor that runs any of 12 languages with custom stdin, real stdout/stderr and runtime + memory stats (reuses the execution-provider router, no test cases). Surfaced across the landing page (hero, dedicated feature highlight with a live run preview, FAQ) and the main nav. New **fire app icon** (favicon, PWA + Apple touch icons), refreshed OG/Twitter share cards, real language brand logos on the landing strip, and a project-wide migration to **Font Awesome** icons. |
+| **1.4.0** | 🔵 Stable | Jun 22, 2025 | Full visual redesign on the **Geist design system** — new landing page (layered product mockups, bento feature grid, AI chat preview), neutral palette with blue focus rings, refined typography/radii/spacing across every page, new blue app/PWA icons, redesigned auth and beta/join, and all orange accents removed. |
 | **1.3.0** | 🔵 Stable | Jun 21, 2025 | Installable PWA (desktop + mobile, offline page, app icons), PostHog observability (analytics, error tracking, OpenTelemetry logs), Vercel Speed Insights, landing-page light/dark toggle, faster hero paint (FCP/LCP fix), and hardened CSP for analytics/Monaco/session replay. |
 | **1.2.0** | 🔵 Stable | Jun 18, 2025 | GitHub authentication (sign in with GitHub) and `/feedback` submissions now open a labelled GitHub issue in the repo, with email as a fallback. |
 | **1.1.1** | 🔵 Stable | Jun 18, 2025 | Fixed production build crash on `/robots.txt` & `/sitemap.xml` when the DB is unreachable (now render dynamically), resilient site-config loading, correct production site URL for SEO/robots/sitemap, graceful forgot-password email failures, and a modernized README. |

@@ -8,7 +8,7 @@ import {
   ProfileSettingsForm,
 } from "@/features/settings/settings-forms";
 import { BillingPanel } from "@/features/subscription/billing-panel";
-import { CreditCard } from "lucide-react";
+import { CreditCard } from "@/components/icons";
 
 export const metadata: Metadata = { title: "Settings" };
 export const dynamic = "force-dynamic";

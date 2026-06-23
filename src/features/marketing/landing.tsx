@@ -26,11 +26,12 @@ import {
   Menu,
   Sparkles,
   Star,
+  Terminal,
   Trophy,
   Users,
   X,
   Zap,
-} from "lucide-react";
+} from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
@@ -45,7 +46,38 @@ const PricingCards = dynamic(
   },
 );
 import { APP_NAME, APP_VERSION, LANGUAGES } from "@/lib/constants";
+import {
+  SiJavascript,
+  SiTypescript,
+  SiPython,
+  SiOpenjdk,
+  SiC,
+  SiCplusplus,
+  SiSharp,
+  SiGo,
+  SiPhp,
+  SiRust,
+  SiKotlin,
+  SiSwift,
+} from "react-icons/si";
+import type { IconType } from "react-icons";
 import { cn } from "@/lib/utils";
+
+/** Brand logos for the language strip, keyed by LANGUAGES id. */
+const LANG_ICONS: Record<string, IconType> = {
+  javascript: SiJavascript,
+  typescript: SiTypescript,
+  python: SiPython,
+  java: SiOpenjdk,
+  c: SiC,
+  cpp: SiCplusplus,
+  csharp: SiSharp,
+  go: SiGo,
+  php: SiPhp,
+  rust: SiRust,
+  kotlin: SiKotlin,
+  swift: SiSwift,
+};
 
 export interface LandingProblem {
   slug: string;
@@ -68,6 +100,7 @@ const border = "border-black/[0.08] dark:border-white/[0.10]";
 
 const NAV = [
   ["Problems", "/problems"],
+  ["Compiler", "#compiler"],
   ["Features", "#features"],
   ["AI Suite", "#ai"],
   ["Pricing", "#pricing"],
@@ -78,7 +111,7 @@ const STATS = [
   { value: 500, suffix: "+", label: "Problems solved daily" },
   { value: 12, suffix: "", label: "Languages supported" },
   { value: 9, suffix: "", label: "AI-powered tools" },
-  { value: 26, suffix: "+", label: "Platform features" },
+  { value: 27, suffix: "+", label: "Platform features" },
 ];
 
 const COMPANY_LOGOS = ["Google", "Meta", "Amazon", "Microsoft", "Netflix", "Uber", "Atlassian", "Apple"];
@@ -102,8 +135,9 @@ const TESTIMONIALS = [
 ];
 
 const FAQS = [
-  { q: "Is CodeForge AI really free?", a: "Yes. Problems, frontend challenges, contests, roadmaps, all 9 AI tools and the forum are completely free. Just create an account." },
-  { q: "Which languages can I code in?", a: "JavaScript, TypeScript, Python, Java, C, C++, C#, Go, PHP, Rust, Kotlin and Swift — all in a secure cloud sandbox." },
+  { q: "Is CodeForge AI really free?", a: "Yes. Problems, the online compiler, frontend challenges, contests, roadmaps, all 9 AI tools and the forum are completely free. Just create an account." },
+  { q: "Can I just run code without a problem?", a: "Yes — the built-in Compiler gives you a blank editor for any of 12 languages with custom stdin, real stdout/stderr and runtime + memory stats. No problem or test cases required. Open it from the nav or head to /compiler." },
+  { q: "Which languages can I code in?", a: "JavaScript, TypeScript, Python, Java, C, C++, C#, Go, PHP, Rust, Kotlin and Swift — all in a secure cloud sandbox, in both problems and the compiler." },
   { q: "How does the AI mentor differ from just asking ChatGPT?", a: "It sees your exact problem statement and current code in real time, so hints are specific to your approach. It also won't give you the full solution, by design." },
   { q: "What is spaced repetition?", a: "The SM-2 algorithm schedules reviews at increasing intervals based on recall quality. You review Two Sum at day 1, day 6, day 14 — cementing the pattern." },
   { q: "Can I prepare for specific companies?", a: "Yes — pick Google, Amazon, Microsoft, Meta, Netflix, Uber or Atlassian and track progress against each company's question patterns." },
@@ -222,6 +256,43 @@ function FloatChip({ className, children, delay = 0 }: { className?: string; chi
   );
 }
 
+function CompilerMock() {
+  return (
+    <div className={cn("overflow-hidden rounded-xl", card)}>
+      <div className={cn("flex items-center gap-1.5 border-b px-4 py-3", border)}>
+        <span className="size-2.5 rounded-full bg-[#ff5f57]" />
+        <span className="size-2.5 rounded-full bg-[#febc2e]" />
+        <span className="size-2.5 rounded-full bg-[#28c840]" />
+        <span className={cn("ml-2 font-mono text-xs", ink3)}>main.py</span>
+        <span className="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium text-white" style={{ background: ACCENT }}>
+          Run ▶
+        </span>
+      </div>
+      <pre className={cn("overflow-x-auto px-5 py-4 font-mono text-[12.5px] leading-relaxed", ink2)}>
+{`name = input()
+print(f"Hello, {name}!")
+for i in range(3):
+    print(i * i)`}
+      </pre>
+      <div className={cn("flex items-center gap-2 border-t px-5 py-2 font-mono text-[11px]", border, ink3)}>
+        <span className="rounded px-1.5 py-0.5 text-[10px]" style={{ background: `${ACCENT}14`, color: ACCENT }}>stdin</span>
+        Ada
+      </div>
+      <div className="bg-neutral-950 px-5 py-3 font-mono text-[12px] leading-relaxed text-neutral-300">
+        <div className="text-neutral-500">{"// output"}</div>
+        <div>Hello, Ada!</div>
+        <div>0</div>
+        <div>1</div>
+        <div>4</div>
+      </div>
+      <div className={cn("flex items-center gap-2 border-t px-5 py-2.5 text-xs", border, ink3)}>
+        <span className="size-1.5 rounded-full bg-[#28c840]" />
+        exited 0 · 14 ms · 9.2 MB
+      </div>
+    </div>
+  );
+}
+
 /* ── page ─────────────────────────────────────────────────────────── */
 
 export function Landing({ signedIn, problems, totalProblems }: { signedIn: boolean; problems: LandingProblem[]; totalProblems: number }) {
@@ -307,7 +378,7 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
             <div>
               <div className={cn("inline-flex items-center gap-2 rounded-full border bg-white/70 px-3 py-1 text-[13px] backdrop-blur dark:bg-neutral-900/70", border, ink2)}>
                 <Sparkles className="size-3.5" style={{ color: ACCENT }} />
-                26+ features · 9 AI tools · 100% free
+                27+ features · 9 AI tools · 100% free
               </div>
               <h1 className={cn("mt-6 text-balance text-4xl font-semibold leading-[1.07] tracking-[-0.04em] sm:text-5xl lg:text-6xl", ink)}>
                 Master coding interviews with{" "}
@@ -321,11 +392,17 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
                   <Link href={ctaHref}>Start for Free <ArrowRight className="size-4" /></Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className={cn("h-11 rounded-md px-5 text-base", border, ink2)}>
-                  <a href="#ai" onClick={navClick}>See AI in Action</a>
+                  <Link href="/compiler">Try the Compiler</Link>
                 </Button>
               </div>
+              <p className={cn("mt-4 text-sm", ink3)}>
+                Just need a scratchpad?{" "}
+                <Link href="/compiler" className="font-medium underline-offset-4 hover:underline" style={{ color: ACCENT }}>
+                  Run code instantly in the Compiler →
+                </Link>
+              </p>
               <div className={cn("mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm", ink3)}>
-                {["No credit card", "12 languages", "9 AI tools", "Community forum"].map((item) => (
+                {["No credit card", "12 languages", "Instant compiler", "9 AI tools"].map((item) => (
                   <span key={item} className="flex items-center gap-1.5">
                     <Check className="size-4" style={{ color: ACCENT }} /> {item}
                   </span>
@@ -351,12 +428,19 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
           {/* language strip */}
           <div className={cn("relative border-t", border)}>
             <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-2 px-4 py-5 sm:px-6">
-              {LANGUAGES.slice(0, 12).map((lang) => (
-                <span key={lang.id} className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium", border, ink3)}>
-                  <span className={cn("font-mono text-[10px]")} style={{ color: ACCENT }}>{lang.extension.replace(".", "").slice(0, 2).toUpperCase()}</span>
-                  {lang.label}
-                </span>
-              ))}
+              {LANGUAGES.slice(0, 12).map((lang) => {
+                const Icon = LANG_ICONS[lang.id];
+                return (
+                  <span key={lang.id} className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium", border, ink3)}>
+                    {Icon ? (
+                      <Icon className="size-3.5" style={{ color: ACCENT }} aria-hidden />
+                    ) : (
+                      <span className={cn("font-mono text-[10px]")} style={{ color: ACCENT }}>{lang.extension.replace(".", "").slice(0, 2).toUpperCase()}</span>
+                    )}
+                    {lang.label}
+                  </span>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -482,6 +566,32 @@ for (let i = 0; i < nums.length; i++) {
                       </div>
                     ))}
                   </div>
+                </div>
+              </Reveal>
+
+              {/* compiler — full-width highlight */}
+              <Reveal delay={0.05} className="lg:col-span-3">
+                <div id="compiler" className={cn("grid scroll-mt-20 gap-8 p-6 sm:p-8 lg:grid-cols-2 lg:items-center", card)}>
+                  <div>
+                    <span className={cn("flex size-9 items-center justify-center rounded-md border", border)} style={{ background: `${ACCENT}0d` }}>
+                      <Terminal className="size-4.5" style={{ color: ACCENT }} />
+                    </span>
+                    <h3 className={cn("mt-4 text-xl font-semibold tracking-tight sm:text-2xl", ink)}>Instant online compiler</h3>
+                    <p className={cn("mt-2 max-w-md text-sm leading-relaxed", ink3)}>
+                      Skip the boilerplate. Open a blank editor, paste code in any of 12 languages, pipe in custom stdin, and run it in a secure cloud sandbox — no problem, no test cases, no local setup.
+                    </p>
+                    <div className={cn("mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm", ink3)}>
+                      {["12 languages", "Custom stdin", "Real stdout & stderr", "Runtime + memory stats"].map((item) => (
+                        <span key={item} className="flex items-center gap-1.5">
+                          <Check className="size-4" style={{ color: ACCENT }} /> {item}
+                        </span>
+                      ))}
+                    </div>
+                    <Button asChild size="lg" className={cn(primaryBtn, "mt-7 h-11 px-5")}>
+                      <Link href="/compiler">Open the Compiler <ArrowRight className="size-4" /></Link>
+                    </Button>
+                  </div>
+                  <CompilerMock />
                 </div>
               </Reveal>
             </div>
@@ -642,7 +752,7 @@ for (let i = 0; i < nums.length; i++) {
                 </span>
                 <h2 className={cn("mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl", ink)}>Your next offer starts now.</h2>
                 <p className={cn("mx-auto mt-4 max-w-lg text-lg", ink3)}>
-                  Free forever. 26+ features. 9 AI tools. No credit card — just you, the editor, and an AI mentor that never sleeps.
+                  Free forever. 27+ features. 9 AI tools. No credit card — just you, the editor, and an AI mentor that never sleeps.
                 </p>
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                   <Button asChild size="lg" className={cn(primaryBtn, "h-12 px-7 text-base")}>

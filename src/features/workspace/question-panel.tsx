@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { ChevronDown, Lightbulb, Lock } from "lucide-react";
+import { ChevronDown, Lightbulb, Lock } from "@/components/icons";
 import { Markdown } from "@/components/shared/markdown";
 import { DifficultyBadge } from "@/components/shared/difficulty-badge";
 import { Badge } from "@/components/ui/badge";

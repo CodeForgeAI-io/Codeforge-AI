@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, LogIn } from "lucide-react";
+import { ArrowLeft, LogIn } from "@/components/icons";
 import { auth } from "@/lib/auth";
 import { PublicHeader } from "@/components/layout/public-header";
 import { Button } from "@/components/ui/button";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trophy, Loader2, Clock, ChevronDown, ChevronRight } from "lucide-react";
+import { Trophy, Loader2, Clock, ChevronDown, ChevronRight } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

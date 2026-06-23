@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, CheckCircle2 } from "lucide-react";
+import { ArrowUpRight, CheckCircle2 } from "@/components/icons";
 import { getSession } from "@/lib/session";
 import { getRoadmapView } from "@/services/roadmaps";
 import { ROADMAP_TRACKS, type RoadmapTrack } from "@/lib/constants";

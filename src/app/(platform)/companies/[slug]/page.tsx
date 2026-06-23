@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Building2, CheckCircle2, Circle, CircleDot } from "lucide-react";
+import { Building2, CheckCircle2, Circle, CircleDot } from "@/components/icons";
 import { getSession } from "@/lib/session";
 import { getCompanyBySlug } from "@/services/companies";
 import { listQuestions } from "@/services/questions";

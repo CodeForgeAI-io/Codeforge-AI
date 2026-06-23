@@ -5,6 +5,6 @@ export const alt = OG_ALT;
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
-export default function OpengraphImage() {
+export default function TwitterImage() {
   return renderOgCard();
 }

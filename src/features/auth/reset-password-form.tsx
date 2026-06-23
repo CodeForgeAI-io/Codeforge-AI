@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff, Lock, CheckCircle2 } from "lucide-react";
+import { Loader2, Eye, EyeOff, Lock, CheckCircle2 } from "@/components/icons";
 import { resetPasswordSchema, type ResetPasswordInput } from "@/schemas/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

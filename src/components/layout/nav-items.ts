@@ -18,7 +18,7 @@ import {
   Trophy,
   Users,
   type LucideIcon,
-} from "lucide-react";
+} from "@/components/icons";
 
 export interface NavItem {
   title: string;

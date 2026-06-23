@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Sparkles } from "lucide-react";
+import { Sparkles } from "@/components/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GenerateQuestions } from "@/features/generate/generate-questions";
 import { ContributeJson } from "@/features/generate/contribute-json";

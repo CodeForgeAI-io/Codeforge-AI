@@ -17,7 +17,7 @@ import {
   TrendingUp,
   Trophy,
   Zap,
-} from "lucide-react";
+} from "@/components/icons";
 
 function GithubIcon({ className }: { className?: string }) {
   return (

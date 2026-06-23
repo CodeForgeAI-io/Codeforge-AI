@@ -1,4 +1,4 @@
-import { MessageSquare } from "lucide-react";
+import { MessageSquare } from "@/components/icons";
 import { DiscussionList } from "@/features/discussions/discussion-list";
 
 export const metadata = { title: "Discussion Forum" };

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Braces, Palette } from "lucide-react";
+import { ArrowRight, Braces, Palette } from "@/components/icons";
 import { getSession } from "@/lib/session";
 import { getRoadmapView } from "@/services/roadmaps";
 import {

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MessageSquare, Plus, TrendingUp, Users } from "lucide-react";
+import { MessageSquare, Plus, TrendingUp, Users } from "@/components/icons";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { Discussion } from "@/models";

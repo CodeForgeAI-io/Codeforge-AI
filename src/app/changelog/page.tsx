@@ -8,10 +8,29 @@ export const metadata = {
 
 const RELEASES = [
   {
-    version: "1.4.0",
-    date: "June 22, 2025",
+    version: "1.5.0",
+    date: "June 23, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Online Compiler — a standalone, blank-canvas editor at /compiler that runs code in any of 12 languages with custom stdin, real stdout/stderr and runtime + memory stats. No problem or test cases required",
+        "Compiler is now in the main navigation and surfaced across the landing page (hero, a dedicated feature highlight with a live run preview, and the FAQ)",
+      ],
+      improved: [
+        "New fire app icon — refreshed favicon, PWA icons (192/512 + maskable) and Apple touch icon on the brand-blue mark",
+        "Refreshed social share cards — Open Graph and Twitter images now use the new icon and lead with the instant compiler",
+        "Landing language strip now shows real brand logos (JavaScript, TypeScript, Python, Java, C, C++, C#, Go, PHP, Rust, Kotlin, Swift) instead of two-letter abbreviations",
+        "Project-wide icon system migrated to Font Awesome for a consistent, crisp icon set across every page",
+      ],
+      fixed: [],
+    },
+  },
+  {
+    version: "1.4.0",
+    date: "June 22, 2025",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Brand-new landing page — layered product mockups, animated accent cards, a bento feature grid with live UI previews, and an AI chat preview",

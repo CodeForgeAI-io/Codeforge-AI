@@ -13,7 +13,7 @@ import {
   Search,
   Sparkles,
   Trash2,
-} from "lucide-react";
+} from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";

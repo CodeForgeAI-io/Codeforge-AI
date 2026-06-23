@@ -12,7 +12,7 @@ import {
   TrendingUp,
   Trophy,
   Zap,
-} from "lucide-react";
+} from "@/components/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";

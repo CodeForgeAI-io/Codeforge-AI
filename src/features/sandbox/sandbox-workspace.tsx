@@ -12,7 +12,7 @@ import {
   SandpackConsole,
   useSandpack,
 } from "@codesandbox/sandpack-react";
-import { CheckSquare, Loader2, Send, Sparkles } from "lucide-react";
+import { CheckSquare, Loader2, Send, Sparkles } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";

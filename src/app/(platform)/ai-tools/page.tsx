@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { Sparkles } from "@/components/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AiRoadmap } from "@/features/ai-tools/ai-roadmap";
 import { AiResume } from "@/features/ai-tools/ai-resume";

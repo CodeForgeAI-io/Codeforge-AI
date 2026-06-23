@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import {
   CheckCircle2, XCircle, Loader2, Eye, EyeOff,
   Wifi, Database, Mail, Brain, Code2, Globe, BarChart3, Lock, CreditCard
-} from "lucide-react";
+} from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

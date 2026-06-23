@@ -1,4 +1,4 @@
-import { BarChart3 } from "lucide-react";
+import { BarChart3 } from "@/components/icons";
 import { AnalyticsDashboard } from "@/features/analytics/analytics-dashboard";
 
 export const metadata = { title: "Skill Analytics" };

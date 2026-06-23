@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Building2 } from "lucide-react";
+import { Building2 } from "@/components/icons";
 import { getSession } from "@/lib/session";
 import { listCompaniesWithProgress } from "@/services/companies";
 import {

@@ -5,7 +5,7 @@ import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models";
 import { PublicHeader } from "@/components/layout/public-header";
 import { PricingCards } from "@/features/subscription/pricing-cards";
-import { Clock, RefreshCw, HeadphonesIcon, Sparkles } from "lucide-react";
+import { Clock, RefreshCw, HeadphonesIcon, Sparkles } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Pricing — CodeForge AI",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { UserCheck, UserPlus } from "lucide-react";
+import { UserCheck, UserPlus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 

@@ -1,4 +1,4 @@
-import { Bookmark } from "lucide-react";
+import { Bookmark } from "@/components/icons";
 import { BookmarksList } from "@/features/bookmarks/bookmarks-list";
 
 export const metadata = { title: "Bookmarks" };

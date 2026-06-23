@@ -19,7 +19,7 @@ import {
   Sun,
   Trophy,
   Users,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   CommandDialog,
   CommandEmpty,

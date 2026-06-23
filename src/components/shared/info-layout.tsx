@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Heart } from "@/components/icons";
 import { APP_NAME, APP_VERSION } from "@/lib/constants";
 
 export function InfoLayout({ children }: { children: React.ReactNode }) {

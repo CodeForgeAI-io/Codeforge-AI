@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@/components/icons";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { Discussion } from "@/models";

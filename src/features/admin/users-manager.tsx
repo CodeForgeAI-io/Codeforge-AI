@@ -16,7 +16,7 @@ import {
   UserCheck,
   UserX,
   Zap,
-} from "lucide-react";
+} from "@/components/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

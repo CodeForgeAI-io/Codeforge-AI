@@ -1,4 +1,4 @@
-import { StickyNote } from "lucide-react";
+import { StickyNote } from "@/components/icons";
 import { NotesPanel } from "@/features/notes/notes-panel";
 
 export const metadata = { title: "My Notes" };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarDays, Loader2, ChevronDown, ChevronRight, Target, CheckCircle2 } from "lucide-react";
+import { CalendarDays, Loader2, ChevronDown, ChevronRight, Target, CheckCircle2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

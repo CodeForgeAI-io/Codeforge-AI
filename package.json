@@ -1,6 +1,6 @@
 {
   "name": "codeforge-ai",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -15,6 +15,11 @@
   },
   "dependencies": {
     "@codesandbox/sandpack-react": "^2.20.0",
+    "@fortawesome/fontawesome-svg-core": "^7.2.0",
+    "@fortawesome/free-brands-svg-icons": "^7.2.0",
+    "@fortawesome/free-regular-svg-icons": "^7.2.0",
+    "@fortawesome/free-solid-svg-icons": "^7.2.0",
+    "@fortawesome/react-fontawesome": "^3.3.1",
     "@hookform/resolvers": "^5.4.0",
     "@monaco-editor/react": "^4.7.0",
     "@opentelemetry/api-logs": "^0.219.0",
@@ -34,7 +39,6 @@
     "emmet-monaco-es": "^5.7.0",
     "framer-motion": "^12.40.0",
     "groq-sdk": "^1.2.1",
-    "lucide-react": "^1.17.0",
     "monaco-editor": "^0.55.1",
     "monaco-vim": "^0.4.4",
     "mongoose": "^9.7.0",
@@ -51,6 +55,7 @@
     "react-day-picker": "^10.0.1",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.78.0",
+    "react-icons": "^5.6.0",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^4.11.2",
     "recharts": "^3.8.1",

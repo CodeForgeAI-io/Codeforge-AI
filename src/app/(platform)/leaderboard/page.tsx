@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Flame, Trophy } from "lucide-react";
+import { Flame, Trophy } from "@/components/icons";
 import { getSession } from "@/lib/session";
 import { getLeaderboard, getUserRank } from "@/services/stats";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

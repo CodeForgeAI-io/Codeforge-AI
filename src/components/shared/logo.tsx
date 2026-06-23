@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Flame } from "lucide-react";
+import { Flame } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { APP_NAME } from "@/lib/constants";
 

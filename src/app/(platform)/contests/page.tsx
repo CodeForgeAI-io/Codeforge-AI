@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { format } from "date-fns";
-import { CalendarClock, Flame, Trophy, Users } from "lucide-react";
+import { CalendarClock, Flame, Trophy, Users } from "@/components/icons";
 import { getSession } from "@/lib/session";
 import { listContests, getDailyChallenge } from "@/services/contests";
 import { Card, CardContent } from "@/components/ui/card";

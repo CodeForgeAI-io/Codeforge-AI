@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ShieldCheck, Settings, Crown } from "lucide-react";
+import { ShieldCheck, Settings, Crown } from "@/components/icons";
 import { PlanBadge } from "@/features/subscription/plan-badge";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/shared/logo";

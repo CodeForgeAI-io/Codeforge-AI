@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Bookmark, Code2, Layout, Trash2, ExternalLink } from "lucide-react";
+import { Bookmark, Code2, Layout, Trash2, ExternalLink } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";

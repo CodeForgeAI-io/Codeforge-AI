@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
-import { CreditCard, Crown, Zap, AlertTriangle, Clock, Sparkles } from "lucide-react";
+import { CreditCard, Crown, Zap, AlertTriangle, Clock, Sparkles } from "@/components/icons";
 import Link from "next/link";
 
 const paymentsEnabled = !!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;

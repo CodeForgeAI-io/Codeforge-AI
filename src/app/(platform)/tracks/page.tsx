@@ -1,4 +1,4 @@
-import { ListChecks } from "lucide-react";
+import { ListChecks } from "@/components/icons";
 import { LearningTracks } from "@/features/tracks/learning-tracks";
 
 export const metadata = { title: "Learning Tracks" };

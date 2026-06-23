@@ -11,7 +11,7 @@ import {
   Circle,
   CircleDot,
   Loader2,
-} from "lucide-react";
+} from "@/components/icons";
 import { DifficultyBadge } from "@/components/shared/difficulty-badge";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";

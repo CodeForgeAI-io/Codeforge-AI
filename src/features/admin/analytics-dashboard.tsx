@@ -19,7 +19,7 @@ import {
   Loader2,
   Trophy,
   Users,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   Card,
   CardContent,

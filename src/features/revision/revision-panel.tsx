@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Brain, CheckCircle2, Clock, RotateCcw } from "lucide-react";
+import { Brain, CheckCircle2, Clock, RotateCcw } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DifficultyBadge } from "@/components/shared/difficulty-badge";
