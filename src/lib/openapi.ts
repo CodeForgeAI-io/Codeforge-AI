@@ -28,7 +28,7 @@ export const openApiSpec: Record<string, any> = {
   openapi: "3.0.3",
   info: {
     title: "CodeForge AI API",
-    version: "1.0.0",
+    version: "1.8.0",
     description:
       "REST API for CodeForge AI — an AI-powered coding practice platform. All protected endpoints require an active session cookie obtained via `/api/auth/signin`.",
     contact: { name: "CodeForge AI", email: "nitheeraj1@gmail.com" },
@@ -51,7 +51,13 @@ export const openApiSpec: Record<string, any> = {
     { name: "Revision", description: "Spaced repetition (SM-2)" },
     { name: "Search", description: "Global search" },
     { name: "Interview", description: "Mock interview question queue" },
-    { name: "AI", description: "AI-powered tools (9 tools)" },
+    { name: "AI", description: "AI-powered tools + saved run history (credit-metered)" },
+    { name: "Compiler", description: "Standalone multi-language code runner" },
+    { name: "Billing", description: "AI credit usage and invoices" },
+    { name: "Subscription", description: "Plans, trials and Razorpay checkout" },
+    { name: "Onboarding", description: "First-run preferences" },
+    { name: "Feedback", description: "Bug reports and feature requests" },
+    { name: "Beta", description: "Beta program signup" },
     { name: "Admin", description: "Admin-only endpoints (role: admin)" },
   ],
   components: {
@@ -175,6 +181,209 @@ export const openApiSpec: Record<string, any> = {
         responses: {
           "201": { description: "User created", content: { "application/json": { schema: { type: "object", properties: { user: { type: "object", properties: { id: { type: "string" }, email: { type: "string" }, name: { type: "string" } } } } } } } },
           "400": { description: "Validation error or email taken", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+        },
+      },
+    },
+
+    "/auth/forgot-password": {
+      post: {
+        tags: ["Auth"],
+        summary: "Request a password reset email",
+        security: [],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { type: "object", required: ["email"], properties: { email: { type: "string", format: "email" } } },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "If the email exists, a reset link is sent (always returns 200 to avoid account enumeration)" },
+          "400": { description: "Invalid email" },
+        },
+      },
+    },
+    "/auth/reset-password": {
+      post: {
+        tags: ["Auth"],
+        summary: "Reset password using a token from the reset email",
+        security: [],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["token", "password"],
+                properties: {
+                  token: { type: "string", description: "Token from the password-reset email link" },
+                  password: { type: "string", minLength: 8 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Password updated" },
+          "400": { description: "Invalid or expired token" },
+        },
+      },
+    },
+
+    /* ── BETA ─────────────────────────────────────────── */
+    "/beta/join": {
+      get: {
+        tags: ["Beta"],
+        summary: "Get remaining beta spots",
+        security: [],
+        responses: {
+          "200": { description: "Spots left", content: { "application/json": { schema: { type: "object", properties: { spotsLeft: { type: "integer" } } } } } },
+        },
+      },
+      post: {
+        tags: ["Beta"],
+        summary: "Sign up for the beta with a new account",
+        security: [],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["name", "username", "email", "password"],
+                properties: {
+                  name: { type: "string" },
+                  username: { type: "string" },
+                  email: { type: "string", format: "email" },
+                  password: { type: "string", minLength: 8 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": { description: "Beta account created" },
+          "400": { description: "Validation error" },
+          "409": { description: "Beta full or email taken" },
+        },
+      },
+    },
+    "/beta/apply": {
+      post: {
+        tags: ["Beta"],
+        summary: "Claim a beta spot for the signed-in user",
+        responses: {
+          "200": { description: "Beta claim result", content: { "application/json": { schema: { type: "object", properties: { ok: { type: "boolean" }, spotsLeft: { type: "integer" }, error: { type: "string", nullable: true } } } } } },
+          "401": { description: "Unauthenticated" },
+          "404": { description: "User not found" },
+        },
+      },
+    },
+
+    /* ── ONBOARDING ──────────────────────────────────── */
+    "/onboarding": {
+      post: {
+        tags: ["Onboarding"],
+        summary: "Save first-run onboarding preferences",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["goal", "level", "topics", "dailyGoal"],
+                properties: {
+                  goal: { type: "string", description: "Primary learning goal" },
+                  level: { type: "string", enum: ["beginner", "intermediate", "advanced"] },
+                  topics: { type: "array", items: { type: "string" } },
+                  companies: { type: "array", items: { type: "string" } },
+                  dailyGoal: { type: "integer", description: "Target problems per day" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Preferences saved" },
+          "400": { description: "Missing required fields" },
+          "401": { description: "Unauthenticated" },
+        },
+      },
+    },
+
+    /* ── FEEDBACK ────────────────────────────────────── */
+    "/feedback": {
+      post: {
+        tags: ["Feedback"],
+        summary: "Submit feedback (emailed to the team)",
+        security: [],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["type", "title", "description"],
+                properties: {
+                  type: { type: "string", enum: ["bug", "feature", "issue"] },
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  email: { type: "string", format: "email", nullable: true },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Feedback sent" },
+          "400": { description: "Validation error" },
+        },
+      },
+    },
+
+    /* ── COMPILER ────────────────────────────────────── */
+    "/compiler": {
+      post: {
+        tags: ["Compiler"],
+        summary: "Run code in any supported language with custom stdin",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["language", "code"],
+                properties: {
+                  language: { type: "string", example: "python" },
+                  code: { type: "string" },
+                  stdin: { type: "string", nullable: true, description: "Standard input passed to the program" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Execution result",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    stdout: { type: "string" },
+                    stderr: { type: "string" },
+                    exitCode: { type: "integer", nullable: true },
+                    runtime: { type: "number", nullable: true, description: "Milliseconds" },
+                    memory: { type: "number", nullable: true, description: "Kilobytes" },
+                  },
+                },
+              },
+            },
+          },
+          "400": { description: "Invalid JSON, unsupported language, or validation error" },
+          "401": { description: "Unauthenticated" },
+          "429": { description: "Rate limit exceeded" },
         },
       },
     },
@@ -543,6 +752,21 @@ export const openApiSpec: Record<string, any> = {
           "201": { description: "Reply added" },
           "400": { description: "Empty content" },
           "401": { description: "Unauthenticated" },
+        },
+      },
+    },
+    "/discussions/{id}/reply/{replyId}": {
+      delete: {
+        tags: ["Discussions"],
+        summary: "Delete a reply (author or admin only)",
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          { name: "replyId", in: "path", required: true, schema: { type: "string" } },
+        ],
+        responses: {
+          "200": { description: "Reply deleted" },
+          "403": { description: "Forbidden" },
+          "404": { description: "Not found" },
         },
       },
     },
@@ -1387,7 +1611,211 @@ export const openApiSpec: Record<string, any> = {
       },
     },
 
+    "/ai/history": {
+      get: {
+        tags: ["AI"],
+        summary: "List saved AI tool runs for the current user",
+        parameters: [
+          { name: "tool", in: "query", schema: { type: "string" }, description: "Filter by tool key (e.g. resume, roadmap, code-review)" },
+        ],
+        responses: {
+          "200": { description: "Saved runs", content: { "application/json": { schema: { type: "object", properties: { runs: { type: "array", items: { type: "object", properties: { _id: { type: "string" }, tool: { type: "string" }, title: { type: "string" }, input: {}, result: {}, createdAt: { type: "string", format: "date-time" } } } } } } } } },
+          "401": { description: "Unauthenticated" },
+        },
+      },
+      post: {
+        tags: ["AI"],
+        summary: "Save or update an AI tool run (upsert by id)",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["tool", "result"],
+                properties: {
+                  tool: { type: "string", description: "Tool key" },
+                  title: { type: "string", default: "Untitled" },
+                  input: { description: "Arbitrary tool input payload" },
+                  result: { description: "Arbitrary tool result payload" },
+                  id: { type: "string", nullable: true, description: "Existing run id to update; omit to create" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Run saved" },
+          "400": { description: "Missing tool or result" },
+          "401": { description: "Unauthenticated" },
+        },
+      },
+    },
+
+    /* ── BILLING ─────────────────────────────────────── */
+    "/billing/usage": {
+      get: {
+        tags: ["Billing"],
+        summary: "Get AI credit usage and subscription history",
+        responses: {
+          "200": {
+            description: "Usage and payment history",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    plan: { type: "string", enum: ["free", "go", "plus"] },
+                    usage: {
+                      type: "object",
+                      properties: {
+                        period: { type: "string", example: "2026-06", description: "YYYY-MM" },
+                        used: { type: "integer" },
+                        allowance: { type: "integer", nullable: true, description: "null for unlimited" },
+                        remaining: { type: "integer", nullable: true },
+                        unlimited: { type: "boolean" },
+                      },
+                    },
+                    history: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          id: { type: "string" },
+                          plan: { type: "string" },
+                          billingCycle: { type: "string" },
+                          amount: { type: "number" },
+                          currency: { type: "string" },
+                          periodStart: { type: "string", format: "date-time", nullable: true },
+                          periodEnd: { type: "string", format: "date-time", nullable: true },
+                          paymentId: { type: "string", nullable: true },
+                          createdAt: { type: "string", format: "date-time" },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "401": { description: "Unauthenticated" },
+        },
+      },
+    },
+    "/billing/invoice/{id}": {
+      get: {
+        tags: ["Billing"],
+        summary: "Download a printable HTML invoice for a paid subscription",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" }, description: "Subscription id" }],
+        responses: {
+          "200": { description: "HTML invoice document", content: { "text/html": { schema: { type: "string" } } } },
+          "400": { description: "Invalid invoice id" },
+          "401": { description: "Unauthenticated" },
+          "404": { description: "Invoice not found or not owned by user" },
+        },
+      },
+    },
+
+    /* ── SUBSCRIPTION ────────────────────────────────── */
+    "/subscription/create-order": {
+      post: {
+        tags: ["Subscription"],
+        summary: "Create a Razorpay order for a plan upgrade",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["plan", "cycle"],
+                properties: {
+                  plan: { type: "string", enum: ["go", "plus"] },
+                  cycle: { type: "string", enum: ["monthly", "yearly"] },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Razorpay order created", content: { "application/json": { schema: { type: "object", properties: { orderId: { type: "string" }, amount: { type: "number" }, currency: { type: "string" }, keyId: { type: "string" } } } } } },
+          "401": { description: "Unauthenticated" },
+        },
+      },
+    },
+    "/subscription/verify": {
+      post: {
+        tags: ["Subscription"],
+        summary: "Verify a Razorpay payment and activate the plan",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["razorpayOrderId", "razorpayPaymentId", "razorpaySignature"],
+                properties: {
+                  razorpayOrderId: { type: "string" },
+                  razorpayPaymentId: { type: "string" },
+                  razorpaySignature: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Payment verified, plan activated" },
+          "400": { description: "Signature verification failed" },
+          "401": { description: "Unauthenticated" },
+        },
+      },
+    },
+    "/subscription/start-trial": {
+      post: {
+        tags: ["Subscription"],
+        summary: "Start a free trial",
+        responses: {
+          "200": { description: "Trial started" },
+          "401": { description: "Unauthenticated" },
+          "409": { description: "Trial already used" },
+        },
+      },
+    },
+    "/subscription/cancel": {
+      post: {
+        tags: ["Subscription"],
+        summary: "Cancel the current subscription",
+        responses: {
+          "200": { description: "Subscription cancelled" },
+          "401": { description: "Unauthenticated" },
+        },
+      },
+    },
+
     /* ── ADMIN ───────────────────────────────────────── */
+    "/admin/settings": {
+      get: {
+        tags: ["Admin"],
+        summary: "Get site configuration (admin)",
+        responses: { "200": { description: "Current site config" }, "403": { description: "Admin only" } },
+      },
+      put: {
+        tags: ["Admin"],
+        summary: "Update site configuration (admin)",
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        responses: { "200": { description: "Settings saved" }, "403": { description: "Admin only" } },
+      },
+    },
+    "/admin/settings/test": {
+      post: {
+        tags: ["Admin"],
+        summary: "Test a service connection — SMTP, Groq, MongoDB, Redis, Judge0, Piston, Paiza, Razorpay (admin)",
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { type: "object", required: ["service"], properties: { service: { type: "string", example: "smtp" } } } } },
+        },
+        responses: { "200": { description: "Connection test result" }, "403": { description: "Admin only" } },
+      },
+    },
     "/admin/questions": {
       get: {
         tags: ["Admin"],

@@ -4,7 +4,8 @@ import { ChangelogView, type Release } from "./changelog-view";
 
 export const metadata = {
   title: `Changelog — ${APP_NAME}`,
-  description: "What's new in CodeForge AI — release notes and version history.",
+  description:
+    "What's new in CodeForge AI — release notes and version history.",
 };
 
 const RELEASES: Release[] = [
@@ -95,7 +96,7 @@ const RELEASES: Release[] = [
   },
   {
     version: "1.4.0",
-    date: "June 22, 2025",
+    date: "June 22, 2026",
     tag: "Stable",
     tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
@@ -115,7 +116,7 @@ const RELEASES: Release[] = [
   },
   {
     version: "1.3.0",
-    date: "June 21, 2025",
+    date: "June 21, 2026",
     tag: "Stable",
     tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
@@ -139,7 +140,7 @@ const RELEASES: Release[] = [
   },
   {
     version: "1.2.0",
-    date: "June 18, 2025",
+    date: "June 18, 2026",
     tag: "Stable",
     tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
@@ -153,7 +154,7 @@ const RELEASES: Release[] = [
   },
   {
     version: "1.1.1",
-    date: "June 18, 2025",
+    date: "June 18, 2026",
     tag: "Stable",
     tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
@@ -171,7 +172,7 @@ const RELEASES: Release[] = [
   },
   {
     version: "1.1.0",
-    date: "June 17, 2025",
+    date: "June 17, 2026",
     tag: "Stable",
     tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
@@ -201,7 +202,7 @@ const RELEASES: Release[] = [
   },
   {
     version: "1.0.1",
-    date: "June 17, 2025",
+    date: "June 17, 2026",
     tag: "Security",
     tagColor: "bg-red-500/15 text-red-500 border-red-500/30",
     changes: {
@@ -223,7 +224,7 @@ const RELEASES: Release[] = [
   },
   {
     version: "1.0.0",
-    date: "June 17, 2025",
+    date: "June 17, 2026",
     tag: "Launch",
     tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
@@ -259,7 +260,7 @@ const RELEASES: Release[] = [
   },
   {
     version: "0.9.0",
-    date: "June 10, 2025",
+    date: "June 10, 2026",
     tag: "Beta",
     tagColor: "bg-amber-500/15 text-amber-500 border-amber-500/30",
     changes: {
@@ -278,7 +279,7 @@ const RELEASES: Release[] = [
   },
   {
     version: "0.5.0",
-    date: "May 20, 2025",
+    date: "June 10, 2026",
     tag: "Alpha",
     tagColor: "bg-purple-500/15 text-purple-500 border-purple-500/30",
     changes: {

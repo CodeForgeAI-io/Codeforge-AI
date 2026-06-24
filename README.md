@@ -85,14 +85,14 @@ graph TD
 
 ### Layer Responsibilities
 
-| Layer | Location | Responsibility |
-| :--- | :--- | :--- |
-| **Client** | `src/app/(platform)`, `src/features`, `src/components` | React 19 UI, Monaco/Sandpack workspaces, Zustand workspace store, React Query server-state cache |
-| **Edge** | `src/middleware.ts`, `src/lib/auth.config.ts` | Auth gating, CORS/origin guard, security headers, cookie policy |
-| **API** | `src/app/api/*` | Route handlers: validation (Zod), authz (`lib/api-auth`), rate-limit, response shaping |
-| **Services** | `src/services/*` | Domain logic: questions, contests, execution, AI, gamification, stats, roadmaps |
-| **Integrations** | `src/lib/*` | `mongodb`, `redis`, `mailer`, `github`, `site-config`, `rate-limit`, `sanitize`, `openapi` |
-| **Data** | `src/models/*` (22 Mongoose models) | Users, Questions, Submissions, Contests, Discussions, Subscriptions, SpacedRepetition, Badges, etc. |
+| Layer            | Location                                               | Responsibility                                                                                      |
+| :--------------- | :----------------------------------------------------- | :-------------------------------------------------------------------------------------------------- |
+| **Client**       | `src/app/(platform)`, `src/features`, `src/components` | React 19 UI, Monaco/Sandpack workspaces, Zustand workspace store, React Query server-state cache    |
+| **Edge**         | `src/middleware.ts`, `src/lib/auth.config.ts`          | Auth gating, CORS/origin guard, security headers, cookie policy                                     |
+| **API**          | `src/app/api/*`                                        | Route handlers: validation (Zod), authz (`lib/api-auth`), rate-limit, response shaping              |
+| **Services**     | `src/services/*`                                       | Domain logic: questions, contests, execution, AI, gamification, stats, roadmaps                     |
+| **Integrations** | `src/lib/*`                                            | `mongodb`, `redis`, `mailer`, `github`, `site-config`, `rate-limit`, `sanitize`, `openapi`          |
+| **Data**         | `src/models/*` (22 Mongoose models)                    | Users, Questions, Submissions, Contests, Discussions, Subscriptions, SpacedRepetition, Badges, etc. |
 
 ### Code Execution Pipeline
 
@@ -134,6 +134,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 🧑‍💻 Hybrid Coding Workspaces
+
 - **DSA Workspace** — Monaco editor with themes, font controls, **Vim** keybindings, Emmet, fullscreen, split-pane output, and auto-save (local + MongoDB).
 - **Online Compiler** (`/compiler`) — a blank-canvas editor that runs code in any of 12 languages with custom **stdin**, real stdout/stderr, and runtime + memory stats. No problem or test cases required.
 - **Frontend Sandbox** — In-browser Sandpack for HTML/CSS, Vanilla JS, React & Tailwind with live hot-reload and a console emulator.
@@ -144,6 +145,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 🤖 Live AI Mentor (Groq)
+
 - **Context-Aware** — Understands the problem, your code buffer, and runtime output.
 - **Progressive Hints** — Concept → algorithm → edge cases → optimization, never spoiling the answer.
 - **Explain & Visualize** — "Why is this failing?" and time/space complexity, all streamed in real time.
@@ -154,6 +156,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 🛠 AI Tools Suite (`/ai-tools`)
+
 - **Learning Coach** — guidance tuned to your weak areas
 - **Pair Programmer** — conversational coding help
 - **Study Planner** — structured plans toward a date
@@ -166,6 +169,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 📚 Problems, Tracks & Roadmaps
+
 - **Problem Bank** — filter by difficulty, tag & company.
 - **Tracks & Roadmaps** — ordered, guided learning paths.
 - **Company Prep** — Google, Meta, Amazon, Microsoft, Netflix, Uber & more.
@@ -177,6 +181,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 🔁 Revision & Memory
+
 - **Spaced Repetition (SM-2)** — concepts resurface on an optimal schedule.
 - **Revision Queue** — review due items in one flow.
 - **Notes & Bookmarks** — per-problem notes and saved questions.
@@ -185,6 +190,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 📈 Analytics & Weakness Detection
+
 - **Weakness Detection** — surfaces topics you struggle with most.
 - **Personal Analytics** — progress charts, submission trends & accuracy (Recharts).
 
@@ -194,6 +200,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 🔥 Gamification & Streaks
+
 - **GitHub-style Heatmap** of daily activity.
 - **XP & Levels** for correct, fast submissions.
 - **Unlockable Badges** by category, streak & placement.
@@ -202,6 +209,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 🏆 Contests & Leaderboards
+
 - **Time-Penalty Scoring** on completion time & wrong attempts.
 - **Real-time Standings** via MongoDB aggregation, cached in Redis.
 - **Daily Challenge** with double-XP rewards.
@@ -212,6 +220,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 🎤 Mock Interviews
+
 - **Simulated Sessions** with custom queues and strict timers.
 - **Local Recording** of voice, video & workspace in-browser.
 - **AI Feedback Report** on code cleanliness, debugging speed & approach.
@@ -220,6 +229,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 💬 Community & Social
+
 - **Community Hub** (`/community`) — forum, discussions, leaderboard, recent threads & top members in one place.
 - **Discussion Forum** (`/discuss`) — threaded solutions & doubts.
 - **Follow System** & **Public Profiles** with badges, stats & heatmaps.
@@ -231,6 +241,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 💳 Subscriptions & Billing
+
 - **Razorpay** — order creation, verification & cancellation.
 - **Free Trials** — Go Plan free for 30 days, no card.
 - **Beta Program** — `/beta/join`, first **50** users get the Go Plan free.
@@ -239,6 +250,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <td width="50%" valign="top">
 
 ### 🛡 Admin Dashboard (`/admin`)
+
 - **Questions** — AI-generate, upload JSON, edit & publish.
 - **Users** — inspect, manage subscriptions, promote admins.
 - **Contests, Challenges, Prompt Templates & Site Settings.**
@@ -256,31 +268,32 @@ Every external dependency is optional and isolated, so a missing key degrades on
 
 ## 🧱 Tech Stack
 
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Framework** | Next.js 15 (App Router) | SSG/SSR, Server Actions, API middleware |
-| **Language** | TypeScript (Strict) | Compile-time safety |
-| **Styling** | Tailwind CSS v4 | Utility-first, zero-runtime styling |
-| **Database** | MongoDB + Mongoose | Users, questions, submissions, metrics |
-| **Cache / Limits** | Upstash Redis | Rate-limiting & leaderboard cache |
-| **Auth** | NextAuth.js v5 | Credentials + Google/GitHub OAuth |
-| **AI** | Groq (Llama 3) | Streaming mentor, tools & generation |
-| **Payments** | Razorpay | Subscriptions, trials & billing |
-| **Sandbox** | @codesandbox/sandpack | Client-side frontend compiler |
-| **Editor** | @monaco-editor/react | In-browser IDE editing |
-| **Icons** | Font Awesome (SVG) | Consistent icon set across the app |
-| **State** | Zustand + React Query | Client & server-state management |
-| **Email** | Nodemailer | Beta & password-reset email |
+| Layer              | Technology              | Purpose                                 |
+| :----------------- | :---------------------- | :-------------------------------------- |
+| **Framework**      | Next.js 15 (App Router) | SSG/SSR, Server Actions, API middleware |
+| **Language**       | TypeScript (Strict)     | Compile-time safety                     |
+| **Styling**        | Tailwind CSS v4         | Utility-first, zero-runtime styling     |
+| **Database**       | MongoDB + Mongoose      | Users, questions, submissions, metrics  |
+| **Cache / Limits** | Upstash Redis           | Rate-limiting & leaderboard cache       |
+| **Auth**           | NextAuth.js v5          | Credentials + Google/GitHub OAuth       |
+| **AI**             | Groq (Llama 3)          | Streaming mentor, tools & generation    |
+| **Payments**       | Razorpay                | Subscriptions, trials & billing         |
+| **Sandbox**        | @codesandbox/sandpack   | Client-side frontend compiler           |
+| **Editor**         | @monaco-editor/react    | In-browser IDE editing                  |
+| **Icons**          | Font Awesome (SVG)      | Consistent icon set across the app      |
+| **State**          | Zustand + React Query   | Client & server-state management        |
+| **Email**          | Nodemailer              | Beta & password-reset email             |
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - **Node.js** ≥ 18.x
 - **MongoDB** (local or Atlas)
-- **Redis** *(optional — falls back to in-memory store)*
-- **Groq API Key** *(optional — enables AI mentor & tools)*
+- **Redis** _(optional — falls back to in-memory store)_
+- **Groq API Key** _(optional — enables AI mentor & tools)_
 
 ### Installation
 
@@ -313,8 +326,9 @@ npm run dev
 Open **http://localhost:3000** to preview the app.
 
 ### Initial Run Checklist
+
 1. **Become an admin** — add your email to `ADMIN_EMAILS`, then register at `/register`.
-2. **Add questions** — in **Admin → Questions**: *Generate with AI*, *Upload JSON*, or run `npm run seed`.
+2. **Add questions** — in **Admin → Questions**: _Generate with AI_, _Upload JSON_, or run `npm run seed`.
 3. **Publish** — flip the **Published** switch on questions to make them visible.
 4. **Test run** — open a problem at `/problems`, pick a language, and **Run Code**.
 
@@ -325,20 +339,20 @@ Open **http://localhost:3000** to preview the app.
 
 ## ⚙️ Environment Reference
 
-| Variable | Scope | Status | Purpose / Fallback |
-| :--- | :--- | :--- | :--- |
-| `MONGODB_URI` | Core | **Required** | Users, questions, contests, submissions. |
-| `AUTH_SECRET` | Core | **Required** | Signs & verifies NextAuth cookies. |
-| `GROQ_API_KEY` | AI | *Optional* | Streams hints, explanations & AI tools. Panels show setup help if omitted. |
-| `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Cache | *Optional* | Rate-limiting & leaderboards. Falls back to in-memory. |
-| `GOOGLE_CLIENT_ID` / `_SECRET` | Auth | *Optional* | Google one-click sign-in. |
-| `GITHUB_CLIENT_ID` / `_SECRET` | Auth | *Optional* | GitHub one-click sign-in. |
-| `EXECUTION_PROVIDER` | Execution | *Optional* | `paiza` (default), `judge0`, or `piston`. |
-| `JUDGE0_API_KEY` | Execution | *Optional* | Required when `EXECUTION_PROVIDER=judge0`. |
-| `PISTON_URL` | Execution | *Optional* | Required when `EXECUTION_PROVIDER=piston`. |
-| `RAZORPAY_KEY_ID` / `_SECRET` | Billing | *Optional* | Subscriptions, trials & the beta Go Plan. |
-| `SMTP_*` | Email | *Optional* | Beta confirmation & password-reset email. |
-| `ADMIN_EMAILS` | Admin | *Optional* | Comma-separated emails auto-promoted to admin on signup. |
+| Variable                            | Scope     | Status       | Purpose / Fallback                                                         |
+| :---------------------------------- | :-------- | :----------- | :------------------------------------------------------------------------- |
+| `MONGODB_URI`                       | Core      | **Required** | Users, questions, contests, submissions.                                   |
+| `AUTH_SECRET`                       | Core      | **Required** | Signs & verifies NextAuth cookies.                                         |
+| `GROQ_API_KEY`                      | AI        | _Optional_   | Streams hints, explanations & AI tools. Panels show setup help if omitted. |
+| `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Cache     | _Optional_   | Rate-limiting & leaderboards. Falls back to in-memory.                     |
+| `GOOGLE_CLIENT_ID` / `_SECRET`      | Auth      | _Optional_   | Google one-click sign-in.                                                  |
+| `GITHUB_CLIENT_ID` / `_SECRET`      | Auth      | _Optional_   | GitHub one-click sign-in.                                                  |
+| `EXECUTION_PROVIDER`                | Execution | _Optional_   | `paiza` (default), `judge0`, or `piston`.                                  |
+| `JUDGE0_API_KEY`                    | Execution | _Optional_   | Required when `EXECUTION_PROVIDER=judge0`.                                 |
+| `PISTON_URL`                        | Execution | _Optional_   | Required when `EXECUTION_PROVIDER=piston`.                                 |
+| `RAZORPAY_KEY_ID` / `_SECRET`       | Billing   | _Optional_   | Subscriptions, trials & the beta Go Plan.                                  |
+| `SMTP_*`                            | Email     | _Optional_   | Beta confirmation & password-reset email.                                  |
+| `ADMIN_EMAILS`                      | Admin     | _Optional_   | Comma-separated emails auto-promoted to admin on signup.                   |
 
 ---
 
@@ -346,11 +360,12 @@ Open **http://localhost:3000** to preview the app.
 
 A single `ExecutionProvider` interface wraps multiple backends — switch instantly via `EXECUTION_PROVIDER`:
 
-- **Paiza** *(default)* — zero-config, no API key. Great for local dev.
+- **Paiza** _(default)_ — zero-config, no API key. Great for local dev.
 - **Judge0 CE** — high-concurrency sandbox via RapidAPI. Needs `JUDGE0_API_KEY`.
-- **Piston** *(self-hosted)* — isolated, Dockerized cluster. Needs `PISTON_URL`.
+- **Piston** _(self-hosted)_ — isolated, Dockerized cluster. Needs `PISTON_URL`.
 
 ### Graceful Degradation
+
 - **No Groq** → AI panels show inline setup help; editor, runs & metrics still work.
 - **No Redis** → in-process cache; rankings computed from MongoDB on demand.
 - **No Razorpay** → payments disabled gracefully; free/beta flows still work.
@@ -373,20 +388,20 @@ npm run typecheck # Type-check without emitting
 
 Full release notes live in-app at `/changelog`. Recent highlights:
 
-| Version | Tag | Date | Highlights |
-| :--- | :--- | :--- | :--- |
-| **1.7.0** | 🟢 Latest | Jun 23, 2026 | Launched on the **codeforgeai.io** domain. Advanced **SEO** — Organization / WebApplication / FAQPage structured data and a canonical sitemap (fixes Search Console cross-domain errors). New **PNG logo across every page**, **dark-mode contrast** lift (cards/dashboard/sidebar no longer flat black), **email-only feedback**, plus **Google Analytics** and **LangSmith** tracing on the Groq AI calls. |
-| **1.6.0** | 🔵 Stable | Jun 23, 2026 | **Community hub** at `/community` (forum, discussions, leaderboard, live counts, recent threads & top members). Landing page gains a **horizontal feature slider** (swipe + click-drag) with an embedded live social-share-card preview, and a **mobile bottom navigation** (Dashboard, Problems, Challenges, Compiler, More). Full **mobile pass** on the landing (no overflow from 320px up), a **redesigned changelog** matching the brand theme, hidden slider scrollbar, plus fixes for the mobile More menu position and clipped hero on narrow phones. |
-| **1.5.0** | 🔵 Stable | Jun 23, 2026 | **Online Compiler** — a standalone `/compiler` editor that runs any of 12 languages with custom stdin, real stdout/stderr and runtime + memory stats (reuses the execution-provider router, no test cases). Surfaced across the landing page (hero, dedicated feature highlight with a live run preview, FAQ) and the main nav. New **fire app icon** (favicon, PWA + Apple touch icons), refreshed OG/Twitter share cards, real language brand logos on the landing strip, and a project-wide migration to **Font Awesome** icons. |
-| **1.4.0** | 🔵 Stable | Jun 22, 2025 | Full visual redesign on the **Geist design system** — new landing page (layered product mockups, bento feature grid, AI chat preview), neutral palette with blue focus rings, refined typography/radii/spacing across every page, new blue app/PWA icons, redesigned auth and beta/join, and all orange accents removed. |
-| **1.3.0** | 🔵 Stable | Jun 21, 2025 | Installable PWA (desktop + mobile, offline page, app icons), PostHog observability (analytics, error tracking, OpenTelemetry logs), Vercel Speed Insights, landing-page light/dark toggle, faster hero paint (FCP/LCP fix), and hardened CSP for analytics/Monaco/session replay. |
-| **1.2.0** | 🔵 Stable | Jun 18, 2025 | GitHub authentication (sign in with GitHub) and `/feedback` submissions now open a labelled GitHub issue in the repo, with email as a fallback. |
-| **1.1.1** | 🔵 Stable | Jun 18, 2025 | Fixed production build crash on `/robots.txt` & `/sitemap.xml` when the DB is unreachable (now render dynamically), resilient site-config loading, correct production site URL for SEO/robots/sitemap, graceful forgot-password email failures, and a modernized README. |
-| **1.1.0** | 🔵 Stable | Jun 17, 2025 | Admin Settings panel (SEO, Analytics, Email, AI, Runner, DB, Cache, OAuth & Payments from the UI), GA4 + Clarity + Search Console, `/feedback`, auto sitemap & robots.txt, advanced SEO (OG, Twitter Cards, JSON-LD), per-service Test Connection buttons. |
-| **1.0.1** | 🔴 Security | Jun 17, 2025 | CSP & HSTS headers, `X-Frame-Options: DENY`, hardened auth cookies, 7-day JWT sessions, CORS guard on mutations, NoSQL regex-injection fix, content sanitization, stronger passwords. |
-| **1.0.0** | 🔵 Launch | Jun 17, 2025 | Public launch — Monaco editor (12 langs), AI Mentor & Pair Programmer, Learning Coach, SM-2 spaced repetition, analytics & weakness detection, streaks/XP/badges/leaderboards, contests & daily challenges, company sets, forum, frontend sandbox with AI design review, roadmaps, Google/GitHub OAuth, password reset. |
-| **0.9.0** | 🟠 Beta | Jun 10, 2025 | Beta — core problem-solving, JS/Python execution, profiles & submission history, initial AI hints. |
-| **0.5.0** | 🟣 Alpha | May 20, 2025 | Private alpha — problem listing/detail, email auth, basic submission & verdicts. |
+| Version   | Tag         | Date          | Highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| :-------- | :---------- | :------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1.7.0** | 🟢 Latest   | Jun 23, 2026  | Launched on the **codeforgeai.io** domain. Advanced **SEO** — Organization / WebApplication / FAQPage structured data and a canonical sitemap (fixes Search Console cross-domain errors). New **PNG logo across every page**, **dark-mode contrast** lift (cards/dashboard/sidebar no longer flat black), **email-only feedback**, plus **Google Analytics** and **LangSmith** tracing on the Groq AI calls.                                                                                                                                                  |
+| **1.6.0** | 🔵 Stable   | Jun 23, 2026  | **Community hub** at `/community` (forum, discussions, leaderboard, live counts, recent threads & top members). Landing page gains a **horizontal feature slider** (swipe + click-drag) with an embedded live social-share-card preview, and a **mobile bottom navigation** (Dashboard, Problems, Challenges, Compiler, More). Full **mobile pass** on the landing (no overflow from 320px up), a **redesigned changelog** matching the brand theme, hidden slider scrollbar, plus fixes for the mobile More menu position and clipped hero on narrow phones. |
+| **1.5.0** | 🔵 Stable   | Jun 23, 2026  | **Online Compiler** — a standalone `/compiler` editor that runs any of 12 languages with custom stdin, real stdout/stderr and runtime + memory stats (reuses the execution-provider router, no test cases). Surfaced across the landing page (hero, dedicated feature highlight with a live run preview, FAQ) and the main nav. New **fire app icon** (favicon, PWA + Apple touch icons), refreshed OG/Twitter share cards, real language brand logos on the landing strip, and a project-wide migration to **Font Awesome** icons.                           |
+| **1.4.0** | 🔵 Stable   | Jun 22, 2026  | Full visual redesign on the **Geist design system** — new landing page (layered product mockups, bento feature grid, AI chat preview), neutral palette with blue focus rings, refined typography/radii/spacing across every page, new blue app/PWA icons, redesigned auth and beta/join, and all orange accents removed.                                                                                                                                                                                                                                      |
+| **1.3.0** | 🔵 Stable   | Jun 21, 2026  | Installable PWA (desktop + mobile, offline page, app icons), PostHog observability (analytics, error tracking, OpenTelemetry logs), Vercel Speed Insights, landing-page light/dark toggle, faster hero paint (FCP/LCP fix), and hardened CSP for analytics/Monaco/session replay.                                                                                                                                                                                                                                                                             |
+| **1.2.0** | 🔵 Stable   | Jun 18, 2026  | GitHub authentication (sign in with GitHub) and `/feedback` submissions now open a labelled GitHub issue in the repo, with email as a fallback.                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **1.1.1** | 🔵 Stable   | Jun 18, 2026  | Fixed production build crash on `/robots.txt` & `/sitemap.xml` when the DB is unreachable (now render dynamically), resilient site-config loading, correct production site URL for SEO/robots/sitemap, graceful forgot-password email failures, and a modernized README.                                                                                                                                                                                                                                                                                      |
+| **1.1.0** | 🔵 Stable   | Jun 17, 2026  | Admin Settings panel (SEO, Analytics, Email, AI, Runner, DB, Cache, OAuth & Payments from the UI), GA4 + Clarity + Search Console, `/feedback`, auto sitemap & robots.txt, advanced SEO (OG, Twitter Cards, JSON-LD), per-service Test Connection buttons.                                                                                                                                                                                                                                                                                                    |
+| **1.0.1** | 🔴 Security | Jun 17, 2026  | CSP & HSTS headers, `X-Frame-Options: DENY`, hardened auth cookies, 7-day JWT sessions, CORS guard on mutations, NoSQL regex-injection fix, content sanitization, stronger passwords.                                                                                                                                                                                                                                                                                                                                                                         |
+| **1.0.0** | 🔵 Launch   | Jun 17, 2026  | Public launch — Monaco editor (12 langs), AI Mentor & Pair Programmer, Learning Coach, SM-2 spaced repetition, analytics & weakness detection, streaks/XP/badges/leaderboards, contests & daily challenges, company sets, forum, frontend sandbox with AI design review, roadmaps, Google/GitHub OAuth, password reset.                                                                                                                                                                                                                                       |
+| **0.9.0** | 🟠 Beta     | Jun 10, 2026  | Beta — core problem-solving, JS/Python execution, profiles & submission history, initial AI hints.                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **0.5.0** | 🟣 Alpha    | June 10, 2026 | Private alpha — problem listing/detail, email auth, basic submission & verdicts.                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 ---
 
