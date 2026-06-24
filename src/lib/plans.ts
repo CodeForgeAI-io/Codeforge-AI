@@ -37,7 +37,6 @@ export const PLANS: Record<PlanId, Plan> = {
     cta: "Get started free",
     features: [
       { text: "50 practice problems", included: true },
-      { text: "3 AI tool uses / day", included: true },
       { text: "Community forum (read-only)", included: true },
       { text: "10 bookmarks", included: true },
       { text: "Basic progress tracking", included: true },
@@ -45,7 +44,7 @@ export const PLANS: Record<PlanId, Plan> = {
       { text: "Spaced repetition (SM-2)", included: false },
       { text: "Company prep lists", included: false },
       { text: "Mock interview simulator", included: false },
-      { text: "AI pair programmer", included: false },
+      { text: "Billing & usage dashboard", included: false },
     ],
   },
   go: {
@@ -61,13 +60,12 @@ export const PLANS: Record<PlanId, Plan> = {
     cta: "Start 7-day free trial",
     features: [
       { text: "All problems + solutions", included: true },
-      { text: "20 AI tool uses / day", included: true },
-      { text: "Full community access", included: true },
       { text: "Unlimited bookmarks & notes", included: true },
       { text: "Spaced repetition (SM-2)", included: true },
       { text: "Company prep lists", included: true },
       { text: "Skill analytics dashboard", included: true },
-      { text: "Leaderboard ranking", included: true },
+      { text: "Billing & usage dashboard", included: true },
+      { text: "Downloadable invoices", included: true },
       { text: "Mock interview simulator", included: false },
       { text: "AI pair programmer", included: false },
     ],
@@ -84,18 +82,22 @@ export const PLANS: Record<PlanId, Plan> = {
     cta: "Start 7-day free trial",
     features: [
       { text: "Everything in Go", included: true },
-      { text: "Unlimited AI tool uses", included: true },
       { text: "AI pair programmer", included: true },
       { text: "Mock interview simulator", included: true },
       { text: "Advanced analytics & predictions", included: true },
       { text: "Contest generator", included: true },
       { text: "Project & resume reviewer", included: true },
-      { text: "Roadmap generator", included: true },
+      { text: "Downloadable invoices", included: true },
       { text: "Priority support", included: true },
       { text: "Early access to new features", included: true },
     ],
   },
 };
+
+/** Monthly AI-credit allowance for a plan (-1 = unlimited). */
+export function monthlyCredits(plan: Plan): number {
+  return plan.limits.aiCallsPerDay < 0 ? -1 : plan.limits.aiCallsPerDay * 30;
+}
 
 export function getPlanById(id?: string | null): Plan {
   return PLANS[(id as PlanId) ?? "free"] ?? PLANS.free;
