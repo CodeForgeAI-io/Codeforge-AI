@@ -1,26 +1,39 @@
 import { APP_NAME } from "@/lib/constants";
 import { InfoLayout } from "@/components/shared/info-layout";
-import { Sparkles, TrendingUp, Check } from "@/components/icons";
-
-const ACCENT = "#006bff";
-
-const CATEGORIES = [
-  { key: "new", label: "New", icon: Sparkles, color: ACCENT },
-  { key: "improved", label: "Improved", icon: TrendingUp, color: "#d97706" },
-  { key: "fixed", label: "Fixed", icon: Check, color: "#059669" },
-] as const;
+import { ChangelogView, type Release } from "./changelog-view";
 
 export const metadata = {
   title: `Changelog — ${APP_NAME}`,
   description: "What's new in CodeForge AI — release notes and version history.",
 };
 
-const RELEASES = [
+const RELEASES: Release[] = [
+  {
+    version: "1.8.0",
+    date: "June 24, 2026",
+    tag: "Latest",
+    tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "AI credit metering — every AI tool now counts against a monthly allowance based on your plan, with a clear 'out of credits' message when you hit the limit",
+        "Billing & Usage in Settings — see AI credits used, remaining credits and your monthly limit at a glance, with a progress bar and a 'running low' warning",
+        "Subscription history — a full record of your past payments, each with a downloadable, printable invoice (CodeForge AI branded)",
+        "Upgrade prompt right where it matters — free-plan users get a one-tap upgrade CTA on the credits card",
+      ],
+      improved: [
+        "Completely redesigned Settings — a sidebar menu (Profile, Preferences, Billing & Usage) replaces the long single-column page, so each area has its own focused space",
+        "Unlimited-plan members now see an 'Unlimited' credits state instead of an empty meter",
+      ],
+      fixed: [
+        "Subscription model wasn't exported from the model barrel, which could break populate() on billing queries",
+      ],
+    },
+  },
   {
     version: "1.7.0",
     date: "June 23, 2026",
-    tag: "Latest",
-    tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "CodeForge AI now lives on its own domain — codeforgeai.io",
@@ -284,68 +297,7 @@ const RELEASES = [
 export default function ChangelogPage() {
   return (
     <InfoLayout>
-      {/* header */}
-      <div className="mb-12">
-        <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight" style={{ color: ACCENT }}>
-          <span className="size-1.5 rounded-full" style={{ background: ACCENT }} />
-          Changelog
-        </span>
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
-          What&rsquo;s new in {APP_NAME}
-        </h1>
-        <p className="mt-3 text-base text-muted-foreground">
-          Every release, every fix, every improvement — documented here.
-        </p>
-      </div>
-
-      <div className="space-y-5">
-        {RELEASES.map((release) => (
-          <article
-            key={release.version}
-            className="rounded-2xl border bg-card p-6 shadow-sm sm:p-7"
-          >
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <h2 className="font-mono text-lg font-semibold tabular-nums tracking-tight">
-                v{release.version}
-              </h2>
-              <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${release.tagColor}`}>
-                {release.tag}
-              </span>
-              <span className="ml-auto text-xs text-muted-foreground">{release.date}</span>
-            </div>
-
-            <div className="mt-6 space-y-6">
-              {CATEGORIES.map(({ key, label, icon: Icon, color }) => {
-                const items = release.changes[key];
-                if (!items || items.length === 0) return null;
-                return (
-                  <div key={key}>
-                    <div className="mb-3 flex items-center gap-2">
-                      <span
-                        className="flex size-6 items-center justify-center rounded-md"
-                        style={{ background: `${color}1a`, color }}
-                      >
-                        <Icon className="size-3.5" />
-                      </span>
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground/80">
-                        {label}
-                      </h3>
-                      <span className="text-[11px] text-muted-foreground">{items.length}</span>
-                    </div>
-                    <ul className="space-y-2 border-l pl-4" style={{ borderColor: `${color}33` }}>
-                      {items.map((item) => (
-                        <li key={item} className="text-sm leading-relaxed text-muted-foreground">
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
-            </div>
-          </article>
-        ))}
-      </div>
+      <ChangelogView releases={RELEASES} />
     </InfoLayout>
   );
 }
