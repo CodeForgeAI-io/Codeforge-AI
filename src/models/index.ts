@@ -35,6 +35,8 @@ export { UserBadge, type UserBadgeDoc } from "./UserBadge";
 export { Company, type CompanyDoc } from "./Company";
 export { AiChat, type AiChatDoc, type AiChatMessage } from "./AiChat";
 export { AiToolRun, type AiToolRunDoc } from "./AiToolRun";
+export { AiUsage, type AiUsageDoc } from "./AiUsage";
+export { Subscription, type SubscriptionDoc } from "./Subscription";
 export { PromptTemplate, type PromptTemplateDoc } from "./PromptTemplate";
 export { DailyActivity, type DailyActivityDoc } from "./DailyActivity";
 export { Discussion, type DiscussionDoc, type DiscussionReply } from "./Discussion";

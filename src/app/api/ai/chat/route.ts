@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Types } from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
+import { enforceAiCredit } from "@/services/ai-credits";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { AiChat, FrontendChallenge, Question } from "@/models";
 import { aiChatRequestSchema } from "@/schemas/ai";
@@ -20,6 +21,9 @@ const HISTORY_LIMIT = 12;
 export async function POST(req: NextRequest) {
   const { session, error } = await requireUser();
   if (error) return error;
+
+  const credit = await enforceAiCredit(session.user.id, session.user.plan);
+  if (credit) return credit;
 
   if (!isAiConfigured()) {
     return NextResponse.json(
