@@ -3,8 +3,11 @@ import {
   BarChart3,
   Brain,
   Building2,
+  CalendarDays,
   Code2,
+  FileText,
   Globe,
+  GraduationCap,
   LayoutDashboard,
   LineChart,
   ListChecks,
@@ -48,7 +51,15 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Weakness", href: "/weakness", icon: BarChart3, group: "Learning" },
   { title: "Revision", href: "/revision", icon: Brain, group: "Learning" },
   { title: "Analytics", href: "/analytics", icon: LineChart, group: "Learning" },
-  { title: "AI Tools", href: "/ai-tools", icon: Sparkles, group: "AI" },
+  { title: "Learning Coach", href: "/ai-tools?tool=coach", icon: GraduationCap, group: "AI Tools" },
+  { title: "Pair Programmer", href: "/ai-tools?tool=pair", icon: Users, group: "AI Tools" },
+  { title: "Study Planner", href: "/ai-tools?tool=study", icon: CalendarDays, group: "AI Tools" },
+  { title: "Complexity", href: "/ai-tools?tool=complexity", icon: BarChart3, group: "AI Tools" },
+  { title: "Code Review", href: "/ai-tools?tool=code", icon: Code2, group: "AI Tools" },
+  { title: "Roadmap", href: "/ai-tools?tool=roadmap", icon: Map, group: "AI Tools" },
+  { title: "Contest Gen", href: "/ai-tools?tool=contest", icon: Trophy, group: "AI Tools" },
+  { title: "Resume", href: "/ai-tools?tool=resume", icon: FileText, group: "AI Tools" },
+  { title: "Project Review", href: "/ai-tools?tool=project", icon: MonitorPlay, group: "AI Tools" },
 ];
 
 const byHref = (href: string): NavItem => {
@@ -70,16 +81,3 @@ export const MOBILE_MORE_ITEMS: NavItem[] = [
   "/roadmaps",
   "/contests",
 ].map(byHref);
-
-/** AI tools — rendered as a submenu under "AI Tools" → /ai-tools?tool=<tool>. */
-export const AI_TOOLS: { label: string; tool: string }[] = [
-  { label: "Learning Coach", tool: "coach" },
-  { label: "Pair Programmer", tool: "pair" },
-  { label: "Study Planner", tool: "study" },
-  { label: "Complexity", tool: "complexity" },
-  { label: "Code Review", tool: "code" },
-  { label: "Roadmap", tool: "roadmap" },
-  { label: "Contest Gen", tool: "contest" },
-  { label: "Resume", tool: "resume" },
-  { label: "Project Review", tool: "project" },
-];
