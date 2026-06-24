@@ -62,7 +62,7 @@ function LevelRing({ level, percent }: { level: number; percent: number }) {
     <div className="relative size-16 shrink-0">
       <svg viewBox="0 0 64 64" className="size-full -rotate-90">
         <circle cx="32" cy="32" r={r} fill="none" strokeWidth="5" className="stroke-muted" />
-        <circle cx="32" cy="32" r={r} fill="none" strokeWidth="5" strokeLinecap="round" className="stroke-primary"
+        <circle cx="32" cy="32" r={r} fill="none" strokeWidth="5" strokeLinecap="round" className="stroke-[#f97ea7]"
           strokeDasharray={`${dash} ${circ - dash}`} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -184,7 +184,7 @@ export function PublicProfile({ data, isOwner, signedIn, isFollowing = false, ta
             <span className="text-xs text-muted-foreground">{data.xpIntoLevel} / {data.xpForNextLevel} XP</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${levelPercent}%` }} />
+            <div className="h-full rounded-full bg-[#f97ea7] transition-all" style={{ width: `${levelPercent}%` }} />
           </div>
           <p className="mt-1.5 text-xs text-muted-foreground">{data.xp.toLocaleString()} total XP · {data.xpForNextLevel - data.xpIntoLevel} XP to level {data.level + 1}</p>
         </div>

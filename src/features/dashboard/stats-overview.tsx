@@ -43,7 +43,7 @@ function LevelRing({ level, percent }: { level: number; percent: number }) {
         <circle cx="38" cy="38" r={radius} fill="none" strokeWidth="6" className="stroke-muted" />
         <circle
           cx="38" cy="38" r={radius} fill="none" strokeWidth="6" strokeLinecap="round"
-          className="stroke-primary"
+          className="stroke-[#f97ea7]"
           strokeDasharray={`${dash} ${circumference - dash}`}
         />
       </svg>
@@ -87,7 +87,7 @@ export function StatsOverview({
     <div className="space-y-4 sm:space-y-5">
       {/* ── identity + level ─────────────────────────────────────── */}
       <Card className="overflow-hidden py-0">
-        <div className="h-1.5 w-full bg-primary" />
+        <div className="h-1.5 w-full bg-[#006bff]" />
         <CardContent className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:p-6">
           <div className="flex min-w-0 flex-1 items-center gap-4">
             <Avatar className="size-14 shrink-0 border-2 border-primary/40 sm:size-16">
