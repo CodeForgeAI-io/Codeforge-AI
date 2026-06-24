@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   Bot,
+  CreditCard,
   FileQuestion,
   ListChecks,
   Paintbrush,
@@ -45,6 +46,10 @@ const SECTIONS: AdminNavSection[] = [
       { href: "/admin/users", label: "Users", icon: Users },
       { href: "/admin/submissions", label: "Submissions", icon: ListChecks },
     ],
+  },
+  {
+    heading: "Revenue",
+    items: [{ href: "/admin/billing", label: "Billing & Usage", icon: CreditCard }],
   },
   {
     heading: "AI",

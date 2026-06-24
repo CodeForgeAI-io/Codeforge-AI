@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Check, Clock, X, Zap } from "@/components/icons";
+import { Check, Clock, Sparkles, X, Zap } from "@/components/icons";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { PLANS, formatPrice, yearlyDiscount } from "@/lib/plans";
+import { PLANS, formatPrice, yearlyDiscount, monthlyCredits } from "@/lib/plans";
 import type { PlanId, BillingCycle } from "@/lib/plans";
 import { toast } from "sonner";
 
@@ -169,10 +169,8 @@ export function PricingCards({
               )}
 
               <div className="mb-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={cn("inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold", plan.badgeClass)}>
-                    {plan.badge}
-                  </span>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold">{plan.name}</h3>
                   {isCurrentPlan && (
                     <span className="rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold text-primary">
                       Current plan
@@ -184,20 +182,33 @@ export function PricingCards({
                     </span>
                   )}
                 </div>
-                <h3 className="text-xl font-bold">{plan.name}</h3>
-                <p className="text-xs text-muted-foreground">{plan.tagline}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{plan.tagline}</p>
               </div>
 
               <div className="mb-5">
                 <div className="flex items-end gap-1">
-                  <span className="text-3xl font-bold">{formatPrice(price)}</span>
-                  {!isFree && <span className="mb-1 text-sm text-muted-foreground">/{cycle === "yearly" ? "yr" : "mo"}</span>}
+                  <span className="text-3xl font-bold">{isFree ? "₹0" : formatPrice(price)}</span>
+                  <span className="mb-1 text-sm text-muted-foreground">/{cycle === "yearly" ? "yr" : "mo"}</span>
                 </div>
                 {monthlyEquiv && (
                   <p className="text-xs text-muted-foreground">≈ ₹{monthlyEquiv}/mo · Save ₹{saving}</p>
                 )}
                 {!isFree && plan.trialDays > 0 && (
                   <p className="mt-1 text-xs font-medium text-primary">{plan.trialDays}-day free trial for new users</p>
+                )}
+              </div>
+
+              {/* AI credits highlight */}
+              <div className="mb-5 flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2">
+                <Sparkles className="size-4 shrink-0 text-primary" />
+                <span className="text-sm font-semibold">
+                  {(() => {
+                    const credits = monthlyCredits(plan);
+                    return credits < 0 ? "Unlimited AI credits" : `${credits.toLocaleString()} AI credits`;
+                  })()}
+                </span>
+                {monthlyCredits(plan) >= 0 && (
+                  <span className="text-xs text-muted-foreground">/ month</span>
                 )}
               </div>
 

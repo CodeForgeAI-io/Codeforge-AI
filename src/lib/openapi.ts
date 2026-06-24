@@ -1930,6 +1930,20 @@ export const openApiSpec: Record<string, any> = {
     "/admin/analytics": {
       get: { tags: ["Admin"], summary: "Platform-wide analytics (admin)", responses: { "200": { description: "Aggregated stats" }, "403": { description: "Admin only" } } },
     },
+    "/admin/billing": {
+      get: {
+        tags: ["Admin"],
+        summary: "All users' plan, AI credit usage and payment totals (admin)",
+        parameters: [
+          { name: "q", in: "query", schema: { type: "string" }, description: "Search name, email or username" },
+          { name: "plan", in: "query", schema: { type: "string", enum: ["all", "free", "go", "plus"] } },
+        ],
+        responses: {
+          "200": { description: "Per-user billing rows + platform revenue/usage summary" },
+          "403": { description: "Admin only" },
+        },
+      },
+    },
     "/admin/prompts": {
       get: { tags: ["Admin"], summary: "List AI prompt templates (admin)", responses: { "200": { description: "Prompt templates" }, "403": { description: "Admin only" } } },
     },
