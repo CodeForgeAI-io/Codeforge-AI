@@ -9,30 +9,34 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { ToolHistory, saveToolRun } from "./tool-history";
 
 interface Message { role: "user" | "assistant"; content: string }
 
+const GREETING: Message = { role: "assistant", content: "👋 I'm your AI pair programmer! Paste your code and tell me what you're working on. I'll help you debug, optimize, and think through the problem together." };
+
 export function AiPairProgrammer() {
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "👋 I'm your AI pair programmer! Paste your code and tell me what you're working on. I'll help you debug, optimize, and think through the problem together." }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [code, setCode] = useState("");
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [runId, setRunId] = useState<string | null>(null);
+  const [historyKey, setHistoryKey] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   async function send() {
     if (!input.trim() || streaming) return;
+    const base = messages;
     const userMsg: Message = { role: "user", content: input };
     setMessages((m) => [...m, userMsg]);
     setInput("");
     setStreaming(true);
 
-    const assistantMsg: Message = { role: "assistant", content: "" };
-    setMessages((m) => [...m, assistantMsg]);
+    setMessages((m) => [...m, { role: "assistant", content: "" }]);
 
+    let acc = "";
     try {
       const res = await fetch("/api/ai/pair-program", {
         method: "POST",
@@ -57,16 +61,31 @@ export function AiPairProgrammer() {
           if (data === "[DONE]") break;
           try {
             const { text } = JSON.parse(data);
-            if (text) setMessages((m) => { const copy = [...m]; copy[copy.length - 1] = { ...copy[copy.length - 1], content: copy[copy.length - 1].content + text }; return copy; });
+            if (text) { acc += text; setMessages((m) => { const copy = [...m]; copy[copy.length - 1] = { ...copy[copy.length - 1], content: copy[copy.length - 1].content + text }; return copy; }); }
           } catch {}
         }
+      }
+
+      // Persist the conversation (one run per session, updated each turn).
+      if (acc.trim()) {
+        const convo: Message[] = [...base, userMsg, { role: "assistant", content: acc }];
+        const title = convo.find((m) => m.role === "user")?.content.slice(0, 80) || "Pair session";
+        const id = await saveToolRun({ tool: "pair", title, result: convo, id: runId });
+        if (id) setRunId(id);
+        setHistoryKey((k) => k + 1);
       }
     } catch { setMessages((m) => { const copy = [...m]; copy[copy.length - 1] = { ...copy[copy.length - 1], content: "Error getting response. Try again." }; return copy; }); }
     finally { setStreaming(false); }
   }
 
+  function loadConversation(convo: Message[]) {
+    setMessages(convo.length ? convo : [GREETING]);
+    setRunId(null);
+  }
+
   return (
     <div className="space-y-4">
+      <ToolHistory<Message[]> tool="pair" refreshKey={historyKey} onLoad={loadConversation} />
       <div className="space-y-1.5">
         <Label className="flex items-center gap-1.5"><Code2 className="size-3.5" /> Your Code (optional)</Label>
         <Textarea value={code} onChange={(e) => setCode(e.target.value)} placeholder="Paste your code here for context..." className="font-mono text-xs min-h-[100px]" />

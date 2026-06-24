@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { ToolHistory, saveToolRun } from "./tool-history";
 
 interface Phase {
   phase: number;
@@ -32,6 +33,7 @@ export function AiRoadmap() {
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState<number | null>(0);
+  const [historyKey, setHistoryKey] = useState(0);
 
   async function generate() {
     if (!goal.trim()) return;
@@ -45,6 +47,8 @@ export function AiRoadmap() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setRoadmap(data.roadmap);
+      await saveToolRun({ tool: "roadmap", title: goal, result: data.roadmap, input: { goal } });
+      setHistoryKey((k) => k + 1);
     } catch {
       toast.error("Failed to generate roadmap. Try again.");
     } finally {
@@ -67,6 +71,8 @@ export function AiRoadmap() {
           {loading ? "Generating..." : "Generate"}
         </Button>
       </div>
+
+      <ToolHistory tool="roadmap" refreshKey={historyKey} onLoad={(r) => setRoadmap(r as Roadmap)} />
 
       {roadmap && (
         <div className="space-y-4">

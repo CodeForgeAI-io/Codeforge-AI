@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ToolHistory, saveToolRun } from "./tool-history";
 
 const LANGUAGES = ["javascript", "typescript", "python", "java", "c++", "c", "go", "rust", "kotlin", "swift"];
 
@@ -39,6 +40,7 @@ export function AiCodeReview({ initialCode, initialLanguage }: { initialCode?: s
   const [language, setLanguage] = useState(initialLanguage ?? "javascript");
   const [review, setReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(false);
+  const [historyKey, setHistoryKey] = useState(0);
 
   async function submit() {
     if (!code.trim()) return;
@@ -52,6 +54,8 @@ export function AiCodeReview({ initialCode, initialLanguage }: { initialCode?: s
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setReview(data.review);
+      await saveToolRun({ tool: "code", title: `Code review · ${language}`, result: data.review, input: { language } });
+      setHistoryKey((k) => k + 1);
     } catch {
       toast.error("Failed to review code");
     } finally {
@@ -82,6 +86,8 @@ export function AiCodeReview({ initialCode, initialLanguage }: { initialCode?: s
         placeholder="Paste your solution code here..."
         className="min-h-50 font-mono text-xs"
       />
+
+      <ToolHistory tool="code" refreshKey={historyKey} onLoad={(r) => setReview(r as Review)} />
 
       {review && (
         <div className="space-y-4">

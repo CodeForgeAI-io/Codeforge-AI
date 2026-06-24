@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ToolHistory, saveToolRun } from "./tool-history";
 
 interface Analysis {
   atsScore: number;
@@ -37,6 +38,7 @@ export function AiResume() {
   const [targetRole, setTargetRole] = useState("");
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(false);
+  const [historyKey, setHistoryKey] = useState(0);
 
   async function analyze() {
     if (!resumeText.trim()) return;
@@ -50,6 +52,8 @@ export function AiResume() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setAnalysis(data.analysis);
+      await saveToolRun({ tool: "resume", title: targetRole || "Resume review", result: data.analysis, input: { targetRole } });
+      setHistoryKey((k) => k + 1);
     } catch {
       toast.error("Failed to analyze resume");
     } finally {
@@ -81,6 +85,8 @@ export function AiResume() {
           {loading ? <><Loader2 className="mr-2 size-4 animate-spin" /> Analyzing...</> : <><FileText className="mr-2 size-4" /> Analyze Resume</>}
         </Button>
       </div>
+
+      <ToolHistory tool="resume" refreshKey={historyKey} onLoad={(r) => setAnalysis(r as Analysis)} />
 
       {analysis && (
         <div className="space-y-4">

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ToolHistory, saveToolRun } from "./tool-history";
 
 // const COMPLEXITY_ORDER = ["O(1)", "O(log n)", "O(n)", "O(n log n)", "O(n²)", "O(2ⁿ)", "O(n!)"];
 const COMPLEXITY_COLORS: Record<string, string> = {
@@ -45,6 +46,7 @@ export function AiComplexityVisualizer() {
   const [language, setLanguage] = useState("javascript");
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(false);
+  const [historyKey, setHistoryKey] = useState(0);
 
   async function analyze() {
     if (!code.trim()) return;
@@ -58,6 +60,8 @@ export function AiComplexityVisualizer() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setAnalysis(data.analysis);
+      await saveToolRun({ tool: "complexity", title: `Complexity · ${language}`, result: data.analysis, input: { language } });
+      setHistoryKey((k) => k + 1);
     } catch { toast.error("Failed to analyze complexity"); }
     finally { setLoading(false); }
   }
@@ -74,6 +78,8 @@ export function AiComplexityVisualizer() {
         </Button>
       </div>
       <Textarea value={code} onChange={(e) => setCode(e.target.value)} placeholder="Paste your code to analyze time and space complexity..." className="font-mono text-xs min-h-40" />
+
+      <ToolHistory tool="complexity" refreshKey={historyKey} onLoad={(r) => setAnalysis(r as Analysis)} />
 
       {analysis && (
         <div className="space-y-4">

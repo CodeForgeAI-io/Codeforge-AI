@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { DifficultyBadge } from "@/components/shared/difficulty-badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ToolHistory, saveToolRun } from "./tool-history";
 
 interface Problem { order: number; title: string; difficulty: string; category: string; description: string; examples: { input: string; output: string; explanation: string }[]; constraints: string[]; hint: string; points: number }
 interface Contest { title: string; description: string; duration: number; problems: Problem[]; totalPoints: number; tags: string[] }
@@ -23,6 +24,7 @@ export function AiContestGenerator() {
   const [contest, setContest] = useState<Contest | null>(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState<number | null>(1);
+  const [historyKey, setHistoryKey] = useState(0);
 
   async function generate() {
     setLoading(true);
@@ -36,6 +38,8 @@ export function AiContestGenerator() {
       if (!res.ok) throw new Error(data.error);
       setContest(data.contest);
       setExpanded(1);
+      await saveToolRun({ tool: "contest", title: data.contest?.title || theme || "Contest", result: data.contest, input: { theme, difficulty, numQuestions, duration } });
+      setHistoryKey((k) => k + 1);
     } catch { toast.error("Failed to generate contest"); }
     finally { setLoading(false); }
   }
@@ -73,6 +77,8 @@ export function AiContestGenerator() {
       <Button onClick={generate} disabled={loading} className="w-full">
         {loading ? <><Loader2 className="mr-2 size-4 animate-spin" />Generating contest...</> : <><Trophy className="mr-2 size-4" />Generate Contest</>}
       </Button>
+
+      <ToolHistory tool="contest" refreshKey={historyKey} onLoad={(r) => setContest(r as Contest)} />
 
       {contest && (
         <div className="space-y-4">

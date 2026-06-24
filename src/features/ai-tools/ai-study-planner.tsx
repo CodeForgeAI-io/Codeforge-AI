@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ToolHistory, saveToolRun } from "./tool-history";
 
 interface DailyTask { day: string; task: string; type: "theory" | "practice" | "review"; mins: number }
 interface Week { week: number; theme: string; topics: string[]; dailyTasks: DailyTask[]; goal: string }
@@ -24,6 +25,7 @@ export function AiStudyPlanner() {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState<number | null>(1);
+  const [historyKey, setHistoryKey] = useState(0);
 
   async function generate() {
     if (!goal.trim()) { toast.error("Enter your goal"); return; }
@@ -38,6 +40,8 @@ export function AiStudyPlanner() {
       if (!res.ok) throw new Error(data.error);
       setPlan(data.plan);
       setExpanded(1);
+      await saveToolRun({ tool: "study", title: goal, result: data.plan, input: { goal, weeks, hours } });
+      setHistoryKey((k) => k + 1);
     } catch { toast.error("Failed to generate plan"); }
     finally { setLoading(false); }
   }
@@ -61,6 +65,8 @@ export function AiStudyPlanner() {
       <Button onClick={generate} disabled={loading || !goal.trim()} className="w-full">
         {loading ? <><Loader2 className="mr-2 size-4 animate-spin" />Generating your plan...</> : <><CalendarDays className="mr-2 size-4" />Generate Study Plan</>}
       </Button>
+
+      <ToolHistory tool="study" refreshKey={historyKey} onLoad={(r) => setPlan(r as Plan)} />
 
       {plan && (
         <div className="space-y-4">

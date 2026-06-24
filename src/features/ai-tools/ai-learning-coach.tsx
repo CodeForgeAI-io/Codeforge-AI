@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { ToolHistory, saveToolRun } from "./tool-history";
 
 interface NextStep { action: string; why: string; priority: "high" | "medium" | "low" }
 interface Coaching {
@@ -20,6 +21,7 @@ export function AiLearningCoach() {
   const [coaching, setCoaching] = useState<Coaching | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
+  const [historyKey, setHistoryKey] = useState(0);
 
   async function fetchCoaching() {
     setLoading(true);
@@ -28,11 +30,20 @@ export function AiLearningCoach() {
       const data = await res.json();
       setCoaching(data.coaching);
       setFetched(true);
+      if (data.coaching) {
+        await saveToolRun({ tool: "coach", title: `Coaching report · ${data.coaching.level ?? ""}`.trim(), result: data.coaching });
+        setHistoryKey((k) => k + 1);
+      }
     } catch { } finally { setLoading(false); }
   }
 
   return (
     <div className="space-y-5">
+      <ToolHistory
+        tool="coach"
+        refreshKey={historyKey}
+        onLoad={(r) => { setCoaching(r as Coaching); setFetched(true); }}
+      />
       {!fetched ? (
         <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
           <div className="flex size-16 items-center justify-center rounded-full bg-primary/10">

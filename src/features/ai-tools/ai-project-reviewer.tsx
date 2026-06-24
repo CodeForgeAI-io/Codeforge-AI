@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ToolHistory, saveToolRun } from "./tool-history";
 
 interface Issue {
   severity: "high" | "medium" | "low";
@@ -56,6 +57,7 @@ export function AiProjectReviewer() {
   const [techStack, setTechStack] = useState("");
   const [review, setReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(false);
+  const [historyKey, setHistoryKey] = useState(0);
 
   async function submit() {
     if (!repoUrl.trim()) return;
@@ -69,6 +71,8 @@ export function AiProjectReviewer() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setReview(data.review);
+      await saveToolRun({ tool: "project", title: repoUrl || "Project review", result: data.review, input: { repoUrl, techStack } });
+      setHistoryKey((k) => k + 1);
     } catch {
       toast.error("Failed to review project");
     } finally {
@@ -108,6 +112,8 @@ export function AiProjectReviewer() {
           {loading ? <><Loader2 className="mr-2 size-4 animate-spin" /> Reviewing...</> : <><GitBranch className="mr-2 size-4" /> Review Project</>}
         </Button>
       </div>
+
+      <ToolHistory tool="project" refreshKey={historyKey} onLoad={(r) => setReview(r as Review)} />
 
       {review && (
         <div className="space-y-4">
