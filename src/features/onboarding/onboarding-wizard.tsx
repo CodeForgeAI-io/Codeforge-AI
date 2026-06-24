@@ -15,7 +15,6 @@ import {
   ArrowLeft,
   Check,
   ChevronRight,
-  Code2,
   Trophy,
   BookOpen,
   Lightbulb,
@@ -227,8 +226,8 @@ export function OnboardingWizard({ name }: { name: string }) {
 function StepWelcome({ name, onNext }: { name: string; onNext: () => void }) {
   return (
     <div className="flex flex-col items-center text-center gap-6">
-      <div className="flex size-20 items-center justify-center rounded-2xl bg-primary/10 border-2 border-primary/20">
-        <Code2 className="size-10 text-primary" />
+      <div className="flex size-20 items-center justify-center rounded-2xl bg-[#006bff] shadow-lg shadow-[#006bff]/25">
+        <Flame className="size-10 text-white" />
       </div>
       <div>
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -282,7 +281,7 @@ function StepGoal({
                 : "border-border hover:border-primary/50 hover:bg-muted/40",
             )}
           >
-            <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-lg", value === id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary")}>
+            <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-lg", value === id ? "bg-[#006bff] text-white" : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary")}>
               <Icon className="size-5" />
             </div>
             <div>
@@ -480,7 +479,7 @@ function StepDailyGoal({
                 : "border-border hover:border-primary/50 hover:bg-muted/40",
             )}
           >
-            <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-lg", value === v ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary")}>
+            <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-lg", value === v ? "bg-[#006bff] text-white" : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary")}>
               <Icon className="size-5" />
             </div>
             <div className="flex-1">

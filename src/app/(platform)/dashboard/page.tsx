@@ -84,7 +84,7 @@ async function DashboardData({ userId }: { userId: string }) {
       {daily && (
         <Link href={`/problems/${daily.slug}`} className="group mb-5 block sm:mb-6">
           <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-colors group-hover:border-foreground/30">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#006bff] text-white">
               <Flame className="size-4.5" />
             </span>
             <div className="min-w-0 flex-1">
