@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/api-auth";
+import { enforceAiCredit } from "@/services/ai-credits";
 import { complete } from "@/services/ai/groq";
 import { connectDB } from "@/lib/mongodb";
 import { Submission, User } from "@/models";
@@ -7,6 +8,9 @@ import { Submission, User } from "@/models";
 export async function GET() {
   const { session, error } = await requireUser();
   if (error) return error;
+
+  const credit = await enforceAiCredit(session.user.id, session.user.plan);
+  if (credit) return credit;
 
   await connectDB();
   const [user, recentSubs] = await Promise.all([

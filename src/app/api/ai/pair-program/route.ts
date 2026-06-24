@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/api-auth";
+import { enforceAiCredit } from "@/services/ai-credits";
 import { streamCompletion } from "@/services/ai/groq";
 
 export async function POST(req: NextRequest) {
-  const { error } = await requireUser();
+  const { session, error } = await requireUser();
   if (error) return error;
+
+  const credit = await enforceAiCredit(session.user.id, session.user.plan);
+  if (credit) return credit;
 
   const { code, language, message, questionContext } = await req.json();
   if (!message?.trim()) {
