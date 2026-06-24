@@ -1,5 +1,5 @@
+import type { ComponentType } from "react";
 import { Sparkles } from "@/components/icons";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AiRoadmap } from "@/features/ai-tools/ai-roadmap";
 import { AiResume } from "@/features/ai-tools/ai-resume";
 import { AiProjectReviewer } from "@/features/ai-tools/ai-project-reviewer";
@@ -12,17 +12,21 @@ import { AiContestGenerator } from "@/features/ai-tools/ai-contest-generator";
 
 export const metadata = { title: "AI Tools" };
 
-const TOOLS = [
-  { id: "coach", label: "Learning Coach" },
-  { id: "pair", label: "Pair Programmer" },
-  { id: "study", label: "Study Planner" },
-  { id: "complexity", label: "Complexity" },
-  { id: "code", label: "Code Review" },
-  { id: "roadmap", label: "Roadmap" },
-  { id: "contest", label: "Contest Gen" },
-  { id: "resume", label: "Resume" },
-  { id: "project", label: "Project Review" },
-];
+type Tool = { label: string; tagline: string; Component: ComponentType };
+
+const TOOLS: Record<string, Tool> = {
+  coach: { label: "Learning Coach", tagline: "Personalized guidance tuned to your weak areas.", Component: AiLearningCoach },
+  pair: { label: "Pair Programmer", tagline: "Real-time, conversational coding help.", Component: AiPairProgrammer },
+  study: { label: "Study Planner", tagline: "A structured plan toward your target date.", Component: AiStudyPlanner },
+  complexity: { label: "Complexity Visualizer", tagline: "Big-O analysis for any snippet, explained.", Component: AiComplexityVisualizer },
+  code: { label: "Code Review", tagline: "Correctness, style and edge-case review.", Component: AiCodeReview },
+  roadmap: { label: "Roadmap Generator", tagline: "A guided path to your target role.", Component: AiRoadmap },
+  contest: { label: "Contest Generator", tagline: "Spin up a custom coding contest in seconds.", Component: AiContestGenerator },
+  resume: { label: "Resume Analyzer", tagline: "Feedback tuned to engineering roles.", Component: AiResume },
+  project: { label: "Project Reviewer", tagline: "An AI review of your sandbox projects.", Component: AiProjectReviewer },
+};
+
+const DEFAULT = "coach";
 
 export default async function AiToolsPage({
   searchParams,
@@ -30,41 +34,23 @@ export default async function AiToolsPage({
   searchParams: Promise<{ tool?: string }>;
 }) {
   const { tool } = await searchParams;
-  // Active tab is driven by the ?tool= param so the sidebar submenu deep-links.
-  const active = TOOLS.some((t) => t.id === tool) ? (tool as string) : "coach";
+  // The active tool is driven by ?tool= so the sidebar menu items deep-link.
+  const active = tool && TOOLS[tool] ? tool : DEFAULT;
+  const { label, tagline, Component } = TOOLS[active];
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
       <div className="flex items-center gap-3">
-        <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-          <Sparkles className="size-5 text-primary" />
+        <div className="flex size-10 items-center justify-center rounded-lg bg-[#006bff]/10">
+          <Sparkles className="size-5 text-[#006bff]" />
         </div>
         <div>
-          <h1 className="text-xl font-bold">AI Tools Suite</h1>
-          <p className="text-sm text-muted-foreground">9 AI-powered tools to accelerate your interview prep</p>
+          <h1 className="text-xl font-bold">{label}</h1>
+          <p className="text-sm text-muted-foreground">{tagline}</p>
         </div>
       </div>
 
-      <Tabs key={active} defaultValue={active}>
-        <div className="overflow-x-auto pb-1">
-          <TabsList className="flex w-max gap-0.5">
-            {TOOLS.map((t) => (
-              <TabsTrigger key={t.id} value={t.id} className="text-xs whitespace-nowrap">
-                {t.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
-        <TabsContent value="coach" className="mt-4"><AiLearningCoach /></TabsContent>
-        <TabsContent value="pair" className="mt-4"><AiPairProgrammer /></TabsContent>
-        <TabsContent value="study" className="mt-4"><AiStudyPlanner /></TabsContent>
-        <TabsContent value="complexity" className="mt-4"><AiComplexityVisualizer /></TabsContent>
-        <TabsContent value="code" className="mt-4"><AiCodeReview /></TabsContent>
-        <TabsContent value="roadmap" className="mt-4"><AiRoadmap /></TabsContent>
-        <TabsContent value="contest" className="mt-4"><AiContestGenerator /></TabsContent>
-        <TabsContent value="resume" className="mt-4"><AiResume /></TabsContent>
-        <TabsContent value="project" className="mt-4"><AiProjectReviewer /></TabsContent>
-      </Tabs>
+      <Component />
     </div>
   );
 }
