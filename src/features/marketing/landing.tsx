@@ -418,7 +418,15 @@ export function Landing({ signedIn, problems, totalProblems }: { signedIn: boole
               <a key={label} href={href} onClick={navClick} className="transition-colors hover:text-neutral-900 dark:hover:text-white">
                 {label}
                 {label === "Problems" && totalProblems > 0 && (
-                  <span className={cn("ml-1.5 rounded-full px-1.5 py-0.5 text-[11px] font-medium tabular-nums", ink3, "bg-black/[0.05] dark:bg-white/[0.08]")}>{totalProblems}</span>
+                  <span
+  className={cn(
+    "ml-1.5 rounded-full px-1.5 py-0.5 text-[11px] font-medium tabular-nums",
+    ink3,
+    "bg-[#3b82f6]/15 dark:bg-[#3b82f6]/25"
+  )}
+>
+  {totalProblems}
+</span>
                 )}
               </a>
             ))}
