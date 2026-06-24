@@ -61,7 +61,7 @@ const byHref = (href: string): NavItem => {
 export const MOBILE_NAV_ITEMS: NavItem[] = [
   "/dashboard",
   "/problems",
-  "/challenges",
+  "/generate",
   "/compiler",
 ].map(byHref);
 

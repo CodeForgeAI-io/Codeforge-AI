@@ -47,5 +47,11 @@ next-env.d.ts
 /instagram/
 .env.local
 
+# local scratch screenshots / scripts
+/.grad*.png
+/shot.mjs
+/repro*.mjs
+/gen_*.mjs
+
 
 .claude

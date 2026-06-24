@@ -64,6 +64,7 @@ import {
   SiSwift,
 } from "react-icons/si";
 import type { IconType } from "react-icons";
+import { FaLinkedin, FaInstagram } from "react-icons/fa6";
 import { cn } from "@/lib/utils";
 
 /** Brand logos for the language strip, keyed by LANGUAGES id. */
@@ -98,6 +99,17 @@ const ink = "text-neutral-900 dark:text-neutral-50";
 const ink2 = "text-neutral-600 dark:text-neutral-300";
 const ink3 = "text-neutral-500 dark:text-neutral-400";
 const border = "border-black/[0.08] dark:border-white/[0.10]";
+const socialLink = cn(
+  "inline-flex size-9 items-center justify-center rounded-md border transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
+  border,
+  ink3,
+);
+
+const SOCIALS = [
+  { label: "GitHub", href: "https://github.com/CodeForgeAI-io/Codeforge-AI", Icon: null },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/codeforge-ai/", Icon: FaLinkedin },
+  { label: "Instagram", href: "https://www.instagram.com/codeforgeai.io/", Icon: FaInstagram },
+] as const;
 
 /* ── data ─────────────────────────────────────────────────────────── */
 
@@ -882,15 +894,20 @@ for (let i = 0; i < nums.length; i++) {
               <p className={cn("mt-4 max-w-xs text-sm leading-relaxed", ink3)}>
                 The AI-powered platform for mastering data structures, algorithms and frontend engineering — built for your next interview.
               </p>
-              <a
-                href="https://github.com/CodeForgeAI-io/Codeforge-AI"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub"
-                className={cn("mt-6 inline-flex size-9 items-center justify-center rounded-md border transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]", border, ink3)}
-              >
-                <GithubIcon className="size-4" />
-              </a>
+              <div className="mt-6 flex items-center gap-2">
+                {SOCIALS.map(({ label, href, Icon }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className={socialLink}
+                  >
+                    {Icon ? <Icon className="size-4" /> : <GithubIcon className="size-4" />}
+                  </a>
+                ))}
+              </div>
             </div>
             {FOOTER_COLS.map((col) => (
               <nav key={col.heading}>

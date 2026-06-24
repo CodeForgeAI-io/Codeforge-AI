@@ -390,8 +390,9 @@ function GenerateDialog({ onDone }: { onDone: () => void }) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} className="ai-gradient border-0 text-white hover:text-white">
-        <Sparkles className="size-4 text-white" /> Generate with AI
+      <Button variant="outline" onClick={() => setOpen(true)}>
+        <Sparkles className="size-4" style={{ color: "#7c3aed" }} />
+        <span className="ai-gradient-text font-semibold">Generate with AI</span>
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
