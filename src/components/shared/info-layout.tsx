@@ -13,7 +13,8 @@ export function InfoLayout({ children }: { children: React.ReactNode }) {
           <nav className="flex items-center gap-5 text-sm text-muted-foreground">
             <Link href="/problems" className="hover:text-foreground transition-colors hidden sm:block">Problems</Link>
             <Link href="/pricing" className="hover:text-foreground transition-colors hidden sm:block">Pricing</Link>
-            <Link href="/changelog" className="hover:text-foreground transition-colors hidden sm:block">Changelog</Link>
+            <Link href="/about" className="hover:text-foreground transition-colors hidden sm:block">About</Link>
+            <Link href="/contact" className="hover:text-foreground transition-colors hidden sm:block">Contact</Link>
             <Link href="/feedback" className="hover:text-foreground transition-colors">Feedback</Link>
             <Link href="/beta/join" className="rounded-md border border-purple-500/40 bg-purple-500/10 px-3 py-1.5 text-xs font-bold text-purple-400 hover:bg-purple-500/20 transition-colors">
               Join Beta
@@ -39,6 +40,8 @@ export function InfoLayout({ children }: { children: React.ReactNode }) {
             <img src="/black.png" alt="Setups Works" className="h-6 w-auto inline-block dark:hidden" />
           </div>
           <div className="flex items-center gap-4 sm:justify-end">
+            <Link href="/about" className="hover:text-foreground transition-colors">About</Link>
+            <Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link>
             <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
             <Link href="/changelog" className="hover:text-foreground transition-colors">Changelog</Link>

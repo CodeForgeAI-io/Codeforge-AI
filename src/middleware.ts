@@ -19,6 +19,8 @@ const PUBLIC_PREFIXES = [
   "/terms",
   "/privacy",
   "/changelog",
+  "/about",
+  "/contact",
   "/feedback",
   "/api/feedback",
   "/beta",
