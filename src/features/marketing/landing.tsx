@@ -940,6 +940,8 @@ for (let i = 0; i < nums.length; i++) {
               <img src="/black.png" alt="Setups Works" className="inline-block h-5 w-auto dark:hidden" />
             </div>
             <div className="flex items-center gap-4 sm:justify-end">
+              <Link href="/about" className="hover:text-neutral-900 dark:hover:text-white">About</Link>
+              <Link href="/contact" className="hover:text-neutral-900 dark:hover:text-white">Contact</Link>
               <Link href="/terms" className="hover:text-neutral-900 dark:hover:text-white">Terms</Link>
               <Link href="/privacy" className="hover:text-neutral-900 dark:hover:text-white">Privacy</Link>
               <span className={cn("rounded-full border px-2 py-0.5 font-mono", border)}>v{APP_VERSION}</span>

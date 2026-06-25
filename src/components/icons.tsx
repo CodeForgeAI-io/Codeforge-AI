@@ -64,6 +64,7 @@ import {
   faFloppyDisk,
   faGear,
   faGlobe,
+  faPhone,
   faGraduationCap,
   faGripVertical,
   faHeadphones,
@@ -221,6 +222,7 @@ export const Lock = make(faLock);
 export const LogIn = make(faRightToBracket);
 export const LogOut = make(faRightFromBracket);
 export const Mail = make(faEnvelope);
+export const Phone = make(faPhone);
 export const Map = make(faMap);
 export const MapPin = make(faLocationDot);
 export const Maximize2 = make(faExpand);
