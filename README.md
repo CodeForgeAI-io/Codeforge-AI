@@ -31,7 +31,7 @@ LeetCode-style DSA problems · An **instant online compiler** · Frontend sandbo
 
 ---
 
-## 🏗 System Architecture
+## System Architecture
 
 CodeForge AI is a **single Next.js 15 (App Router) application** that serves the UI, the API, and background work from one codebase. It follows a layered design — **route handlers → service layer → data/integration layer** — so that providers (code runners, AI, payments) are swappable behind interfaces and the app degrades gracefully when any optional integration is absent.
 
@@ -39,9 +39,9 @@ CodeForge AI is a **single Next.js 15 (App Router) application** that serves the
 
 ```mermaid
 graph TD
-    User(["👤 User Browser"]) -->|HTTPS / SSE| Edge
+    User(["User Browser"]) -->|HTTPS / SSE| Edge
 
-    subgraph Client ["🖥 Client (React 19)"]
+    subgraph Client ["Client (React 19)"]
         Editor["Monaco Editor — DSA"]
         Sandbox["Sandpack — Frontend"]
         AIChat["AI Mentor Panel (streamed)"]
@@ -49,12 +49,12 @@ graph TD
     end
     User --> Client
 
-    Edge["🛡 Edge Middleware<br/>auth gate • CORS • security headers"]
+    Edge["Edge Middleware<br/>auth gate • CORS • security headers"]
     Client -->|Server Actions / fetch| Edge
-    Edge --> Routes["🧭 Route Handlers (/api/*)"]
+    Edge --> Routes["Route Handlers (/api/*)"]
 
     Routes --> Auth["NextAuth v5<br/>Credentials • Google • GitHub"]
-    Routes --> Services["⚙️ Service Layer"]
+    Routes --> Services["Service Layer"]
 
     subgraph Services2 ["Service Layer (src/services)"]
         Q["questions / contests / challenges"]
@@ -65,17 +65,17 @@ graph TD
     end
     Services --> Services2
 
-    Services2 --> DB[("🗄 MongoDB + Mongoose<br/>22 models")]
-    Services2 --> Redis[("⚡ Upstash Redis<br/>rate-limit • leaderboard cache")]
+    Services2 --> DB[("MongoDB + Mongoose<br/>22 models")]
+    Services2 --> Redis[("Upstash Redis<br/>rate-limit • leaderboard cache")]
 
     Exec --> Paiza["Paiza.io (default)"]
     Exec --> Judge0["Judge0 CE (RapidAPI)"]
     Exec --> Piston["Piston (self-hosted)"]
 
     AIsvc --> Groq["Groq — Llama 3 (streaming)"]
-    Routes --> Razorpay["💳 Razorpay (subscriptions)"]
-    Routes --> Mailer["✉️ Nodemailer / SMTP"]
-    Routes --> GH["🐙 GitHub Issues (feedback)"]
+    Routes --> Razorpay["Razorpay (subscriptions)"]
+    Routes --> Mailer["Nodemailer / SMTP"]
+    Routes --> GH["GitHub Issues (feedback)"]
 ```
 
 ### Request Lifecycle
@@ -129,13 +129,13 @@ Every external dependency is optional and isolated, so a missing key degrades on
 
 ---
 
-## ✨ Core Features
+## Core Features
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
-### 🧑‍💻 Hybrid Coding Workspaces
+### Hybrid Coding Workspaces
 
 - **DSA Workspace** — Monaco editor with themes, font controls, **Vim** keybindings, Emmet, fullscreen, split-pane output, and auto-save (local + MongoDB).
 - **Online Compiler** (`/compiler`) — a blank-canvas editor that runs code in any of 12 languages with custom **stdin**, real stdout/stderr, and runtime + memory stats. No problem or test cases required.
@@ -146,7 +146,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 </td>
 <td width="50%" valign="top">
 
-### 🤖 Live AI Mentor (Groq)
+### Live AI Mentor (Groq)
 
 - **Context-Aware** — Understands the problem, your code buffer, and runtime output.
 - **Progressive Hints** — Concept → algorithm → edge cases → optimization, never spoiling the answer.
@@ -157,7 +157,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <tr>
 <td width="50%" valign="top">
 
-### 🛠 AI Tools Suite (`/ai-tools`)
+### AI Tools Suite (`/ai-tools`)
 
 - **Learning Coach** — guidance tuned to your weak areas
 - **Pair Programmer** — conversational coding help
@@ -170,7 +170,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 </td>
 <td width="50%" valign="top">
 
-### 📚 Problems, Tracks & Roadmaps
+### Problems, Tracks & Roadmaps
 
 - **Problem Bank** — filter by difficulty, tag & company.
 - **Tracks & Roadmaps** — ordered, guided learning paths.
@@ -182,7 +182,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <tr>
 <td width="50%" valign="top">
 
-### 🔁 Revision & Memory
+### Revision & Memory
 
 - **Spaced Repetition (SM-2)** — concepts resurface on an optimal schedule.
 - **Revision Queue** — review due items in one flow.
@@ -191,7 +191,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 </td>
 <td width="50%" valign="top">
 
-### 📈 Analytics & Weakness Detection
+### Analytics & Weakness Detection
 
 - **Weakness Detection** — surfaces topics you struggle with most.
 - **Personal Analytics** — progress charts, submission trends & accuracy (Recharts).
@@ -201,7 +201,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <tr>
 <td width="50%" valign="top">
 
-### 🔥 Gamification & Streaks
+### Gamification & Streaks
 
 - **GitHub-style Heatmap** of daily activity.
 - **XP & Levels** for correct, fast submissions.
@@ -210,7 +210,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 </td>
 <td width="50%" valign="top">
 
-### 🏆 Contests & Leaderboards
+### Contests & Leaderboards
 
 - **Time-Penalty Scoring** on completion time & wrong attempts.
 - **Real-time Standings** via MongoDB aggregation, cached in Redis.
@@ -221,7 +221,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <tr>
 <td width="50%" valign="top">
 
-### 🎤 Mock Interviews
+### Mock Interviews
 
 - **Simulated Sessions** with custom queues and strict timers.
 - **Local Recording** of voice, video & workspace in-browser.
@@ -230,7 +230,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 </td>
 <td width="50%" valign="top">
 
-### 💬 Community & Social
+### Community & Social
 
 - **Community Hub** (`/community`) — forum, discussions, leaderboard, recent threads & top members in one place.
 - **Discussion Forum** (`/discuss`) — threaded solutions & doubts.
@@ -242,7 +242,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 <tr>
 <td width="50%" valign="top">
 
-### 💳 Subscriptions & Billing
+### Subscriptions & Billing
 
 - **Razorpay** — order creation, verification & cancellation.
 - **Free Trials** — Go Plan free for 30 days, no card.
@@ -251,7 +251,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 </td>
 <td width="50%" valign="top">
 
-### 🛡 Admin Dashboard (`/admin`)
+### Admin Dashboard (`/admin`)
 
 - **Questions** — AI-generate, upload JSON, edit & publish.
 - **Users** — inspect, manage subscriptions, promote admins.
@@ -268,7 +268,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 
 ---
 
-## 🧱 Tech Stack
+## Tech Stack
 
 | Layer              | Technology              | Purpose                                 |
 | :----------------- | :---------------------- | :-------------------------------------- |
@@ -288,7 +288,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -339,7 +339,7 @@ Open **http://localhost:3000** to preview the app.
 
 ---
 
-## ⚙️ Environment Reference
+## Environment Reference
 
 | Variable                            | Scope     | Status       | Purpose / Fallback                                                         |
 | :---------------------------------- | :-------- | :----------- | :------------------------------------------------------------------------- |
@@ -358,7 +358,7 @@ Open **http://localhost:3000** to preview the app.
 
 ---
 
-## ⚙️ Code Execution Engines
+## Code Execution Engines
 
 A single `ExecutionProvider` interface wraps multiple backends — switch instantly via `EXECUTION_PROVIDER`:
 
@@ -375,7 +375,7 @@ A single `ExecutionProvider` interface wraps multiple backends — switch instan
 
 ---
 
-## 🧪 Testing & Tooling
+## Testing & Tooling
 
 ```bash
 npm test          # Unit & component tests (Jest)
@@ -386,17 +386,17 @@ npm run typecheck # Type-check without emitting
 
 ---
 
-## 📝 Changelog
+## Changelog
 
 The complete, always-current release history lives in-app:
 
-➡️ **[View the Changelog](https://codeforgeai.io/changelog)** (or `/changelog` on your deployment)
+**[View the Changelog](https://codeforgeai.io/changelog)** (or `/changelog` on your deployment)
 
 Every release — new features, improvements and fixes — is documented there with version, date and tags.
 
 ---
 
-## ☁️ Deployment
+## Deployment
 
 Optimized for **Vercel** out of the box:
 
