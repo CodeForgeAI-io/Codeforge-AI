@@ -11,6 +11,7 @@ import {
   Lock,
   Paintbrush,
   Settings,
+  Tag,
   Trophy,
   Users,
   type LucideIcon,
@@ -50,7 +51,10 @@ const SECTIONS: AdminNavSection[] = [
   },
   {
     heading: "Revenue",
-    items: [{ href: "/admin/billing", label: "Billing & Usage", icon: CreditCard }],
+    items: [
+      { href: "/admin/billing", label: "Billing & Usage", icon: CreditCard },
+      { href: "/admin/coupons", label: "Coupons", icon: Tag },
+    ],
   },
   {
     heading: "AI",

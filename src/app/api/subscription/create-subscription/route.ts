@@ -11,6 +11,7 @@ import {
   getOrCreatePlanId,
   amountForPlan,
 } from "@/lib/razorpay";
+import { validateCoupon, redeemCoupon } from "@/lib/coupons";
 
 export const runtime = "nodejs";
 
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
     postalCode?: string;
     country?: string;
   }
-  let body: { plan?: PlanId; cycle?: BillingCycle; billing?: Billing };
+  let body: { plan?: PlanId; cycle?: BillingCycle; billing?: Billing; coupon?: string };
   try {
     body = await req.json();
   } catch {
@@ -48,6 +49,21 @@ export async function POST(req: NextRequest) {
   if (plan !== "go" && plan !== "plus") {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
+
+  const fullAmount = amountForPlan(plan, cycle) / 100; // rupees
+
+  // Re-validate any coupon server-side — the client value is never trusted.
+  let discount = 0;
+  let couponCode: string | undefined;
+  if (body.coupon) {
+    const c = await validateCoupon({ code: body.coupon, plan, cycle, userId: session.user.id });
+    if (!c.ok) {
+      return NextResponse.json({ error: c.reason ?? "Invalid coupon" }, { status: 422 });
+    }
+    discount = c.discount ?? 0;
+    couponCode = c.code;
+  }
+  const finalAmount = Math.max(0, fullAmount - discount); // rupees
 
   // Sanitize + persist billing details for prefill, notes and invoices.
   const trim = (v: unknown, max = 120) => String(v ?? "").trim().slice(0, max);
@@ -63,8 +79,44 @@ export async function POST(req: NextRequest) {
 
   await connectDB();
   await User.findByIdAndUpdate(session.user.id, { billing });
+
+  // 100%-off coupon → grant the plan directly without a Razorpay charge.
+  if (finalAmount <= 0 && couponCode) {
+    const now = new Date();
+    const periodEnd = new Date(now);
+    if (cycle === "yearly") periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+    else periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+    await Subscription.create({
+      user: session.user.id,
+      plan,
+      billingCycle: cycle,
+      amount: 0,
+      currency: "INR",
+      kind: "subscription",
+      couponCode,
+      discount,
+      razorpayPaymentId: `comp_${session.user.id}_${Date.now()}`,
+      status: "paid",
+      periodStart: now,
+      periodEnd,
+    });
+    await User.findByIdAndUpdate(session.user.id, {
+      plan,
+      billingCycle: cycle,
+      planExpiresAt: periodEnd,
+      subscriptionStatus: "active",
+      cancelAtPeriodEnd: false,
+      trialEndsAt: null,
+    });
+    await redeemCoupon({ code: couponCode, userId: session.user.id, discount });
+
+    return NextResponse.json({ granted: true, plan, expiresAt: periodEnd });
+  }
+
   try {
-    const planId = await getOrCreatePlanId(plan, cycle);
+    // Discounted coupons use a plan priced at the final amount (recurring).
+    const planId = await getOrCreatePlanId(plan, cycle, Math.round(finalAmount * 100));
     const subscription = await getRazorpay().subscriptions.create({
       plan_id: planId,
       // Recurring auto-pay: charge for many cycles (≈5 yrs) until cancelled.
@@ -74,6 +126,7 @@ export async function POST(req: NextRequest) {
         userId: session.user.id,
         plan,
         cycle,
+        coupon: couponCode ?? "",
         address: [billing.line1, billing.city, billing.state, billing.postalCode, billing.country]
           .filter(Boolean)
           .join(", ")
@@ -85,9 +138,11 @@ export async function POST(req: NextRequest) {
       user: session.user.id,
       plan,
       billingCycle: cycle,
-      amount: amountForPlan(plan as PlanId, cycle) / 100,
+      amount: finalAmount,
       kind: "subscription",
       razorpaySubscriptionId: subscription.id,
+      couponCode,
+      discount,
       status: "created",
     });
 
@@ -97,6 +152,9 @@ export async function POST(req: NextRequest) {
       plan,
       cycle,
       planName: PLANS[plan].name,
+      amount: finalAmount,
+      discount,
+      coupon: couponCode ?? null,
     });
   } catch (e) {
     console.error("[create-subscription]", e);

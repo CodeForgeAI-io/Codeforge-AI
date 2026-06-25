@@ -76,13 +76,23 @@ export function amountForPlan(plan: PlanId, cycle: BillingCycle): number {
  * Razorpay plans are immutable, so the mapping is persisted to avoid duplicates.
  * Caller must have connected to the DB.
  */
-export async function getOrCreatePlanId(plan: PlanId, cycle: BillingCycle): Promise<string> {
-  const key = `${plan}_${cycle}`;
+export async function getOrCreatePlanId(
+  plan: PlanId,
+  cycle: BillingCycle,
+  amountPaiseOverride?: number,
+): Promise<string> {
+  const amount = amountPaiseOverride ?? amountForPlan(plan, cycle);
+  // Discounted amounts get their own cached plan keyed by the amount, so a
+  // given coupon price is reused across users without creating duplicates.
+  const key =
+    amountPaiseOverride != null && amountPaiseOverride !== amountForPlan(plan, cycle)
+      ? `${plan}_${cycle}_${amount}`
+      : `${plan}_${cycle}`;
+
   const existing = await RazorpayPlan.findById(key).lean<{ planId: string }>();
   if (existing?.planId) return existing.planId;
 
   const def = PLANS[plan];
-  const amount = amountForPlan(plan, cycle);
   // razorpay sdk types are loose here; period accepts "monthly" | "yearly"
   const created = await getRazorpay().plans.create({
     period: cycle === "yearly" ? "yearly" : "monthly",
