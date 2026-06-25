@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 export const dynamic = "force-dynamic";
 
-const paymentsEnabled = !!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+const paymentsEnabled = !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
 export default async function PricingPage() {
   const session = await auth();
   const signedIn = !!session?.user;
@@ -68,7 +68,7 @@ export default async function PricingPage() {
           </div>
         )}
 
-        <PricingCards currentPlan={currentPlan} featuresByPlan={featuresByPlan} />
+        <PricingCards currentPlan={currentPlan} featuresByPlan={featuresByPlan} paymentsEnabled={paymentsEnabled} />
 
         {/* trust badges */}
         <div className="mt-12 flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">

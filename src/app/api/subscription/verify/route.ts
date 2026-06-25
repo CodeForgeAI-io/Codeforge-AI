@@ -1,60 +1,111 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
-import { User } from "@/models";
-import { Subscription } from "@/models/Subscription";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { User, Subscription } from "@/models";
+import { verifyCheckoutSignature } from "@/lib/razorpay";
 import { getPostHogServer } from "@/lib/posthog-server";
+
+export const runtime = "nodejs";
+
+function addPeriod(from: Date, cycle: "monthly" | "yearly"): Date {
+  const end = new Date(from);
+  if (cycle === "yearly") end.setFullYear(end.getFullYear() + 1);
+  else end.setMonth(end.getMonth() + 1);
+  return end;
+}
 
 export async function POST(req: NextRequest) {
   const { session, error } = await requireUser();
   if (error) return error;
 
-  const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = await req.json();
+  const limited = await enforceRateLimit("payment", req, session.user.id);
+  if (limited) return limited;
 
-  // Verify signature
-  const body = `${razorpayOrderId}|${razorpayPaymentId}`;
-  const expected = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
-    .update(body)
-    .digest("hex");
+  const {
+    razorpayOrderId,
+    razorpaySubscriptionId,
+    razorpayPaymentId,
+    razorpaySignature,
+  } = await req.json();
 
-  if (expected !== razorpaySignature) {
+  if (!razorpayPaymentId || !razorpaySignature) {
+    return NextResponse.json({ error: "Missing payment fields" }, { status: 400 });
+  }
+
+  // Constant-time signature verification (order OR subscription).
+  const valid = verifyCheckoutSignature({
+    orderId: razorpayOrderId,
+    subscriptionId: razorpaySubscriptionId,
+    paymentId: razorpayPaymentId,
+    signature: razorpaySignature,
+  });
+  if (!valid) {
     return NextResponse.json({ error: "Invalid payment signature" }, { status: 400 });
   }
 
   await connectDB();
-  const sub = await Subscription.findOne({ razorpayOrderId, user: session.user.id });
-  if (!sub) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
-  const now = new Date();
-  const periodEnd = new Date(now);
-  if (sub.billingCycle === "yearly") {
-    periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-  } else {
-    periodEnd.setMonth(periodEnd.getMonth() + 1);
+  // Locate the tracking record and confirm it belongs to this user.
+  const query = razorpaySubscriptionId
+    ? { razorpaySubscriptionId, user: session.user.id }
+    : { razorpayOrderId, user: session.user.id };
+  const sub = await Subscription.findOne(query);
+  if (!sub) {
+    return NextResponse.json({ error: "Subscription not found" }, { status: 404 });
   }
 
-  await Subscription.findByIdAndUpdate(sub._id, {
-    razorpayPaymentId,
-    razorpaySignature,
-    status: "paid",
-    periodStart: now,
-    periodEnd,
-  });
+  const now = new Date();
+  const periodEnd = addPeriod(now, sub.billingCycle);
 
-  await User.findByIdAndUpdate(session.user.id, {
-    plan: sub.plan,
-    planExpiresAt: periodEnd,
-    billingCycle: sub.billingCycle,
-    trialEndsAt: null,
-  });
+  if (razorpaySubscriptionId) {
+    // Recurring: mark the tracking doc paid and record the first invoice.
+    await Subscription.updateOne(
+      { _id: sub._id },
+      {
+        $set: {
+          status: "paid",
+          razorpayPaymentId,
+          razorpaySignature,
+          periodStart: now,
+          periodEnd,
+        },
+      },
+    );
+    await User.findByIdAndUpdate(session.user.id, {
+      plan: sub.plan,
+      billingCycle: sub.billingCycle,
+      planExpiresAt: periodEnd,
+      razorpaySubscriptionId,
+      subscriptionStatus: "active",
+      cancelAtPeriodEnd: false,
+      trialEndsAt: null,
+    });
+  } else {
+    // One-time order.
+    await Subscription.findByIdAndUpdate(sub._id, {
+      razorpayPaymentId,
+      razorpaySignature,
+      status: "paid",
+      periodStart: now,
+      periodEnd,
+    });
+    await User.findByIdAndUpdate(session.user.id, {
+      plan: sub.plan,
+      billingCycle: sub.billingCycle,
+      planExpiresAt: periodEnd,
+      trialEndsAt: null,
+    });
+  }
 
-  const posthog = getPostHogServer();
-  posthog?.capture({
+  getPostHogServer()?.capture({
     distinctId: session.user.id,
     event: "subscription_purchased",
-    properties: { plan: sub.plan, billing_cycle: sub.billingCycle },
+    properties: {
+      plan: sub.plan,
+      billing_cycle: sub.billingCycle,
+      recurring: Boolean(razorpaySubscriptionId),
+    },
   });
 
   return NextResponse.json({ ok: true, plan: sub.plan, expiresAt: periodEnd });

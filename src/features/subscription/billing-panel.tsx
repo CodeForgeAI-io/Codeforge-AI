@@ -6,8 +6,6 @@ import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import { CreditCard, Crown, Zap, AlertTriangle, Clock, Sparkles } from "@/components/icons";
 import Link from "next/link";
-
-const paymentsEnabled = !!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -24,7 +22,7 @@ interface BillingInfo {
   billingCycle?: string | null;
 }
 
-export function BillingPanel({ billing }: { billing: BillingInfo }) {
+export function BillingPanel({ billing, paymentsEnabled = false }: { billing: BillingInfo; paymentsEnabled?: boolean }) {
   const { update } = useSession();
   const router = useRouter();
   const [cancelling, setCancelling] = useState(false);
@@ -154,6 +152,7 @@ export function BillingPanel({ billing }: { billing: BillingInfo }) {
           <PricingCards
             compact
             currentPlan={billing.plan}
+            paymentsEnabled={paymentsEnabled}
             onPlanChosen={() => { setShowUpgrade(false); update(); }}
           />
         </div>

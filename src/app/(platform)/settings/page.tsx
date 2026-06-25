@@ -54,6 +54,7 @@ export default async function SettingsPage() {
           <>
             <UsagePanel plan={plan} />
             <BillingPanel
+              paymentsEnabled={!!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)}
               billing={{
                 plan,
                 planExpiresAt: user.planExpiresAt?.toISOString() ?? null,

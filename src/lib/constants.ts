@@ -297,4 +297,5 @@ export const RATE_LIMITS = {
   ai: { requests: 20, window: "300 s" },
   aiGenerate: { requests: 5, window: "300 s" },
   api: { requests: 120, window: "60 s" },
+  payment: { requests: 10, window: "60 s" },
 } as const;
