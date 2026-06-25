@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/api-auth";
 import { enforceAiCredit } from "@/services/ai-credits";
+import { requireFeature } from "@/services/feature-access";
 import { complete } from "@/services/ai/groq";
 
 export async function POST(req: NextRequest) {
   const { session, error } = await requireUser();
   if (error) return error;
 
+  const gate = await requireFeature(session.user.plan, "aiContestGenerator");
+  if (gate) return gate;
   const credit = await enforceAiCredit(session.user.id, session.user.plan);
   if (credit) return credit;
 

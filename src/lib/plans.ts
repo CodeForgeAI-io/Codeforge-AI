@@ -15,9 +15,10 @@ export interface Plan {
   price: { monthly: number; yearly: number };
   trialDays: number;
   limits: {
-    aiCallsPerDay: number; // -1 = unlimited
-    bookmarks: number;     // -1 = unlimited
-    notes: number;         // -1 = unlimited
+    aiCallsPerDay: number;      // -1 = unlimited
+    bookmarks: number;          // -1 = unlimited
+    notes: number;              // -1 = unlimited
+    problemGenPerMonth: number; // -1 = unlimited
   };
   features: PlanFeature[];
   highlighted?: boolean;
@@ -33,7 +34,7 @@ export const PLANS: Record<PlanId, Plan> = {
     badgeClass: "bg-muted text-muted-foreground border",
     price: { monthly: 0, yearly: 0 },
     trialDays: 0,
-    limits: { aiCallsPerDay: 3, bookmarks: 10, notes: 5 },
+    limits: { aiCallsPerDay: 3, bookmarks: 10, notes: 5, problemGenPerMonth: 20 },
     cta: "Get started free",
     features: [
       { text: "50 practice problems", included: true },
@@ -56,7 +57,7 @@ export const PLANS: Record<PlanId, Plan> = {
     price: { monthly: 49, yearly: 490 },
     trialDays: 7,
     highlighted: true,
-    limits: { aiCallsPerDay: 20, bookmarks: -1, notes: -1 },
+    limits: { aiCallsPerDay: 20, bookmarks: -1, notes: -1, problemGenPerMonth: 50 },
     cta: "Start 7-day free trial",
     features: [
       { text: "All problems + solutions", included: true },
@@ -78,7 +79,7 @@ export const PLANS: Record<PlanId, Plan> = {
     badgeClass: "bg-primary text-primary-foreground",
     price: { monthly: 99, yearly: 990 },
     trialDays: 7,
-    limits: { aiCallsPerDay: -1, bookmarks: -1, notes: -1 },
+    limits: { aiCallsPerDay: -1, bookmarks: -1, notes: -1, problemGenPerMonth: -1 },
     cta: "Start 7-day free trial",
     features: [
       { text: "Everything in Go", included: true },

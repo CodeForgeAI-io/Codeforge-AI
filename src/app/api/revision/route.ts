@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
+import { requireFeature } from "@/services/feature-access";
 import { SpacedRepetition } from "@/models";
 
 function sm2(quality: number, repetitions: number, easeFactor: number, interval: number) {
@@ -29,6 +30,8 @@ function sm2(quality: number, repetitions: number, easeFactor: number, interval:
 export async function GET() {
   const { session, error } = await requireUser();
   if (error) return error;
+  const gate = await requireFeature(session.user.plan, "spacedRepetition");
+  if (gate) return gate;
 
   await connectDB();
   const now = new Date();
@@ -57,6 +60,8 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const { session, error } = await requireUser();
   if (error) return error;
+  const gate = await requireFeature(session.user.plan, "spacedRepetition");
+  if (gate) return gate;
 
   const { questionId, quality } = await req.json();
   if (!questionId || quality === undefined) {
@@ -94,6 +99,8 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   const { session, error } = await requireUser();
   if (error) return error;
+  const gate = await requireFeature(session.user.plan, "spacedRepetition");
+  if (gate) return gate;
 
   const { questionId } = await req.json();
   if (!questionId) return NextResponse.json({ error: "questionId required" }, { status: 400 });

@@ -8,6 +8,7 @@ import {
   CreditCard,
   FileQuestion,
   ListChecks,
+  Lock,
   Paintbrush,
   Settings,
   Trophy,
@@ -57,7 +58,10 @@ const SECTIONS: AdminNavSection[] = [
   },
   {
     heading: "Config",
-    items: [{ href: "/admin/settings", label: "Settings", icon: Settings }],
+    items: [
+      { href: "/admin/features", label: "Feature Access", icon: Lock },
+      { href: "/admin/settings", label: "Settings", icon: Settings },
+    ],
   },
 ];
 

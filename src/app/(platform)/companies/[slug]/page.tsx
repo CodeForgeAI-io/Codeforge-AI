@@ -6,6 +6,8 @@ import { getSession } from "@/lib/session";
 import { getCompanyBySlug } from "@/services/companies";
 import { listQuestions } from "@/services/questions";
 import { DifficultyBadge } from "@/components/shared/difficulty-badge";
+import { UpgradeLock } from "@/components/shared/upgrade-lock";
+import { checkPageFeature } from "@/services/feature-access";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +32,16 @@ export async function generateMetadata({
 
 export default async function CompanyPage({ params }: PageProps) {
   const { slug } = await params;
+  const gate = await checkPageFeature("companyPrep");
+  if (!gate.allowed) {
+    return (
+      <UpgradeLock
+        feature="Company Prep"
+        description="Curated question sets for top tech companies (Google, Meta, Amazon and more)."
+        requiredPlan={gate.requiredPlan as "go" | "plus"}
+      />
+    );
+  }
   const [company, session] = await Promise.all([getCompanyBySlug(slug), getSession()]);
   if (!company) notFound();
 

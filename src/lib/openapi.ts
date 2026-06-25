@@ -1947,5 +1947,24 @@ export const openApiSpec: Record<string, any> = {
     "/admin/prompts": {
       get: { tags: ["Admin"], summary: "List AI prompt templates (admin)", responses: { "200": { description: "Prompt templates" }, "403": { description: "Admin only" } } },
     },
+    "/admin/features": {
+      get: {
+        tags: ["Admin"],
+        summary: "Get the feature catalog + current access matrix (admin)",
+        responses: {
+          "200": { description: "Catalog and resolved access map (featureId -> minimum plan)" },
+          "403": { description: "Admin only" },
+        },
+      },
+      put: {
+        tags: ["Admin"],
+        summary: "Save the minimum plan per feature; drives pricing + locks (admin)",
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { type: "object", properties: { access: { type: "object", additionalProperties: { type: "string", enum: ["free", "go", "plus"] } } } } } },
+        },
+        responses: { "200": { description: "Saved; feature-access cache revalidated" }, "403": { description: "Admin only" } },
+      },
+    },
   },
 };

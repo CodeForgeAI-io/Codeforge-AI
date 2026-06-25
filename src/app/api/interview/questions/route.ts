@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
+import { requireFeature } from "@/services/feature-access";
 import { Question } from "@/models";
 import { DIFFICULTIES, type Difficulty } from "@/lib/constants";
 
 /** Random question set for a mock interview session */
 export async function GET(req: NextRequest) {
-  const { error } = await requireUser();
+  const { session, error } = await requireUser();
   if (error) return error;
+  const gate = await requireFeature(session.user.plan, "mockInterview");
+  if (gate) return gate;
 
   const params = req.nextUrl.searchParams;
   const category = params.get("category");

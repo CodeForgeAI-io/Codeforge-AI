@@ -11,11 +11,23 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { UpgradeLock } from "@/components/shared/upgrade-lock";
+import { checkPageFeature } from "@/services/feature-access";
 
 export const metadata: Metadata = { title: "Company Prep" };
 export const dynamic = "force-dynamic";
 
 export default async function CompaniesPage() {
+  const gate = await checkPageFeature("companyPrep");
+  if (!gate.allowed) {
+    return (
+      <UpgradeLock
+        feature="Company Prep"
+        description="Curated question sets for top tech companies (Google, Meta, Amazon and more)."
+        requiredPlan={gate.requiredPlan as "go" | "plus"}
+      />
+    );
+  }
   const session = await getSession();
   const companies = await listCompaniesWithProgress(session?.user?.id);
 

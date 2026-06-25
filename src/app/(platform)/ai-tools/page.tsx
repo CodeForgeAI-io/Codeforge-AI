@@ -1,5 +1,8 @@
 import type { ComponentType } from "react";
 import { Sparkles } from "@/components/icons";
+import { UpgradeLock } from "@/components/shared/upgrade-lock";
+import { checkPageFeature } from "@/services/feature-access";
+import type { FeatureId } from "@/lib/feature-catalog";
 import { AiRoadmap } from "@/features/ai-tools/ai-roadmap";
 import { AiResume } from "@/features/ai-tools/ai-resume";
 import { AiProjectReviewer } from "@/features/ai-tools/ai-project-reviewer";
@@ -28,6 +31,14 @@ const TOOLS: Record<string, Tool> = {
 
 const DEFAULT = "coach";
 
+/** Plus-only tools map to a catalog feature; the rest are open (credit-limited). */
+const TOOL_FEATURE: Record<string, FeatureId> = {
+  pair: "aiPairProgrammer",
+  contest: "aiContestGenerator",
+  resume: "aiResumeReviewer",
+  project: "aiProjectReviewer",
+};
+
 export default async function AiToolsPage({
   searchParams,
 }: {
@@ -37,6 +48,20 @@ export default async function AiToolsPage({
   // The active tool is driven by ?tool= so the sidebar menu items deep-link.
   const active = tool && TOOLS[tool] ? tool : DEFAULT;
   const { label, tagline, Component } = TOOLS[active];
+
+  const gatedFeature = TOOL_FEATURE[active];
+  if (gatedFeature) {
+    const gate = await checkPageFeature(gatedFeature);
+    if (!gate.allowed) {
+      return (
+        <UpgradeLock
+          feature={label}
+          description={tagline}
+          requiredPlan={gate.requiredPlan as "go" | "plus"}
+        />
+      );
+    }
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
