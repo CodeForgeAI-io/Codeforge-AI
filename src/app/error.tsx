@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { AlertTriangle } from "@/components/icons";
-import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 
 export default function GlobalError({
@@ -14,7 +13,8 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error(error);
-    posthog.captureException(error);
+    // Load PostHog only when an error actually occurs — keeps it out of the bundle.
+    import("posthog-js").then(({ default: posthog }) => posthog.captureException(error));
   }, [error]);
 
   return (

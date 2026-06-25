@@ -1,6 +1,5 @@
 "use client";
 
-import posthog from "posthog-js";
 import NextError from "next/error";
 import { useEffect } from "react";
 
@@ -10,7 +9,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
 }) {
   useEffect(() => {
-    posthog.captureException(error);
+    import("posthog-js").then(({ default: posthog }) => posthog.captureException(error));
   }, [error]);
 
   return (

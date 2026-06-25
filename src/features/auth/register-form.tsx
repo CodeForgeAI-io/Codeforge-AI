@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
-import posthog from "posthog-js";
 import { Loader2 } from "@/components/icons";
 import { registerSchema, type RegisterInput } from "@/schemas/auth";
 import { Button } from "@/components/ui/button";
@@ -58,14 +57,18 @@ export function RegisterForm({
         redirect: false,
       });
       if (result?.error) {
-        posthog.identify(values.email, { email: values.email, name: values.name, username: values.username });
-        posthog.capture("user_registered", { method: "email" });
+        import("posthog-js").then(({ default: posthog }) => {
+          posthog.identify(values.email, { email: values.email, name: values.name, username: values.username });
+          posthog.capture("user_registered", { method: "email" });
+        });
         toast.success("Account created. Please sign in.");
         router.push("/login");
         return;
       }
-      posthog.identify(values.email, { email: values.email, name: values.name, username: values.username });
-      posthog.capture("user_registered", { method: "email" });
+      import("posthog-js").then(({ default: posthog }) => {
+        posthog.identify(values.email, { email: values.email, name: values.name, username: values.username });
+        posthog.capture("user_registered", { method: "email" });
+      });
       router.push("/dashboard");
       router.refresh();
     } finally {

@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
-import posthog from "posthog-js";
 import { Loader2 } from "@/components/icons";
 import { loginSchema, type LoginInput } from "@/schemas/auth";
 import { Button } from "@/components/ui/button";
@@ -50,8 +49,10 @@ export function LoginForm({
         toast.error("Invalid email or password");
         return;
       }
-      posthog.identify(values.email, { email: values.email });
-      posthog.capture("user_logged_in", { method: "email" });
+      import("posthog-js").then(({ default: posthog }) => {
+        posthog.identify(values.email, { email: values.email });
+        posthog.capture("user_logged_in", { method: "email" });
+      });
       router.push(callbackUrl);
       router.refresh();
     } finally {
