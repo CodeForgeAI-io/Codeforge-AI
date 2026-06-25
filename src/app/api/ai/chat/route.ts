@@ -12,6 +12,7 @@ import {
   type ChatMessage,
 } from "@/services/ai/groq";
 import { getPrompt } from "@/services/ai/prompts";
+import { isOnTopic, OFF_TOPIC_REPLY } from "@/services/ai/topic-guard";
 import { getPostHogServer } from "@/lib/posthog-server";
 
 export const maxDuration = 60;
@@ -126,20 +127,32 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  // Hard gate: for free-form messages, classify the topic before spending a
+  // full model call. Off-topic messages get the canned refusal and never reach
+  // the mentor model. Quick actions always operate on a problem, so skip them.
+  const offTopic =
+    input.action === "chat" && !(await isOnTopic(input.message));
+
   const encoder = new TextEncoder();
   let assistantReply = "";
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
-        for await (const delta of streamCompletion(messages, {
-          temperature: system.temperature,
-          maxTokens: system.maxTokens,
-        })) {
-          assistantReply += delta;
-          controller.enqueue(encoder.encode(delta));
+        if (offTopic) {
+          assistantReply = OFF_TOPIC_REPLY;
+          controller.enqueue(encoder.encode(OFF_TOPIC_REPLY));
+          controller.close();
+        } else {
+          for await (const delta of streamCompletion(messages, {
+            temperature: system.temperature,
+            maxTokens: system.maxTokens,
+          })) {
+            assistantReply += delta;
+            controller.enqueue(encoder.encode(delta));
+          }
+          controller.close();
         }
-        controller.close();
       } catch (streamError) {
         controller.enqueue(
           encoder.encode(
