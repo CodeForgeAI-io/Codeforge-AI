@@ -8,6 +8,7 @@ import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models";
 import { loginSchema } from "@/schemas/auth";
 import { authConfig } from "@/lib/auth.config";
+import { rateLimit } from "@/lib/rate-limit";
 
 const suffix = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 6);
 
@@ -41,10 +42,16 @@ const providers = [
       const parsed = loginSchema.safeParse(credentials);
       if (!parsed.success) return null;
 
+      const email = parsed.data.email.toLowerCase();
+
+      // Throttle login attempts per-account to blunt password spraying /
+      // credential stuffing. Fail closed (treated as a failed login) so we
+      // never reveal whether the account exists or the password was right.
+      const limit = await rateLimit("auth", `login:${email}`);
+      if (!limit.success) return null;
+
       await connectDB();
-      const user = await User.findOne({
-        email: parsed.data.email.toLowerCase(),
-      }).select("+password");
+      const user = await User.findOne({ email }).select("+password");
 
       if (!user?.password || user.banned) return null;
 

@@ -7,18 +7,20 @@ const isDev = process.env.NODE_ENV === "development";
 // 'unsafe-eval' only in dev (Next.js hot reload uses eval)
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.clarity.ms https://us-assets.i.posthog.com https://cdn.jsdelivr.net`,
+  `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.clarity.ms https://us-assets.i.posthog.com https://cdn.jsdelivr.net https://checkout.razorpay.com`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
   "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
   "img-src 'self' data: blob: https:",
-  "connect-src 'self' https://api.groq.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://cdn.jsdelivr.net",
+  "connect-src 'self' https://api.groq.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://cdn.jsdelivr.net https://*.razorpay.com https://lumberjack.razorpay.com",
   "worker-src 'self' blob:",
   "media-src 'self'",
   "object-src 'none'",
-  "frame-src 'none'",
+  // Razorpay Checkout renders inside an iframe — allow only its domains.
+  "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com",
+  // We still refuse to BE framed (clickjacking) regardless of the above.
   "frame-ancestors 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  "form-action 'self' https://api.razorpay.com",
   "upgrade-insecure-requests",
 ].join("; ");
 
@@ -40,10 +42,22 @@ const securityHeaders = [
   { key: "Content-Security-Policy", value: CSP },
   // Prevent IE compatibility mode
   { key: "X-DNS-Prefetch-Control", value: "on" },
+  // Isolate our browsing context (mitigates XS-Leaks / tab-nabbing) while still
+  // allowing the Razorpay checkout popup to open.
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+  // Block legacy Flash/PDF cross-domain policy probing.
+  { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
+];
+
+const noStore = [
+  { key: "Cache-Control", value: "no-store, max-age=0" },
+  { key: "Pragma", value: "no-cache" },
 ];
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Don't advertise the framework/version to scanners.
+  poweredByHeader: false,
   serverExternalPackages: ["nodemailer"],
   images: {
     remotePatterns: [
@@ -54,14 +68,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/(.*)", headers: securityHeaders },
-      // Prevent caching of auth-related API responses
-      {
-        source: "/api/auth/(.*)",
-        headers: [
-          { key: "Cache-Control", value: "no-store, max-age=0" },
-          { key: "Pragma", value: "no-cache" },
-        ],
-      },
+      // Never let a proxy/CDN cache sensitive responses (auth, money, admin).
+      { source: "/api/auth/(.*)", headers: noStore },
+      { source: "/api/billing/(.*)", headers: noStore },
+      { source: "/api/subscription/(.*)", headers: noStore },
+      { source: "/api/admin/(.*)", headers: noStore },
     ];
   },
 };

@@ -24,6 +24,7 @@ const PUBLIC_PREFIXES = [
   "/beta",
   "/api/beta",
   "/api/subscription/webhook", // Razorpay webhook — verified by signature, no session
+  "/.well-known", // security.txt and other public well-known resources
   "/_next",
   "/favicon",
   "/sitemap.xml",
@@ -52,17 +53,28 @@ function isSameOrigin(req: NextRequest): boolean {
   return false;
 }
 
+/** Reject API request bodies larger than this (defense against memory-exhaustion fuzzing). */
+const MAX_BODY_BYTES = 1_000_000; // 1 MB
+
 export default auth((req) => {
   const { pathname } = req.nextUrl;
   const session = req.auth;
   const method = req.method;
 
-  // ── CORS guard for mutating API requests ─────────────────────────────────
-  if (
+  const isMutatingApi =
     pathname.startsWith("/api/") &&
-    !pathname.startsWith("/api/auth") &&
-    (method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE")
-  ) {
+    (method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE");
+
+  // ── Payload-size guard ───────────────────────────────────────────────────
+  if (isMutatingApi) {
+    const len = Number(req.headers.get("content-length") ?? "0");
+    if (Number.isFinite(len) && len > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+    }
+  }
+
+  // ── CORS guard for mutating API requests ─────────────────────────────────
+  if (isMutatingApi && !pathname.startsWith("/api/auth")) {
     if (!isSameOrigin(req)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
