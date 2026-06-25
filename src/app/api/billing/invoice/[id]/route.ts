@@ -9,6 +9,11 @@ const INK = "#171717";
 const MUTED = "#8f8f8f";
 const BLUE = "#006bff";
 const BORDER = "#e6e9ef";
+// Absolute origin so the logo renders in the browser, in print, and when the
+// invoice HTML is saved/emailed.
+const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://codeforgeai.io")
+  .replace(/^http:/, "https:");
+const SUPPORT_EMAIL = "info@codeforgeai.io";
 
 function money(amount: number, currency: string) {
   try {
@@ -77,7 +82,9 @@ td{padding:16px 0;border-bottom:1px solid ${BORDER};font-size:15px}
 td.r,th.r{text-align:right}
 .total{display:flex;justify-content:flex-end;gap:48px;font-size:18px;font-weight:600}
 .paid{display:inline-block;margin-top:24px;background:#ecfdec;color:#107d32;border:1px solid #b9f5bc;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;border-radius:9999px}
-.foot{margin-top:40px;font-size:12px;color:${MUTED};text-align:center}
+.foot{margin-top:16px;font-size:12px;color:${MUTED};text-align:center}
+.poweredby{margin-top:40px;padding-top:24px;border-top:1px solid ${BORDER};display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:${MUTED}}
+.poweredby img{height:18px;width:auto;display:inline-block}
 @media print{body{background:#fff;padding:0}.sheet{border:none;box-shadow:none}}
 </style></head>
 <body>
@@ -100,7 +107,7 @@ td.r,th.r{text-align:right}
       </div>
       <div class="col">
         <div class="lbl">From</div>
-        <div class="v">${APP_NAME}<br/>codeforgeai.io</div>
+        <div class="v">${APP_NAME}<br/>codeforgeai.io<br/>${SUPPORT_EMAIL}</div>
       </div>
       <div class="col">
         <div class="lbl">Period</div>
@@ -118,7 +125,8 @@ td.r,th.r{text-align:right}
     <div class="total"><span>Total</span><span>${total}</span></div>
     <div class="paid">Paid</div>
     ${sub.razorpayPaymentId ? `<div class="foot">Payment reference: ${sub.razorpayPaymentId}</div>` : ""}
-    <div class="foot">Thank you for your business. Questions? Reply to any CodeForge AI email.</div>
+    <div class="foot">Thank you for your business. Questions? Email <a href="mailto:${SUPPORT_EMAIL}" style="color:${BLUE};text-decoration:none">${SUPPORT_EMAIL}</a></div>
+    <div class="poweredby">Powered by <img src="${SITE_URL}/black.png" alt="Setups Works"/></div>
   </div>
 </body></html>`;
 
