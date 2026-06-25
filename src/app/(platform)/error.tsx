@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { AlertTriangle } from "@/components/icons";
-import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 
 export default function PlatformError({
@@ -14,7 +13,7 @@ export default function PlatformError({
 }) {
   useEffect(() => {
     console.error(error);
-    posthog.captureException(error);
+    import("posthog-js").then(({ default: posthog }) => posthog.captureException(error));
   }, [error]);
 
   return (

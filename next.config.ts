@@ -59,7 +59,23 @@ const nextConfig: NextConfig = {
   // Don't advertise the framework/version to scanners.
   poweredByHeader: false,
   serverExternalPackages: ["nodemailer"],
+  // Strip console.* (keep error/warn) from production client bundles.
+  compiler: {
+    removeConsole: isDev ? false : { exclude: ["error", "warn"] },
+  },
+  experimental: {
+    // Rewrite barrel imports to direct paths so only the icons/charts/helpers
+    // actually used ship to the client — big win for Font Awesome especially.
+    optimizePackageImports: [
+      "@fortawesome/free-solid-svg-icons",
+      "@fortawesome/free-brands-svg-icons",
+      "@fortawesome/free-regular-svg-icons",
+      "recharts",
+      "date-fns",
+    ],
+  },
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
