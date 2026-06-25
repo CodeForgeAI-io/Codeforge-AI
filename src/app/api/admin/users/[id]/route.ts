@@ -4,6 +4,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
 import { User } from "@/models";
+import { deleteUserAndData } from "@/services/account";
 
 const patchSchema = z.object({
   role: z.enum(["user", "admin"]).optional(),
@@ -66,6 +67,32 @@ export async function PATCH(
     { returnDocument: "after" },
   );
   if (!updated) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true });
+}
+
+/** Permanently delete a user and their owned data (admin only). */
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { session, error } = await requireAdmin();
+  if (error) return error;
+
+  const { id } = await params;
+  if (!Types.ObjectId.isValid(id)) {
+    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+  }
+  if (id === session.user.id) {
+    return NextResponse.json(
+      { error: "You cannot delete your own admin account from here" },
+      { status: 400 },
+    );
+  }
+
+  const deleted = await deleteUserAndData(id);
+  if (!deleted) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   return NextResponse.json({ ok: true });

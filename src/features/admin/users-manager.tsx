@@ -12,11 +12,23 @@ import {
   Search,
   Shield,
   Sparkles,
+  Trash2,
   Trophy,
   UserCheck,
   UserX,
   Zap,
 } from "@/components/icons";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -151,11 +163,15 @@ function UserDetailSheet({
   open,
   onClose,
   onPatch,
+  onDelete,
+  deleting,
 }: {
   user: AdminUser;
   open: boolean;
   onClose: () => void;
   onPatch: (patch: Record<string, unknown>) => void;
+  onDelete: () => void;
+  deleting: boolean;
 }) {
   const now = Date.now();
   const isOnTrial = !!user.trialEndsAt && new Date(user.trialEndsAt).getTime() > now;
@@ -407,6 +423,39 @@ function UserDetailSheet({
             </Button>
           </section>
 
+          {/* Danger zone */}
+          <section className="space-y-3 border-t pt-5">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-destructive">Danger zone</h3>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-9 w-full gap-2 border-destructive/40 text-sm font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="size-4" /> Delete User
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete {user.name}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This permanently removes <strong>{user.email}</strong> and all their data —
+                    submissions, notes, bookmarks, subscriptions and progress. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={(e) => { e.preventDefault(); onDelete(); }}
+                    className="bg-destructive text-white hover:bg-destructive/90"
+                  >
+                    {deleting ? <Loader2 className="size-4 animate-spin" /> : "Delete user"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </section>
+
         </div>
       </SheetContent>
     </Sheet>
@@ -446,6 +495,22 @@ export function UsersManager() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       toast.success("User updated");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const deleteUser = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const result = await res.json();
+        throw new Error(result.error ?? "Delete failed");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setSelected(null);
+      toast.success("User deleted");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -616,6 +681,8 @@ export function UsersManager() {
           open={!!selected}
           onClose={() => setSelected(null)}
           onPatch={(p) => patch(selected.id, p)}
+          onDelete={() => deleteUser.mutate(selected.id)}
+          deleting={deleteUser.isPending}
         />
       )}
     </div>

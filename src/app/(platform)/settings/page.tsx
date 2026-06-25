@@ -8,6 +8,7 @@ import {
   ProfileSettingsForm,
 } from "@/features/settings/settings-forms";
 import { SettingsView } from "@/features/settings/settings-view";
+import { DeleteAccount } from "@/features/settings/delete-account";
 import { BillingPanel } from "@/features/subscription/billing-panel";
 import { UsagePanel } from "@/features/subscription/usage-panel";
 
@@ -28,17 +29,20 @@ export default async function SettingsPage() {
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
       <SettingsView
         profile={
-          <ProfileSettingsForm
-            defaults={{
-              name: user.name,
-              username: user.username,
-              bio: user.bio ?? "",
-              location: user.location ?? "",
-              website: user.website ?? "",
-              githubUrl: user.githubUrl ?? "",
-              linkedinUrl: user.linkedinUrl ?? "",
-            }}
-          />
+          <>
+            <ProfileSettingsForm
+              defaults={{
+                name: user.name,
+                username: user.username,
+                bio: user.bio ?? "",
+                location: user.location ?? "",
+                website: user.website ?? "",
+                githubUrl: user.githubUrl ?? "",
+                linkedinUrl: user.linkedinUrl ?? "",
+              }}
+            />
+            <DeleteAccount />
+          </>
         }
         preferences={
           <EditorSettingsForm
