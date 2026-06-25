@@ -13,6 +13,8 @@ export interface SubscriptionDoc {
   razorpaySubscriptionId?: string;
   razorpayPaymentId?: string;
   razorpaySignature?: string;
+  couponCode?: string;
+  discount?: number;
   status: "created" | "paid" | "failed" | "cancelled";
   periodStart: Date;
   periodEnd: Date;
@@ -33,6 +35,8 @@ const subscriptionSchema = new Schema<SubscriptionDoc>(
     // and webhook re-deliveries cannot create duplicates.
     razorpayPaymentId: { type: String, unique: true, sparse: true },
     razorpaySignature: { type: String },
+    couponCode: { type: String },
+    discount: { type: Number, default: 0 },
     status: { type: String, enum: ["created", "paid", "failed", "cancelled"], default: "created" },
     periodStart: { type: Date },
     periodEnd: { type: Date },

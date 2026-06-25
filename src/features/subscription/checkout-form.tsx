@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { ArrowLeft, Crown, Loader2, Lock, ShieldCheck, Sparkles, Zap } from "@/components/icons";
+import { ArrowLeft, Crown, Loader2, Lock, ShieldCheck, Sparkles, Tag, Zap } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,7 +60,46 @@ export function CheckoutForm({
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<Defaults>(defaults);
 
+  // Coupon state
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discount: number; finalAmount: number } | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
+  const due = coupon ? coupon.finalAmount : amount;
   const PlanIcon = plan === "plus" ? Crown : Zap;
+
+  async function applyCoupon() {
+    const code = couponInput.trim();
+    if (!code) return;
+    setCouponBusy(true);
+    setCouponError(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, plan, cycle }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setCoupon(null);
+        setCouponError(data.reason ?? data.error ?? "Invalid coupon");
+        return;
+      }
+      setCoupon({ code: data.code, discount: data.discount, finalAmount: data.finalAmount });
+      toast.success(`Coupon ${data.code} applied`);
+    } catch {
+      setCouponError("Could not validate coupon");
+    } finally {
+      setCouponBusy(false);
+    }
+  }
+
+  function removeCoupon() {
+    setCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  }
   const set = (k: keyof Defaults) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -97,10 +136,19 @@ export function CheckoutForm({
       const res = await fetch("/api/subscription/create-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, cycle, billing }),
+        body: JSON.stringify({ plan, cycle, billing, coupon: coupon?.code }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not start subscription");
+
+      // 100%-off coupon — plan granted server-side, no payment needed.
+      if (data.granted) {
+        toast.success(`Welcome to ${planName}! Your coupon covered it.`);
+        await update();
+        router.push("/settings?tool=billing");
+        router.refresh();
+        return;
+      }
 
       const rzp = new window.Razorpay({
         key: data.key,
@@ -218,14 +266,48 @@ export function CheckoutForm({
               </div>
             </div>
 
-            <div className="mt-5 space-y-2 border-t pt-4 text-sm">
+            {/* coupon */}
+            <div className="mt-5 border-t pt-4">
+              {coupon ? (
+                <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-primary">
+                    <Tag className="size-3.5" /> {coupon.code}
+                  </span>
+                  <button onClick={removeCoupon} className="text-xs text-muted-foreground hover:text-foreground">
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyCoupon())}
+                    placeholder="Coupon code"
+                    className="h-9"
+                  />
+                  <Button variant="outline" size="sm" onClick={applyCoupon} disabled={couponBusy || !couponInput.trim()}>
+                    {couponBusy ? <Loader2 className="size-4 animate-spin" /> : "Apply"}
+                  </Button>
+                </div>
+              )}
+              {couponError && <p className="mt-1.5 text-xs text-destructive">{couponError}</p>}
+            </div>
+
+            <div className="mt-4 space-y-2 border-t pt-4 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{planName} ({cycle})</span>
                 <span className="font-medium tabular-nums">{formatPrice(amount)}</span>
               </div>
+              {coupon && coupon.discount > 0 && (
+                <div className="flex justify-between text-primary">
+                  <span>Discount ({coupon.code})</span>
+                  <span className="tabular-nums">−{formatPrice(coupon.discount)}</span>
+                </div>
+              )}
               <div className="flex justify-between border-t pt-2 text-base font-semibold">
                 <span>Total due today</span>
-                <span className="tabular-nums">{formatPrice(amount)}</span>
+                <span className="tabular-nums">{formatPrice(due)}</span>
               </div>
             </div>
 
@@ -237,7 +319,7 @@ export function CheckoutForm({
 
             <Button onClick={pay} disabled={loading} size="lg" className="mt-5 w-full gap-2">
               {loading ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
-              {loading ? "Opening payment…" : `Pay ${formatPrice(amount)}`}
+              {loading ? "Opening payment…" : due <= 0 ? "Activate plan" : `Pay ${formatPrice(due)}`}
             </Button>
 
             <div className="mt-4 space-y-1.5 text-[11px] text-muted-foreground">

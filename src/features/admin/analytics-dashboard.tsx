@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
   Area,
@@ -48,6 +49,21 @@ interface Analytics {
     accepted: number;
     rate: number;
   }[];
+  revenue?: {
+    total: number;
+    thisMonth: number;
+    payments: number;
+    payingUsers: number;
+    currency: string;
+  };
+}
+
+function money(amount: number, currency: string) {
+  try {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
+  } catch {
+    return `${currency} ${amount}`;
+  }
 }
 
 export function AnalyticsDashboard() {
@@ -207,7 +223,7 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-dashed">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
               <CircleDollarSign className="size-4 text-muted-foreground" />
@@ -215,11 +231,20 @@ export function AnalyticsDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold text-muted-foreground">$0</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              No payment provider connected. Hook up Stripe or another
-              processor to start tracking revenue here.
+            <p className="text-2xl font-semibold tabular-nums">
+              {money(data.revenue?.total ?? 0, data.revenue?.currency ?? "INR")}
             </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {money(data.revenue?.thisMonth ?? 0, data.revenue?.currency ?? "INR")} this month ·{" "}
+              {(data.revenue?.payments ?? 0).toLocaleString()} payments
+            </p>
+            <div className="mt-3 flex items-center justify-between border-t pt-2 text-xs">
+              <span className="text-muted-foreground">Paying users</span>
+              <span className="font-medium tabular-nums">{(data.revenue?.payingUsers ?? 0).toLocaleString()}</span>
+            </div>
+            <Link href="/admin/billing" className="mt-2 inline-block text-xs font-medium text-primary hover:underline">
+              View billing & usage →
+            </Link>
           </CardContent>
         </Card>
       </div>

@@ -7,6 +7,7 @@ import {
   FrontendChallenge,
   Question,
   Submission,
+  Subscription,
   User,
 } from "@/models";
 
@@ -18,6 +19,7 @@ export async function GET() {
 
   const data = await cached("admin:analytics", 60, async () => {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000);
+    const monthStart = new Date(new Date().toISOString().slice(0, 7) + "-01T00:00:00.000Z");
 
     const [
       totalUsers,
@@ -32,6 +34,9 @@ export async function GET() {
       submissionSeries,
       languageDistribution,
       difficultyAcceptance,
+      revenueAgg,
+      revenueMonthAgg,
+      payingUsers,
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
@@ -91,6 +96,16 @@ export async function GET() {
           },
         },
       ]),
+      // Razorpay revenue (all paid subscriptions/invoices)
+      Subscription.aggregate<{ total: number; count: number; currency: string }>([
+        { $match: { status: "paid" } },
+        { $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 }, currency: { $last: "$currency" } } },
+      ]),
+      Subscription.aggregate<{ total: number }>([
+        { $match: { status: "paid", createdAt: { $gte: monthStart } } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ]),
+      User.countDocuments({ plan: { $in: ["go", "plus"] } }),
     ]);
 
     return {
@@ -126,6 +141,13 @@ export async function GET() {
         accepted: row.accepted,
         rate: row.total > 0 ? Math.round((row.accepted / row.total) * 100) : 0,
       })),
+      revenue: {
+        total: revenueAgg[0]?.total ?? 0,
+        thisMonth: revenueMonthAgg[0]?.total ?? 0,
+        payments: revenueAgg[0]?.count ?? 0,
+        payingUsers,
+        currency: revenueAgg[0]?.currency ?? "INR",
+      },
     };
   });
 

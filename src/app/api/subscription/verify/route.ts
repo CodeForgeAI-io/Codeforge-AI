@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/api-auth";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { User, Subscription } from "@/models";
 import { verifyCheckoutSignature } from "@/lib/razorpay";
+import { redeemCoupon } from "@/lib/coupons";
 import { getPostHogServer } from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
@@ -81,6 +82,10 @@ export async function POST(req: NextRequest) {
       cancelAtPeriodEnd: false,
       trialEndsAt: null,
     });
+    // Record coupon redemption only after a confirmed payment.
+    if (sub.couponCode) {
+      await redeemCoupon({ code: sub.couponCode, userId: session.user.id, discount: sub.discount ?? 0 });
+    }
   } else {
     // One-time order.
     await Subscription.findByIdAndUpdate(sub._id, {
