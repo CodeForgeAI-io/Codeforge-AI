@@ -40,7 +40,12 @@ export async function GET(
   if (!sub) {
     return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
   }
-  const user = await User.findById(session.user.id).select("name email").lean();
+  const user = await User.findById(session.user.id).select("name email billing").lean();
+  const addr = user?.billing
+    ? [user.billing.line1, user.billing.line2, [user.billing.city, user.billing.state].filter(Boolean).join(", "), user.billing.postalCode, user.billing.country]
+        .filter(Boolean)
+        .join("<br/>")
+    : "";
 
   const num = `CF-${String(sub._id).slice(-8).toUpperCase()}`;
   const date = new Date(sub.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -91,7 +96,7 @@ td.r,th.r{text-align:right}
     <div class="cols">
       <div class="col">
         <div class="lbl">Billed to</div>
-        <div class="v">${user?.name ?? "Customer"}<br/>${user?.email ?? ""}</div>
+        <div class="v">${user?.name ?? "Customer"}<br/>${user?.email ?? ""}${addr ? `<br/>${addr}` : ""}${user?.billing?.phone ? `<br/>${user.billing.phone}` : ""}</div>
       </div>
       <div class="col">
         <div class="lbl">From</div>

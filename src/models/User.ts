@@ -55,6 +55,15 @@ export interface UserDoc {
   razorpaySubscriptionId?: string | null;
   subscriptionStatus?: "active" | "pending" | "halted" | "cancelled" | "completed" | null;
   cancelAtPeriodEnd?: boolean;
+  billing?: {
+    phone?: string;
+    line1?: string;
+    line2?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  } | null;
   betaUser?: boolean;
   passwordResetToken?: string | null;
   passwordResetExpiry?: Date | null;
@@ -135,6 +144,18 @@ const userSchema = new Schema<UserDoc>(
       default: null,
     },
     cancelAtPeriodEnd: { type: Boolean, default: false },
+    billing: {
+      type: {
+        phone: { type: String, default: "" },
+        line1: { type: String, default: "" },
+        line2: { type: String, default: "" },
+        city: { type: String, default: "" },
+        state: { type: String, default: "" },
+        postalCode: { type: String, default: "" },
+        country: { type: String, default: "IN" },
+      },
+      default: null,
+    },
     betaUser: { type: Boolean, default: false, index: true },
     passwordResetToken: { type: String, default: null, select: false },
     passwordResetExpiry: { type: Date, default: null, select: false },

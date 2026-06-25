@@ -11,23 +11,6 @@ import { PLANS, formatPrice, yearlyDiscount, monthlyCredits } from "@/lib/plans"
 import type { PlanId, BillingCycle } from "@/lib/plans";
 import { toast } from "sonner";
 
-declare global {
-  interface Window {
-    Razorpay: new (opts: Record<string, unknown>) => { open(): void };
-  }
-}
-
-function loadRazorpay(): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (window.Razorpay) return resolve(true);
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
-
 export function PricingCards({
   cycle: defaultCycle = "monthly",
   currentPlan,
@@ -71,54 +54,11 @@ export function PricingCards({
     }
   }
 
-  async function subscribe(plan: PlanId) {
-    if (!session) { router.push("/login?callbackUrl=/pricing"); return; }
-    setLoading(plan);
-    try {
-      const loaded = await loadRazorpay();
-      if (!loaded) throw new Error("Failed to load payment gateway");
-
-      // Create a recurring subscription (auto-pay) on the server.
-      const res = await fetch("/api/subscription/create-subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, cycle }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      new window.Razorpay({
-        key: data.key,
-        subscription_id: data.subscriptionId,
-        name: "CodeForge AI",
-        description: `${PLANS[plan].name} — ${cycle} (auto-renews)`,
-        theme: { color: "#006bff" },
-        prefill: { name: session.user.name, email: session.user.email },
-        handler: async (response: { razorpay_payment_id: string; razorpay_subscription_id: string; razorpay_signature: string }) => {
-          const verify = await fetch("/api/subscription/verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              razorpaySubscriptionId: response.razorpay_subscription_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature,
-            }),
-          });
-          const v = await verify.json();
-          if (verify.ok) {
-            toast.success(`Upgraded to ${PLANS[plan].name}! Auto-pay is on.`);
-            onPlanChosen?.(plan);
-            router.refresh();
-          } else {
-            toast.error(v.error ?? "Payment verification failed");
-          }
-        },
-      }).open();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Payment failed");
-    } finally {
-      setLoading(null);
-    }
+  // Send the user to our custom checkout page (collects billing details and
+  // prefills Razorpay so it jumps straight to the payment apps).
+  function subscribe(plan: PlanId) {
+    const target = `/checkout?plan=${plan}&cycle=${cycle}`;
+    router.push(session ? target : `/login?callbackUrl=${encodeURIComponent(target)}`);
   }
 
   const plans = [PLANS.free, PLANS.go, PLANS.plus] as const;
