@@ -24,6 +24,7 @@ LeetCode-style DSA problems · An **instant online compiler** · Frontend sandbo
 [![OpenTelemetry](https://img.shields.io/badge/Telemetry-OTel-F05A28?style=flat-square&logo=opentelemetry)](https://opentelemetry.io/)
 [![Jest](https://img.shields.io/badge/Jest-Testing-C21325?style=flat-square&logo=jest)](https://jestjs.io/)
 [![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?style=flat-square&logo=playwright)](https://playwright.dev/)
+[![Swagger](https://img.shields.io/badge/Swagger-API_Docs-85EA2D?style=flat-square&logo=swagger)](https://swagger.io/)
 [![License](https://img.shields.io/badge/License-MIT-EAB308?style=flat-square)](https://opensource.org/licenses/MIT)
 
 <a href="#-getting-started"><b>Getting Started</b></a> ·
@@ -291,7 +292,8 @@ Every external dependency is optional and isolated, so a missing key degrades on
 | **Editor / Sandbox** | Monaco Editor, Monaco Vim & Sandpack | DSA code editor (with Vim keys/Emmet) and client-side web sandbox |
 | **Analytics & Telemetry** | PostHog & OpenTelemetry SDK | Product-use analytics, performance tracing, and application logging |
 | **Form Handling** | React Hook Form & Zod | Client/server form validation and input schema sanitization |
-| **Document Tools** | React Markdown, rehype-sanitize & Swagger UI | Safe markdown rendering (GFM) and interactive API documentation |
+| **API Documentation** | Swagger UI (`swagger-ui-dist`) | Interactive OpenAPI/Swagger documentation page at `/docs` |
+| **Markdown Rendering** | React Markdown, rehype-sanitize & remark-gfm | Safe, sanitized GFM markdown rendering on client |
 | **UI Components** | Radix UI primitives & Sonner | Headless, accessible UI elements and customizable toast notifications |
 | **Email Delivery** | Nodemailer | Transactional emails (password-reset, beta confirmations) |
 | **Data Viz / Icons** | Recharts & Font Awesome SVG | Dynamic analytics dashboards and consistent icon sets |
