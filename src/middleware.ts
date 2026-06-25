@@ -23,6 +23,7 @@ const PUBLIC_PREFIXES = [
   "/api/feedback",
   "/beta",
   "/api/beta",
+  "/api/subscription/webhook", // Razorpay webhook — verified by signature, no session
   "/_next",
   "/favicon",
   "/sitemap.xml",

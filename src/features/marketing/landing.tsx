@@ -391,7 +391,7 @@ function CardSlider({ children }: { children: ReactNode }) {
 
 /* ── page ─────────────────────────────────────────────────────────── */
 
-export function Landing({ signedIn, problems, totalProblems, featuresByPlan }: { signedIn: boolean; problems: LandingProblem[]; totalProblems: number; featuresByPlan?: Record<"free" | "go" | "plus", { text: string; included: boolean }[]> }) {
+export function Landing({ signedIn, problems, totalProblems, featuresByPlan, paymentsEnabled }: { signedIn: boolean; problems: LandingProblem[]; totalProblems: number; featuresByPlan?: Record<"free" | "go" | "plus", { text: string; included: boolean }[]>; paymentsEnabled?: boolean }) {
   const ctaHref = signedIn ? "/dashboard" : "/register";
   const [mobileMenu, setMobileMenu] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -827,7 +827,7 @@ for (let i = 0; i < nums.length; i++) {
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <SectionHead eyebrow="Pricing" title={<>Start free, level up fast.</>} sub="7-day free trial on all paid plans. No credit card required." />
             <Reveal delay={0.1} className="mt-12">
-              <PricingCards featuresByPlan={featuresByPlan} />
+              <PricingCards featuresByPlan={featuresByPlan} paymentsEnabled={paymentsEnabled} />
             </Reveal>
           </div>
         </section>

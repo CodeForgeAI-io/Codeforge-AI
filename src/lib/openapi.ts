@@ -1742,6 +1742,45 @@ export const openApiSpec: Record<string, any> = {
         },
       },
     },
+    "/subscription/create-subscription": {
+      post: {
+        tags: ["Subscription"],
+        summary: "Create a recurring Razorpay subscription (auto-pay)",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["plan", "cycle"],
+                properties: {
+                  plan: { type: "string", enum: ["go", "plus"] },
+                  cycle: { type: "string", enum: ["monthly", "yearly"] },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Subscription created", content: { "application/json": { schema: { type: "object", properties: { subscriptionId: { type: "string" }, key: { type: "string" }, plan: { type: "string" }, cycle: { type: "string" } } } } } },
+          "401": { description: "Unauthenticated" },
+          "429": { description: "Rate limited" },
+          "503": { description: "Payments not configured" },
+        },
+      },
+    },
+    "/subscription/webhook": {
+      post: {
+        tags: ["Subscription"],
+        summary: "Razorpay webhook (signature-verified, no session). Handles subscription.charged, activated, cancelled, halted, completed and payment.failed.",
+        security: [],
+        responses: {
+          "200": { description: "Acknowledged (also returned for duplicate deliveries)" },
+          "400": { description: "Invalid signature or body" },
+          "500": { description: "Handler error (Razorpay will retry)" },
+        },
+      },
+    },
     "/subscription/verify": {
       post: {
         tags: ["Subscription"],

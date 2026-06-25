@@ -7,7 +7,10 @@ export interface SubscriptionDoc {
   billingCycle: "monthly" | "yearly";
   amount: number;
   currency: string;
-  razorpayOrderId: string;
+  /** "order" = one-time payment, "subscription" = recurring auto-pay. */
+  kind: "order" | "subscription";
+  razorpayOrderId?: string;
+  razorpaySubscriptionId?: string;
   razorpayPaymentId?: string;
   razorpaySignature?: string;
   status: "created" | "paid" | "failed" | "cancelled";
@@ -23,8 +26,12 @@ const subscriptionSchema = new Schema<SubscriptionDoc>(
     billingCycle: { type: String, enum: ["monthly", "yearly"], required: true },
     amount: { type: Number, required: true },
     currency: { type: String, default: "INR" },
-    razorpayOrderId: { type: String, required: true },
-    razorpayPaymentId: { type: String },
+    kind: { type: String, enum: ["order", "subscription"], default: "order" },
+    razorpayOrderId: { type: String },
+    razorpaySubscriptionId: { type: String, index: true },
+    // Unique-but-sparse so each captured payment maps to exactly one invoice
+    // and webhook re-deliveries cannot create duplicates.
+    razorpayPaymentId: { type: String, unique: true, sparse: true },
     razorpaySignature: { type: String },
     status: { type: String, enum: ["created", "paid", "failed", "cancelled"], default: "created" },
     periodStart: { type: Date },

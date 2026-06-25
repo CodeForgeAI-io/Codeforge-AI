@@ -52,6 +52,9 @@ export interface UserDoc {
   planExpiresAt?: Date | null;
   trialEndsAt?: Date | null;
   billingCycle?: "monthly" | "yearly" | null;
+  razorpaySubscriptionId?: string | null;
+  subscriptionStatus?: "active" | "pending" | "halted" | "cancelled" | "completed" | null;
+  cancelAtPeriodEnd?: boolean;
   betaUser?: boolean;
   passwordResetToken?: string | null;
   passwordResetExpiry?: Date | null;
@@ -125,6 +128,13 @@ const userSchema = new Schema<UserDoc>(
     planExpiresAt: { type: Date, default: null },
     trialEndsAt: { type: Date, default: null },
     billingCycle: { type: String, enum: ["monthly", "yearly", null], default: null },
+    razorpaySubscriptionId: { type: String, default: null, index: true },
+    subscriptionStatus: {
+      type: String,
+      enum: ["active", "pending", "halted", "cancelled", "completed", null],
+      default: null,
+    },
+    cancelAtPeriodEnd: { type: Boolean, default: false },
     betaUser: { type: Boolean, default: false, index: true },
     passwordResetToken: { type: String, default: null, select: false },
     passwordResetExpiry: { type: Date, default: null, select: false },

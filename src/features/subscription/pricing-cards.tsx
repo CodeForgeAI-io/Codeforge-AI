@@ -17,8 +17,6 @@ declare global {
   }
 }
 
-const paymentsEnabled = !!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-
 function loadRazorpay(): Promise<boolean> {
   return new Promise((resolve) => {
     if (window.Razorpay) return resolve(true);
@@ -36,6 +34,7 @@ export function PricingCards({
   onPlanChosen,
   compact = false,
   featuresByPlan,
+  paymentsEnabled = false,
 }: {
   cycle?: BillingCycle;
   currentPlan?: string | null;
@@ -43,6 +42,8 @@ export function PricingCards({
   compact?: boolean;
   /** Per-plan feature checklist derived from the admin feature matrix. */
   featuresByPlan?: Record<PlanId, { text: string; included: boolean }[]>;
+  /** Whether Razorpay is configured (resolved server-side). */
+  paymentsEnabled?: boolean;
 }) {
   const [cycle, setCycle] = useState<BillingCycle>(defaultCycle);
   const [loading, setLoading] = useState<PlanId | null>(null);
@@ -77,36 +78,35 @@ export function PricingCards({
       const loaded = await loadRazorpay();
       if (!loaded) throw new Error("Failed to load payment gateway");
 
-      const res = await fetch("/api/subscription/create-order", {
+      // Create a recurring subscription (auto-pay) on the server.
+      const res = await fetch("/api/subscription/create-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan, cycle }),
       });
-      const order = await res.json();
-      if (!res.ok) throw new Error(order.error);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
 
       new window.Razorpay({
-        key: order.key,
-        amount: order.amount * 100,
-        currency: order.currency,
+        key: data.key,
+        subscription_id: data.subscriptionId,
         name: "CodeForge AI",
-        description: `${PLANS[plan].name} — ${cycle}`,
-        order_id: order.orderId,
+        description: `${PLANS[plan].name} — ${cycle} (auto-renews)`,
         theme: { color: "#006bff" },
         prefill: { name: session.user.name, email: session.user.email },
-        handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+        handler: async (response: { razorpay_payment_id: string; razorpay_subscription_id: string; razorpay_signature: string }) => {
           const verify = await fetch("/api/subscription/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              razorpayOrderId: response.razorpay_order_id,
+              razorpaySubscriptionId: response.razorpay_subscription_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
             }),
           });
           const v = await verify.json();
           if (verify.ok) {
-            toast.success(`Upgraded to ${PLANS[plan].name}!`);
+            toast.success(`Upgraded to ${PLANS[plan].name}! Auto-pay is on.`);
             onPlanChosen?.(plan);
             router.refresh();
           } else {

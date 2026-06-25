@@ -39,6 +39,8 @@ export { AiUsage, type AiUsageDoc } from "./AiUsage";
 export { Subscription, type SubscriptionDoc } from "./Subscription";
 export { FeatureAccess, type FeatureAccessDoc } from "./FeatureAccess";
 export { GenUsage, type GenUsageDoc } from "./GenUsage";
+export { RazorpayPlan, type RazorpayPlanDoc } from "./RazorpayPlan";
+export { WebhookEvent, type WebhookEventDoc } from "./WebhookEvent";
 export { PromptTemplate, type PromptTemplateDoc } from "./PromptTemplate";
 export { DailyActivity, type DailyActivityDoc } from "./DailyActivity";
 export { Discussion, type DiscussionDoc, type DiscussionReply } from "./Discussion";

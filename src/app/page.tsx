@@ -49,6 +49,7 @@ export default async function HomePage() {
         problems={problems}
         totalProblems={totalProblems}
         featuresByPlan={buildPricingFeatures(await getFeatureAccess())}
+        paymentsEnabled={!!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)}
       />
     </>
   );
