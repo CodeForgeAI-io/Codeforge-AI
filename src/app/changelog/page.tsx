@@ -10,10 +10,40 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "1.8.0",
-    date: "June 24, 2026",
+    version: "2.0.0",
+    date: "June 25, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Subscriptions with auto-pay — upgrade to Go or Plus with recurring Razorpay billing that renews automatically; cancel anytime to stop at period end",
+        "Custom checkout page — enter your billing details once; payment opens straight to UPI apps, cards and netbanking without re-asking for your number or email",
+        "Coupon codes — apply a discount code at checkout; admins can create percent or flat coupons with limits, expiry and per-user rules",
+        "Plan-based feature access — Smart Revision, Company Prep, Skill Analytics and the Mock Interview simulator are now part of paid plans, with a clear upgrade screen when locked",
+        "Monthly limits per plan — AI credits and AI problem generation (Free 20, Go 50, Plus unlimited) are metered fairly",
+        "About Us and Contact Us pages with company and support details",
+        "Show/hide password toggle on sign-in and sign-up",
+        "Delete account — remove your account and all your data from Settings; admins can also delete a user from the panel",
+      ],
+      improved: [
+        "AI Mentor now stays on topic — it only answers coding, DSA and interview-prep questions and politely declines anything off-topic",
+        "Pricing reimagined around monthly AI credits, and the feature list now reflects exactly what each plan unlocks (admin-controlled)",
+        "Admin dashboard — real revenue analytics plus new Billing & Usage, Coupons and Feature Access managers",
+        "Invoices now include your billing address and Setups Works branding; support is info@codeforgeai.io",
+        "Faster pages — analytics load lazily after first paint and sign-in/up ship ~68 kB less JavaScript",
+        "Hardened payment security — constant-time signature checks, webhook verification with replay protection, request-size limits and login throttling",
+      ],
+      fixed: [
+        "Razorpay checkout was blocked by the Content-Security-Policy — its script and iframe are now allowed (we still can't be framed)",
+        "Pricing cards no longer repeat the plan name and price",
+      ],
+    },
+  },
+  {
+    version: "1.8.0",
+    date: "June 24, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "AI credit metering — every AI tool now counts against a monthly allowance based on your plan, with a clear 'out of credits' message when you hit the limit",

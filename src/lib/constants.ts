@@ -1,5 +1,5 @@
 export const APP_NAME = "CodeForge AI";
-export const APP_VERSION = "1.8.0";
+export const APP_VERSION = "2.0.0";
 export const APP_DESCRIPTION =
   "AI-powered coding interview preparation platform. Master DSA, build frontend projects, and ace your next interview.";
 
