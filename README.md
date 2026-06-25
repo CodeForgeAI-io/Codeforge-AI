@@ -17,6 +17,13 @@ LeetCode-style DSA problems · An **instant online compiler** · Frontend sandbo
 [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=flat-square&logo=mongodb)](https://www.mongodb.com/)
 [![Redis](https://img.shields.io/badge/Redis-Upstash-DC382D?style=flat-square&logo=redis)](https://upstash.com/)
 [![Groq](https://img.shields.io/badge/AI-Groq_Llama_3-F55036?style=flat-square&logo=meta)](https://groq.com/)
+<br/>
+[![Zustand](https://img.shields.io/badge/Zustand-v5-orange?style=flat-square)](https://zustand.docs.pmnd.rs/)
+[![React Query](https://img.shields.io/badge/React_Query-v5-FF4154?style=flat-square&logo=reactquery)](https://tanstack.com/query/latest)
+[![PostHog](https://img.shields.io/badge/PostHog-Analytics-000000?style=flat-square&logo=posthog)](https://posthog.com/)
+[![OpenTelemetry](https://img.shields.io/badge/Telemetry-OTel-F05A28?style=flat-square&logo=opentelemetry)](https://opentelemetry.io/)
+[![Jest](https://img.shields.io/badge/Jest-Testing-C21325?style=flat-square&logo=jest)](https://jestjs.io/)
+[![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?style=flat-square&logo=playwright)](https://playwright.dev/)
 [![License](https://img.shields.io/badge/License-MIT-EAB308?style=flat-square)](https://opensource.org/licenses/MIT)
 
 <a href="#-getting-started"><b>Getting Started</b></a> ·
@@ -270,21 +277,24 @@ Every external dependency is optional and isolated, so a missing key degrades on
 
 ## Tech Stack
 
-| Layer              | Technology              | Purpose                                 |
-| :----------------- | :---------------------- | :-------------------------------------- |
-| **Framework**      | Next.js 15 (App Router) | SSG/SSR, Server Actions, API middleware |
-| **Language**       | TypeScript (Strict)     | Compile-time safety                     |
-| **Styling**        | Tailwind CSS v4         | Utility-first, zero-runtime styling     |
-| **Database**       | MongoDB + Mongoose      | Users, questions, submissions, metrics  |
-| **Cache / Limits** | Upstash Redis           | Rate-limiting & leaderboard cache       |
-| **Auth**           | NextAuth.js v5          | Credentials + Google/GitHub OAuth       |
-| **AI**             | Groq (Llama 3)          | Streaming mentor, tools & generation    |
-| **Payments**       | Razorpay                | Subscriptions, trials & billing         |
-| **Sandbox**        | @codesandbox/sandpack   | Client-side frontend compiler           |
-| **Editor**         | @monaco-editor/react    | In-browser IDE editing                  |
-| **Icons**          | Font Awesome (SVG)      | Consistent icon set across the app      |
-| **State**          | Zustand + React Query   | Client & server-state management        |
-| **Email**          | Nodemailer              | Beta & password-reset email             |
+| Layer | Technology / Packages | Purpose |
+| :--- | :--- | :--- |
+| **Framework** | Next.js 15.5 (App Router) | Core full-stack web framework (SSG/SSR, Server Actions, API routes) |
+| **Language** | TypeScript 5 (Strict) | Compile-time type safety across client and server |
+| **State Management** | Zustand 5 & React Query 5 | Client-side store & server-state caching/fetching |
+| **Styling** | Tailwind CSS v4 & Framer Motion 12 | Zero-runtime styling, custom themes, and smooth micro-animations |
+| **Database** | MongoDB + Mongoose 9 | NoSQL database and schema modeling for users, questions, submissions, etc. |
+| **Cache & Rate-Limits** | Upstash Redis & Upstash Ratelimit 2 | Leaderboards caching, rate-limiting middleware |
+| **Authentication** | NextAuth.js v5 (Beta 31) + bcryptjs | Secure credentials & OAuth (Google/GitHub) sessions |
+| **AI Mentoring** | Groq SDK (Llama 3) & LangSmith | Real-time streaming AI advice, model prompts, and evaluation/tracing |
+| **Payments** | Razorpay SDK | Subscriptions, billing checkout, and order verification |
+| **Editor / Sandbox** | Monaco Editor, Monaco Vim & Sandpack | DSA code editor (with Vim keys/Emmet) and client-side web sandbox |
+| **Analytics & Telemetry** | PostHog & OpenTelemetry SDK | Product-use analytics, performance tracing, and application logging |
+| **Form Handling** | React Hook Form & Zod | Client/server form validation and input schema sanitization |
+| **Document Tools** | React Markdown, rehype-sanitize & Swagger UI | Safe markdown rendering (GFM) and interactive API documentation |
+| **UI Components** | Radix UI primitives & Sonner | Headless, accessible UI elements and customizable toast notifications |
+| **Email Delivery** | Nodemailer | Transactional emails (password-reset, beta confirmations) |
+| **Data Viz / Icons** | Recharts & Font Awesome SVG | Dynamic analytics dashboards and consistent icon sets |
 
 ---
 
