@@ -28,7 +28,7 @@ export const openApiSpec: Record<string, any> = {
   openapi: "3.0.3",
   info: {
     title: "CodeForge AI API",
-    version: "1.8.0",
+    version: "2.0.0",
     description:
       "REST API for CodeForge AI — an AI-powered coding practice platform. All protected endpoints require an active session cookie obtained via `/api/auth/signin`.",
     contact: { name: "CodeForge AI", email: "nitheeraj1@gmail.com" },
@@ -58,6 +58,8 @@ export const openApiSpec: Record<string, any> = {
     { name: "Onboarding", description: "First-run preferences" },
     { name: "Feedback", description: "Bug reports and feature requests" },
     { name: "Beta", description: "Beta program signup" },
+    { name: "Coupons", description: "Discount codes" },
+    { name: "Account", description: "Account management" },
     { name: "Admin", description: "Admin-only endpoints (role: admin)" },
   ],
   components: {
@@ -1819,6 +1821,44 @@ export const openApiSpec: Record<string, any> = {
         },
       },
     },
+    "/coupons/validate": {
+      post: {
+        tags: ["Coupons"],
+        summary: "Preview a coupon's discount for a plan + cycle (does not redeem)",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["code", "plan", "cycle"],
+                properties: {
+                  code: { type: "string" },
+                  plan: { type: "string", enum: ["go", "plus"] },
+                  cycle: { type: "string", enum: ["monthly", "yearly"] },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Valid coupon", content: { "application/json": { schema: { type: "object", properties: { ok: { type: "boolean" }, code: { type: "string" }, discount: { type: "number" }, finalAmount: { type: "number" } } } } } },
+          "422": { description: "Invalid/expired/ineligible coupon", content: { "application/json": { schema: { type: "object", properties: { ok: { type: "boolean" }, reason: { type: "string" } } } } } },
+          "401": { description: "Unauthenticated" },
+        },
+      },
+    },
+    "/account": {
+      delete: {
+        tags: ["Account"],
+        summary: "Permanently delete the signed-in user's account and all their data",
+        responses: {
+          "200": { description: "Account deleted (client should sign out)" },
+          "401": { description: "Unauthenticated" },
+          "429": { description: "Rate limited" },
+        },
+      },
+    },
     "/subscription/cancel": {
       post: {
         tags: ["Subscription"],
@@ -1930,6 +1970,17 @@ export const openApiSpec: Record<string, any> = {
         requestBody: { required: true, content: { "application/json": { schema: { type: "object", properties: { role: { type: "string", enum: ["user", "admin"] } } } } } },
         responses: { "200": { description: "Updated" }, "403": { description: "Admin only" } },
       },
+      delete: {
+        tags: ["Admin"],
+        summary: "Permanently delete a user and their owned data (admin)",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "User and owned data deleted" },
+          "400": { description: "Invalid id or attempting to delete self" },
+          "403": { description: "Admin only" },
+          "404": { description: "Not found" },
+        },
+      },
     },
     "/admin/challenges": {
       get: { tags: ["Admin"], summary: "List all challenges (admin)", responses: { "200": { description: "Challenge list" }, "403": { description: "Admin only" } } },
@@ -1985,6 +2036,56 @@ export const openApiSpec: Record<string, any> = {
     },
     "/admin/prompts": {
       get: { tags: ["Admin"], summary: "List AI prompt templates (admin)", responses: { "200": { description: "Prompt templates" }, "403": { description: "Admin only" } } },
+    },
+    "/admin/coupons": {
+      get: {
+        tags: ["Admin"],
+        summary: "List coupons (admin)",
+        responses: { "200": { description: "Coupon list" }, "403": { description: "Admin only" } },
+      },
+      post: {
+        tags: ["Admin"],
+        summary: "Create a coupon (admin)",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["code", "type", "value"],
+                properties: {
+                  code: { type: "string" },
+                  description: { type: "string" },
+                  type: { type: "string", enum: ["percent", "flat"] },
+                  value: { type: "number", description: "Percent (0–100) or flat rupees" },
+                  minAmount: { type: "number" },
+                  maxRedemptions: { type: "integer", description: "-1 = unlimited" },
+                  oncePerUser: { type: "boolean" },
+                  plans: { type: "array", items: { type: "string", enum: ["go", "plus"] } },
+                  expiresAt: { type: "string", format: "date", nullable: true },
+                  active: { type: "boolean" },
+                },
+              },
+            },
+          },
+        },
+        responses: { "201": { description: "Created" }, "409": { description: "Code already exists" }, "403": { description: "Admin only" } },
+      },
+    },
+    "/admin/coupons/{id}": {
+      patch: {
+        tags: ["Admin"],
+        summary: "Update a coupon (admin)",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        responses: { "200": { description: "Updated" }, "403": { description: "Admin only" } },
+      },
+      delete: {
+        tags: ["Admin"],
+        summary: "Delete a coupon (admin)",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: { "200": { description: "Deleted" }, "403": { description: "Admin only" } },
+      },
     },
     "/admin/features": {
       get: {
