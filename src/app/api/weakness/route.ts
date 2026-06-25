@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
+import { requireFeature } from "@/services/feature-access";
 import { Submission } from "@/models";
 
 const CATEGORIES = [
@@ -13,6 +14,8 @@ const CATEGORIES = [
 export async function GET() {
   const { session, error } = await requireUser();
   if (error) return error;
+  const gate = await requireFeature(session.user.plan, "skillAnalytics");
+  if (gate) return gate;
 
   await connectDB();
 

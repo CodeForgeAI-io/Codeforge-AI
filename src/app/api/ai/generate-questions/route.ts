@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { enforceAiCredit } from "@/services/ai-credits";
+import { enforceGenQuota } from "@/services/gen-quota";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { DIFFICULTIES, QUESTION_CATEGORIES } from "@/lib/constants";
 import { isAiConfigured } from "@/services/ai/groq";
@@ -56,6 +57,10 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
+
+  // Monthly problem-generation quota (Free 20, Go 50, Plus unlimited)
+  const quota = await enforceGenQuota(session.user.id, session.user.plan, parsed.data.count);
+  if (quota) return quota;
 
   const constraints = [
     parsed.data.difficulty && `All questions must be ${parsed.data.difficulty} difficulty.`,

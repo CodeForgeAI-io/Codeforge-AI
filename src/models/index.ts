@@ -37,6 +37,8 @@ export { AiChat, type AiChatDoc, type AiChatMessage } from "./AiChat";
 export { AiToolRun, type AiToolRunDoc } from "./AiToolRun";
 export { AiUsage, type AiUsageDoc } from "./AiUsage";
 export { Subscription, type SubscriptionDoc } from "./Subscription";
+export { FeatureAccess, type FeatureAccessDoc } from "./FeatureAccess";
+export { GenUsage, type GenUsageDoc } from "./GenUsage";
 export { PromptTemplate, type PromptTemplateDoc } from "./PromptTemplate";
 export { DailyActivity, type DailyActivityDoc } from "./DailyActivity";
 export { Discussion, type DiscussionDoc, type DiscussionReply } from "./Discussion";

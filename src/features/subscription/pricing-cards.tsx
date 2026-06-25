@@ -35,11 +35,14 @@ export function PricingCards({
   currentPlan,
   onPlanChosen,
   compact = false,
+  featuresByPlan,
 }: {
   cycle?: BillingCycle;
   currentPlan?: string | null;
   onPlanChosen?: (plan: PlanId) => void;
   compact?: boolean;
+  /** Per-plan feature checklist derived from the admin feature matrix. */
+  featuresByPlan?: Record<PlanId, { text: string; included: boolean }[]>;
 }) {
   const [cycle, setCycle] = useState<BillingCycle>(defaultCycle);
   const [loading, setLoading] = useState<PlanId | null>(null);
@@ -213,7 +216,7 @@ export function PricingCards({
               </div>
 
               <ul className="mb-6 flex-1 space-y-2">
-                {plan.features.map((f, i) => (
+                {(featuresByPlan?.[plan.id] ?? plan.features).map((f, i) => (
                   <li key={i} className={cn("flex items-start gap-2 text-xs", !f.included && "opacity-40")}>
                     {f.included
                       ? <Check className="size-3.5 shrink-0 mt-0.5 text-primary" />

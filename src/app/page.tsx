@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { listQuestions } from "@/services/questions";
 import { Landing, type LandingProblem } from "@/features/marketing/landing";
 import { FAQS } from "@/features/marketing/faqs";
+import { getFeatureAccess } from "@/services/feature-access";
+import { buildPricingFeatures } from "@/lib/feature-catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +48,7 @@ export default async function HomePage() {
         signedIn={!!session?.user}
         problems={problems}
         totalProblems={totalProblems}
+        featuresByPlan={buildPricingFeatures(await getFeatureAccess())}
       />
     </>
   );

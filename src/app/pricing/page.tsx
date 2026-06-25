@@ -5,6 +5,8 @@ import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models";
 import { PublicHeader } from "@/components/layout/public-header";
 import { PricingCards } from "@/features/subscription/pricing-cards";
+import { getFeatureAccess } from "@/services/feature-access";
+import { buildPricingFeatures } from "@/lib/feature-catalog";
 import { Clock, RefreshCw, HeadphonesIcon, Sparkles } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -14,7 +16,6 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const paymentsEnabled = !!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-
 export default async function PricingPage() {
   const session = await auth();
   const signedIn = !!session?.user;
@@ -25,6 +26,8 @@ export default async function PricingPage() {
     const user = await User.findById(session.user.id).select("plan").lean();
     currentPlan = user?.plan ?? "free";
   }
+
+  const featuresByPlan = buildPricingFeatures(await getFeatureAccess());
 
   return (
     <div className="min-h-svh bg-background">
@@ -65,7 +68,7 @@ export default async function PricingPage() {
           </div>
         )}
 
-        <PricingCards currentPlan={currentPlan} />
+        <PricingCards currentPlan={currentPlan} featuresByPlan={featuresByPlan} />
 
         {/* trust badges */}
         <div className="mt-12 flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">

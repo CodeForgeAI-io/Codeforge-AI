@@ -1,9 +1,21 @@
 import { Brain } from "@/components/icons";
 import { RevisionPanel } from "@/features/revision/revision-panel";
+import { UpgradeLock } from "@/components/shared/upgrade-lock";
+import { checkPageFeature } from "@/services/feature-access";
 
 export const metadata = { title: "Smart Revision" };
 
-export default function RevisionPage() {
+export default async function RevisionPage() {
+  const gate = await checkPageFeature("spacedRepetition");
+  if (!gate.allowed) {
+    return (
+      <UpgradeLock
+        feature="Smart Revision"
+        description="Spaced-repetition review (SM-2) schedules problems at the perfect moment to lock them into memory."
+        requiredPlan={gate.requiredPlan as "go" | "plus"}
+      />
+    );
+  }
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6">
       <div className="flex items-center gap-3">
