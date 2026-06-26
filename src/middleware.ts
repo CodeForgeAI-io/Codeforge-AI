@@ -35,6 +35,7 @@ const PUBLIC_PREFIXES = [
   "/sitemap.xml",
   "/robots.txt",
   "/llms.txt",
+  "/ads.txt",
   "/manifest.webmanifest", // PWA manifest
   "/sw.js", // PWA service worker
   "/offline.html", // PWA offline fallback
