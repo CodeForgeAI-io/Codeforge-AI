@@ -67,7 +67,7 @@ export default function AboutPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(founderLd) }}
       />
-      <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight text-primary">
+      <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight text-[#006bff]">
         <span className="size-1.5 rounded-full bg-[#006bff]" /> About us
       </span>
       <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
