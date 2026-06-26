@@ -125,6 +125,9 @@ export default async function RootLayout({
         foundingDate: "2026",
         founder: { "@id": `${url}/#founder` },
         parentOrganization: { "@type": "Organization", name: "Setups Works" },
+        address: { "@type": "PostalAddress", addressCountry: "IN" },
+        foundingLocation: { "@type": "Place", name: "India" },
+        areaServed: "Worldwide",
         knowsAbout: [
           "Coding interview preparation",
           "Data structures and algorithms",
@@ -158,7 +161,6 @@ export default async function RootLayout({
         jobTitle: FOUNDER.role,
         description: `Founder and developer of ${name} (codeforgeai.io).`,
         worksFor: { "@id": `${url}/#org` },
-        founderOf: { "@id": `${url}/#org` },
         url: `${url}/about`,
         sameAs: [...FOUNDER.sameAs],
       },
