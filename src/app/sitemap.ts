@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getEffectiveConfig } from "@/lib/site-config";
 import { connectDB } from "@/lib/mongodb";
 import { Question } from "@/models";
+import { DOC_ARTICLES } from "@/content/docs";
 
 // Render at request time so the build never has to reach the DB to prerender.
 export const dynamic = "force-dynamic";
@@ -20,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/compiler`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${base}/help`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/changelog`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/terms`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
     { url: `${base}/privacy`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
@@ -40,5 +42,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Don't break sitemap generation on DB error
   }
 
-  return [...staticRoutes, ...problemRoutes];
+  const docRoutes: MetadataRoute.Sitemap = DOC_ARTICLES.map((a) => ({
+    url: `${base}/help/${a.slug}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.5,
+  }));
+
+  return [...staticRoutes, ...docRoutes, ...problemRoutes];
 }

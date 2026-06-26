@@ -21,6 +21,7 @@ const PUBLIC_PREFIXES = [
   "/changelog",
   "/about",
   "/contact",
+  "/help",
   "/feedback",
   "/api/feedback",
   "/beta",

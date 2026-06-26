@@ -65,6 +65,8 @@ import {
   faGear,
   faGlobe,
   faPhone,
+  faLayerGroup,
+  faCircleQuestion,
   faGraduationCap,
   faGripVertical,
   faHeadphones,
@@ -206,6 +208,8 @@ export const Flame = make(faFire);
 export const GitBranch = make(faCodeBranch);
 export const Globe = make(faGlobe);
 export const GraduationCap = make(faGraduationCap);
+export const Layers = make(faLayerGroup);
+export const HelpCircle = make(faCircleQuestion);
 export const GripVerticalIcon = make(faGripVertical);
 export const HeadphonesIcon = make(faHeadphones);
 export const Heart = make(faHeart);

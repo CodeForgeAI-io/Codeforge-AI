@@ -13,6 +13,7 @@ export function InfoLayout({ children }: { children: React.ReactNode }) {
           <nav className="flex items-center gap-5 text-sm text-muted-foreground">
             <Link href="/problems" className="hover:text-foreground transition-colors hidden sm:block">Problems</Link>
             <Link href="/pricing" className="hover:text-foreground transition-colors hidden sm:block">Pricing</Link>
+            <Link href="/help" className="hover:text-foreground transition-colors hidden sm:block">Docs</Link>
             <Link href="/about" className="hover:text-foreground transition-colors hidden sm:block">About</Link>
             <Link href="/contact" className="hover:text-foreground transition-colors hidden sm:block">Contact</Link>
             <Link href="/feedback" className="hover:text-foreground transition-colors">Feedback</Link>
@@ -34,6 +35,7 @@ export function InfoLayout({ children }: { children: React.ReactNode }) {
         <div className="mx-auto max-w-4xl space-y-4 px-4 py-6 text-xs text-muted-foreground">
           {/* link row — wraps and stays centered */}
           <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+            <Link href="/help" className="hover:text-foreground transition-colors">Docs</Link>
             <Link href="/about" className="hover:text-foreground transition-colors">About</Link>
             <Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link>
             <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
