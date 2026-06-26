@@ -21,6 +21,7 @@ import {
   faBars,
   faBolt,
   faBookOpen,
+  faBriefcase,
   faBookmark,
   faBrain,
   faBuilding,
@@ -165,6 +166,7 @@ export const Award = make(faAward);
 export const BarChart2 = make(faChartColumn);
 export const BarChart3 = make(faChartColumn);
 export const BookOpen = make(faBookOpen);
+export const Briefcase = make(faBriefcase);
 export const Bookmark = make(faBookmark);
 export const BookmarkCheck = make(faBookmark);
 export const Bot = make(faRobot);

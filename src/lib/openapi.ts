@@ -61,6 +61,7 @@ export const openApiSpec: Record<string, any> = {
     { name: "Coupons", description: "Discount codes" },
     { name: "Account", description: "Account management" },
     { name: "Blog", description: "AI-generated feature blog" },
+    { name: "Careers", description: "Open roles and applications" },
     { name: "Admin", description: "Admin-only endpoints (role: admin)" },
   ],
   components: {
@@ -1847,6 +1848,63 @@ export const openApiSpec: Record<string, any> = {
           "422": { description: "Invalid/expired/ineligible coupon", content: { "application/json": { schema: { type: "object", properties: { ok: { type: "boolean" }, reason: { type: "string" } } } } } },
           "401": { description: "Unauthenticated" },
         },
+      },
+    },
+    "/careers/apply": {
+      post: {
+        tags: ["Careers"],
+        summary: "Apply for an open role",
+        security: [],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["role", "name", "email", "message"],
+                properties: {
+                  role: { type: "string", description: "Career slug" },
+                  name: { type: "string" },
+                  email: { type: "string", format: "email" },
+                  phone: { type: "string", nullable: true },
+                  link: { type: "string", format: "uri", nullable: true },
+                  message: { type: "string", minLength: 20 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Application received (confirmation emailed)" },
+          "400": { description: "Validation error" },
+          "429": { description: "Rate limited" },
+        },
+      },
+    },
+    "/admin/careers": {
+      get: {
+        tags: ["Admin"],
+        summary: "List job applications (admin)",
+        parameters: [
+          { name: "role", in: "query", schema: { type: "string" } },
+          { name: "status", in: "query", schema: { type: "string", enum: ["all", "new", "reviewing", "shortlisted", "rejected"] } },
+        ],
+        responses: { "200": { description: "Applications + status counts" }, "403": { description: "Admin only" } },
+      },
+    },
+    "/admin/careers/{id}": {
+      patch: {
+        tags: ["Admin"],
+        summary: "Update an application's status (admin)",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object", properties: { status: { type: "string", enum: ["new", "reviewing", "shortlisted", "rejected"] } } } } } },
+        responses: { "200": { description: "Updated" }, "403": { description: "Admin only" } },
+      },
+      delete: {
+        tags: ["Admin"],
+        summary: "Delete an application (admin)",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: { "200": { description: "Deleted" }, "403": { description: "Admin only" } },
       },
     },
     "/account": {

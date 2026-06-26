@@ -45,6 +45,7 @@ export { Coupon, type CouponDoc } from "./Coupon";
 export { CouponRedemption, type CouponRedemptionDoc } from "./CouponRedemption";
 export { BlogPost, type BlogPostDoc } from "./BlogPost";
 export { Feedback, type FeedbackDoc } from "./Feedback";
+export { JobApplication, type JobApplicationDoc } from "./JobApplication";
 export { PromptTemplate, type PromptTemplateDoc } from "./PromptTemplate";
 export { DailyActivity, type DailyActivityDoc } from "./DailyActivity";
 export { Discussion, type DiscussionDoc, type DiscussionReply } from "./Discussion";
