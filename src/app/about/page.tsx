@@ -24,7 +24,6 @@ const founderLd = {
     description: `Founder and developer of ${APP_NAME} (codeforgeai.io).`,
     url: `${SITE}/about`,
     worksFor: { "@type": "Organization", name: APP_NAME, "@id": `${SITE}/#org`, url: SITE },
-    founderOf: { "@type": "Organization", name: APP_NAME, "@id": `${SITE}/#org`, url: SITE },
     sameAs: [...FOUNDER.sameAs],
   },
 };
