@@ -168,7 +168,7 @@ export function CareersManager() {
                 </div>
 
                 {selected.resumeUrl && (
-                  <a href={selected.resumeUrl} target="_blank" rel="noopener noreferrer"
+                  <a href={`/api/admin/careers/${selected.id}/resume`} target="_blank" rel="noopener noreferrer"
                     className="flex items-center gap-2.5 rounded-lg border bg-background px-3 py-2.5 text-sm font-medium text-primary hover:bg-accent">
                     <FileText className="size-4" /> {selected.resumeName || "Download résumé"}
                   </a>
