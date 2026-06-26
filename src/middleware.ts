@@ -24,6 +24,8 @@ const PUBLIC_PREFIXES = [
   "/help",
   "/blog", // public blog (pages + /api/blog/cover image route)
   "/api/blog",
+  "/careers", // public careers pages
+  "/api/careers", // public apply endpoint
   "/feedback",
   "/api/feedback",
   "/beta",

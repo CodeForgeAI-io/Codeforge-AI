@@ -3,6 +3,7 @@ import { getEffectiveConfig } from "@/lib/site-config";
 import { connectDB } from "@/lib/mongodb";
 import { Question, BlogPost } from "@/models";
 import { DOC_ARTICLES } from "@/content/docs";
+import { CAREERS } from "@/content/careers";
 
 // Render at request time so the build never has to reach the DB to prerender.
 export const dynamic = "force-dynamic";
@@ -23,6 +24,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/help`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/careers`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
+    ...CAREERS.map((c) => ({
+      url: `${base}/careers/${c.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    })),
     { url: `${base}/changelog`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/terms`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
     { url: `${base}/privacy`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
