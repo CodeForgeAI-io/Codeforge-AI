@@ -1,13 +1,32 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { APP_NAME } from "@/lib/constants";
+import { FOUNDER } from "@/lib/founder";
 import { InfoLayout } from "@/components/shared/info-layout";
 import { Building2, Code2, Heart, Mail, Phone, Rocket, Sparkles, Target } from "@/components/icons";
 
+const SITE = "https://codeforgeai.io";
+
 export const metadata: Metadata = {
   title: `About Us — ${APP_NAME}`,
-  description:
-    "CodeForge AI is an AI-powered coding interview preparation platform, built by Setups Works.",
+  description: `${APP_NAME} is an AI-powered coding interview preparation platform founded by ${FOUNDER.name}, a product of Setups Works.`,
+};
+
+/** ProfilePage + Person so Google ties the founder's entity to CodeForge AI. */
+const founderLd = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  mainEntity: {
+    "@type": "Person",
+    "@id": `${SITE}/#founder`,
+    name: FOUNDER.name,
+    jobTitle: FOUNDER.role,
+    description: `Founder and developer of ${APP_NAME} (codeforgeai.io).`,
+    url: `${SITE}/about`,
+    worksFor: { "@type": "Organization", name: APP_NAME, "@id": `${SITE}/#org`, url: SITE },
+    founderOf: { "@type": "Organization", name: APP_NAME, "@id": `${SITE}/#org`, url: SITE },
+    sameAs: [...FOUNDER.sameAs],
+  },
 };
 
 const VALUES = [
@@ -19,6 +38,7 @@ const VALUES = [
 export default function AboutPage() {
   return (
     <InfoLayout>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(founderLd) }} />
       <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight text-primary">
         <span className="size-1.5 rounded-full bg-primary" /> About us
       </span>
@@ -62,17 +82,24 @@ export default function AboutPage() {
           <h2 className="text-lg font-bold">The company</h2>
         </div>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          {APP_NAME} (codeforgeai.io) is a product of <strong className="text-foreground">Setups Works</strong>,
-          an independent software studio. It is designed, built and maintained by{" "}
-          <strong className="text-foreground">Nitheesh Rajendran</strong>.
+          {APP_NAME} (codeforgeai.io) was <strong className="text-foreground">founded by {FOUNDER.name}</strong>{" "}
+          and is a product of <strong className="text-foreground">Setups Works</strong>, an independent software studio.
+          {FOUNDER.name} designs, builds and maintains the platform.
         </p>
 
         <dl className="mt-6 grid gap-4 sm:grid-cols-2">
           <div className="flex items-start gap-3 rounded-xl border bg-background p-4">
             <Code2 className="mt-0.5 size-4 text-primary" />
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Developer</dt>
-              <dd className="text-sm font-medium">Nitheesh Rajendran</dd>
+              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Founder &amp; Developer</dt>
+              <dd className="text-sm font-medium">{FOUNDER.name}</dd>
+              <dd className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
+                {FOUNDER.profiles.map((p) => (
+                  <a key={p.label} href={p.href} target="_blank" rel="noopener noreferrer me" className="text-primary hover:underline">
+                    {p.label}
+                  </a>
+                ))}
+              </dd>
             </div>
           </div>
           <div className="flex items-start gap-3 rounded-xl border bg-background p-4">

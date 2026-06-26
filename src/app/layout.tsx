@@ -6,6 +6,7 @@ import { AnalyticsScripts } from "@/components/analytics";
 import { PWARegister } from "@/components/pwa-register";
 import { getEffectiveConfig } from "@/lib/site-config";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants";
+import { FOUNDER } from "@/lib/founder";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import "./globals.css";
@@ -153,10 +154,13 @@ export default async function RootLayout({
       {
         "@type": "Person",
         "@id": `${url}/#founder`,
-        name: "Nitheesh Rajendran",
-        jobTitle: "Founder & Developer",
+        name: FOUNDER.name,
+        jobTitle: FOUNDER.role,
+        description: `Founder and developer of ${name} (codeforgeai.io).`,
         worksFor: { "@id": `${url}/#org` },
+        founderOf: { "@id": `${url}/#org` },
         url: `${url}/about`,
+        sameAs: [...FOUNDER.sameAs],
       },
       {
         "@type": "WebSite",
