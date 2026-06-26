@@ -9,7 +9,8 @@ import { APP_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: `Blog — ${APP_NAME}`,
-  description: "Product updates, feature deep-dives and tips from the CodeForge AI team.",
+  description:
+    "Product updates, feature deep-dives and tips from the CodeForge AI team.",
 };
 export const dynamic = "force-dynamic";
 
@@ -29,11 +30,14 @@ export default async function BlogIndexPage() {
       <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
         <div className="mb-10 text-center">
           <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight text-primary">
-            <span className="size-1.5 rounded-full bg-primary" /> Blog
+            <span className="size-1.5 rounded-full bg-[#006bff]" /> Blog
           </span>
-          <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">From the CodeForge AI team</h1>
+          <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+            From the CodeForge AI team
+          </h1>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-            Feature deep-dives, product updates and tips to help you prep smarter.
+            Feature deep-dives, product updates and tips to help you prep
+            smarter.
           </p>
         </div>
 
@@ -59,13 +63,25 @@ export default async function BlogIndexPage() {
                 <div className="flex flex-1 flex-col p-4">
                   <div className="mb-2 flex flex-wrap gap-1.5">
                     {(p.tags ?? []).slice(0, 3).map((t) => (
-                      <span key={t} className="rounded-full border px-2 py-0.5 text-[10px] text-muted-foreground">{t}</span>
+                      <span
+                        key={t}
+                        className="rounded-full border px-2 py-0.5 text-[10px] text-muted-foreground"
+                      >
+                        {t}
+                      </span>
                     ))}
                   </div>
-                  <h2 className="text-base font-semibold leading-snug group-hover:text-primary">{p.title}</h2>
-                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{p.description}</p>
+                  <h2 className="text-base font-semibold leading-snug group-hover:text-primary">
+                    {p.title}
+                  </h2>
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                    {p.description}
+                  </p>
                   <p className="mt-3 text-xs text-muted-foreground">
-                    {format(new Date(p.publishedAt ?? p.createdAt), "MMM d, yyyy")}
+                    {format(
+                      new Date(p.publishedAt ?? p.createdAt),
+                      "MMM d, yyyy",
+                    )}
                   </p>
                 </div>
               </Link>

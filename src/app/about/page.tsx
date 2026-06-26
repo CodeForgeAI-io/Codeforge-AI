@@ -3,7 +3,16 @@ import type { Metadata } from "next";
 import { APP_NAME } from "@/lib/constants";
 import { FOUNDER } from "@/lib/founder";
 import { InfoLayout } from "@/components/shared/info-layout";
-import { Building2, Code2, Heart, Mail, Phone, Rocket, Sparkles, Target } from "@/components/icons";
+import {
+  Building2,
+  Code2,
+  Heart,
+  Mail,
+  Phone,
+  Rocket,
+  Sparkles,
+  Target,
+} from "@/components/icons";
 
 const SITE = "https://codeforgeai.io";
 
@@ -23,41 +32,63 @@ const founderLd = {
     jobTitle: FOUNDER.role,
     description: `Founder and developer of ${APP_NAME} (codeforgeai.io).`,
     url: `${SITE}/about`,
-    worksFor: { "@type": "Organization", name: APP_NAME, "@id": `${SITE}/#org`, url: SITE },
+    worksFor: {
+      "@type": "Organization",
+      name: APP_NAME,
+      "@id": `${SITE}/#org`,
+      url: SITE,
+    },
     sameAs: [...FOUNDER.sameAs],
   },
 };
 
 const VALUES = [
-  { icon: Target, title: "Outcome-focused", text: "Everything we build is aimed at one thing — getting you interview-ready faster." },
-  { icon: Sparkles, title: "AI-first", text: "We pair classic practice with AI mentoring, reviews and personalized plans." },
-  { icon: Rocket, title: "Always improving", text: "We ship fast and listen — new tools, problems and fixes land every week." },
+  {
+    icon: Target,
+    title: "Outcome-focused",
+    text: "Everything we build is aimed at one thing — getting you interview-ready faster.",
+  },
+  {
+    icon: Sparkles,
+    title: "AI-first",
+    text: "We pair classic practice with AI mentoring, reviews and personalized plans.",
+  },
+  {
+    icon: Rocket,
+    title: "Always improving",
+    text: "We ship fast and listen — new tools, problems and fixes land every week.",
+  },
 ];
 
 export default function AboutPage() {
   return (
     <InfoLayout>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(founderLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(founderLd) }}
+      />
       <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight text-primary">
-        <span className="size-1.5 rounded-full bg-primary" /> About us
+        <span className="size-1.5 rounded-full bg-[#006bff]" /> About us
       </span>
       <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
         Building the fastest path to your next offer
       </h1>
       <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
-        {APP_NAME} is an AI-powered coding interview preparation platform. We bring together a
-        deep problem bank, an instant multi-language compiler, AI mentoring, spaced repetition,
-        skill analytics, contests and a community — so you can practice smarter and walk into
-        interviews with confidence.
+        {APP_NAME} is an AI-powered coding interview preparation platform. We
+        bring together a deep problem bank, an instant multi-language compiler,
+        AI mentoring, spaced repetition, skill analytics, contests and a
+        community — so you can practice smarter and walk into interviews with
+        confidence.
       </p>
 
       {/* mission */}
       <section className="mt-12 rounded-2xl border bg-card p-6 sm:p-8">
         <h2 className="text-lg font-bold">Our mission</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Great engineering opportunities shouldn&apos;t hinge on who can afford the most expensive
-          prep. We&apos;re making world-class, AI-assisted interview preparation accessible to
-          everyone — with a powerful free tier and affordable plans for those who want more.
+          Great engineering opportunities shouldn&apos;t hinge on who can afford
+          the most expensive prep. We&apos;re making world-class, AI-assisted
+          interview preparation accessible to everyone — with a powerful free
+          tier and affordable plans for those who want more.
         </p>
       </section>
 
@@ -69,7 +100,9 @@ export default function AboutPage() {
               <Icon className="size-4.5 text-primary" />
             </span>
             <h3 className="mt-3 text-sm font-semibold">{title}</h3>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{text}</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {text}
+            </p>
           </div>
         ))}
       </section>
@@ -81,8 +114,11 @@ export default function AboutPage() {
           <h2 className="text-lg font-bold">The company</h2>
         </div>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          {APP_NAME} (codeforgeai.io) was <strong className="text-foreground">founded by {FOUNDER.name}</strong>{" "}
-          and is a product of <strong className="text-foreground">Setups Works</strong>, an independent software studio.
+          {APP_NAME} (codeforgeai.io) was{" "}
+          <strong className="text-foreground">founded by {FOUNDER.name}</strong>{" "}
+          and is a product of{" "}
+          <strong className="text-foreground">Setups Works</strong>, an
+          independent software studio.
           {FOUNDER.name} designs, builds and maintains the platform.
         </p>
 
@@ -90,11 +126,19 @@ export default function AboutPage() {
           <div className="flex items-start gap-3 rounded-xl border bg-background p-4">
             <Code2 className="mt-0.5 size-4 text-primary" />
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Founder &amp; Developer</dt>
+              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Founder &amp; Developer
+              </dt>
               <dd className="text-sm font-medium">{FOUNDER.name}</dd>
               <dd className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
                 {FOUNDER.profiles.map((p) => (
-                  <a key={p.label} href={p.href} target="_blank" rel="noopener noreferrer me" className="text-primary hover:underline">
+                  <a
+                    key={p.label}
+                    href={p.href}
+                    target="_blank"
+                    rel="noopener noreferrer me"
+                    className="text-primary hover:underline"
+                  >
                     {p.label}
                   </a>
                 ))}
@@ -104,25 +148,38 @@ export default function AboutPage() {
           <div className="flex items-start gap-3 rounded-xl border bg-background p-4">
             <Building2 className="mt-0.5 size-4 text-primary" />
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company</dt>
+              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Company
+              </dt>
               <dd className="text-sm font-medium">Setups Works</dd>
             </div>
           </div>
           <div className="flex items-start gap-3 rounded-xl border bg-background p-4">
             <Mail className="mt-0.5 size-4 text-primary" />
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</dt>
+              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Email
+              </dt>
               <dd className="text-sm font-medium">
-                <a href="mailto:info@codeforgeai.io" className="hover:text-primary">info@codeforgeai.io</a>
+                <a
+                  href="mailto:info@codeforgeai.io"
+                  className="hover:text-primary"
+                >
+                  info@codeforgeai.io
+                </a>
               </dd>
             </div>
           </div>
           <div className="flex items-start gap-3 rounded-xl border bg-background p-4">
             <Phone className="mt-0.5 size-4 text-primary" />
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Phone</dt>
+              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Phone
+              </dt>
               <dd className="text-sm font-medium">
-                <a href="tel:+916383984698" className="hover:text-primary">+91 63839 84698</a>
+                <a href="tel:+916383984698" className="hover:text-primary">
+                  +91 63839 84698
+                </a>
               </dd>
             </div>
           </div>
