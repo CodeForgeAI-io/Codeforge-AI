@@ -2018,6 +2018,32 @@ export const openApiSpec: Record<string, any> = {
     "/admin/submissions": {
       get: { tags: ["Admin"], summary: "List all submissions (admin)", responses: { "200": { description: "Submission list" }, "403": { description: "Admin only" } } },
     },
+    "/admin/feedback": {
+      get: {
+        tags: ["Admin"],
+        summary: "List feedback submissions (admin)",
+        parameters: [
+          { name: "status", in: "query", schema: { type: "string", enum: ["all", "new", "read", "resolved"] } },
+          { name: "type", in: "query", schema: { type: "string", enum: ["all", "feature", "bug", "issue"] } },
+        ],
+        responses: { "200": { description: "Feedback items + status counts" }, "403": { description: "Admin only" } },
+      },
+    },
+    "/admin/feedback/{id}": {
+      patch: {
+        tags: ["Admin"],
+        summary: "Update feedback status (admin)",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object", properties: { status: { type: "string", enum: ["new", "read", "resolved"] } } } } } },
+        responses: { "200": { description: "Updated" }, "403": { description: "Admin only" } },
+      },
+      delete: {
+        tags: ["Admin"],
+        summary: "Delete feedback (admin)",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: { "200": { description: "Deleted" }, "403": { description: "Admin only" } },
+      },
+    },
     "/admin/analytics": {
       get: { tags: ["Admin"], summary: "Platform-wide analytics (admin)", responses: { "200": { description: "Aggregated stats" }, "403": { description: "Admin only" } } },
     },
