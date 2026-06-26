@@ -35,13 +35,22 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(url),
     title: {
-      default: `${name} — Master Coding Interviews`,
+      default: `${name} — AI Coding Interview Prep & Online Compiler`,
       template: `%s | ${name}`,
     },
     description: desc,
     keywords: cfg.siteKeywords
       ? cfg.siteKeywords.split(",").map((k) => k.trim()).filter(Boolean)
-      : ["coding interview", "DSA", "LeetCode", "algorithm practice", "AI mentor"],
+      : [
+          // Brand
+          "CodeForge AI", "CodeForge", "codeforgeai", "codeforgeai.io", "codeforge ai",
+          // Primary
+          "AI coding mentor", "coding interview preparation", "DSA practice",
+          "online compiler", "LeetCode alternative", "algorithm practice",
+          "data structures and algorithms", "AI pair programmer",
+          "coding practice platform", "technical interview prep", "competitive programming",
+          "mock interview", "spaced repetition coding", "FAANG interview prep",
+        ],
     authors: [{ name: "Setups Works" }],
     creator: "Setups Works",
     applicationName: name,
@@ -93,6 +102,8 @@ export default async function RootLayout({
   const twitter = cfg.twitterHandle ? cfg.twitterHandle.replace(/^@/, "") : "";
   const sameAs = [
     "https://github.com/CodeForgeAI-io/Codeforge-AI",
+    "https://www.linkedin.com/company/codeforge-ai/",
+    "https://www.instagram.com/codeforgeai.io/",
     ...(twitter ? [`https://twitter.com/${twitter}`, `https://x.com/${twitter}`] : []),
   ];
 
@@ -103,8 +114,24 @@ export default async function RootLayout({
         "@type": "Organization",
         "@id": `${url}/#org`,
         name,
+        legalName: name,
+        alternateName: ["CodeForge", "CodeForge AI", "codeforgeai", "codeforgeai.io"],
         url,
         description: desc,
+        slogan: "Master coding interviews with AI.",
+        email: "info@codeforgeai.io",
+        telephone: "+91-6383984698",
+        foundingDate: "2026",
+        founder: { "@id": `${url}/#founder` },
+        parentOrganization: { "@type": "Organization", name: "Setups Works" },
+        knowsAbout: [
+          "Coding interview preparation",
+          "Data structures and algorithms",
+          "Online code compiler",
+          "Competitive programming",
+          "AI coding assistant",
+          "Technical interviews",
+        ],
         logo: {
           "@type": "ImageObject",
           "@id": `${url}/#logo`,
@@ -114,13 +141,29 @@ export default async function RootLayout({
           caption: name,
         },
         image: { "@id": `${url}/#logo` },
+        contactPoint: {
+          "@type": "ContactPoint",
+          email: "info@codeforgeai.io",
+          telephone: "+91-6383984698",
+          contactType: "customer support",
+          availableLanguage: "en",
+        },
         sameAs,
+      },
+      {
+        "@type": "Person",
+        "@id": `${url}/#founder`,
+        name: "Nitheesh Rajendran",
+        jobTitle: "Founder & Developer",
+        worksFor: { "@id": `${url}/#org` },
+        url: `${url}/about`,
       },
       {
         "@type": "WebSite",
         "@id": `${url}/#website`,
         url,
         name,
+        alternateName: "CodeForge AI",
         description: desc,
         publisher: { "@id": `${url}/#org` },
         inLanguage: "en",

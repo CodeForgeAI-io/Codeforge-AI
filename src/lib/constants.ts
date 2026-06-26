@@ -1,7 +1,7 @@
 export const APP_NAME = "CodeForge AI";
 export const APP_VERSION = "2.1.0";
 export const APP_DESCRIPTION =
-  "AI-powered coding interview preparation platform. Master DSA, build frontend projects, and ace your next interview.";
+  "CodeForge AI is an AI-powered coding interview prep platform — practice DSA, run code in an online compiler for 12 languages, get an AI mentor and pair programmer, and ace your next technical interview.";
 
 export type LanguageId =
   | "javascript"
