@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { auth } from "@/lib/auth";
 import { listQuestions } from "@/services/questions";
 import { Landing, type LandingProblem } from "@/features/marketing/landing";
@@ -7,6 +8,27 @@ import { getFeatureAccess } from "@/services/feature-access";
 import { buildPricingFeatures } from "@/lib/feature-catalog";
 
 export const dynamic = "force-dynamic";
+
+/** The landing's "popular problems" preview changes rarely — cache it so the
+ *  home page doesn't query Mongo on every visit (the page stays dynamic only to
+ *  reflect the signed-in header state). */
+const getLandingProblems = unstable_cache(
+  async (): Promise<{ problems: LandingProblem[]; total: number }> => {
+    const result = await listQuestions({ page: 1, limit: 6 });
+    return {
+      problems: result.items.map((item) => ({
+        slug: item.slug,
+        title: item.title,
+        difficulty: item.difficulty,
+        category: item.category,
+        acceptanceRate: item.acceptanceRate,
+      })),
+      total: result.total,
+    };
+  },
+  ["landing-problems"],
+  { revalidate: 300, tags: ["questions"] },
+);
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
@@ -28,14 +50,8 @@ export default async function HomePage() {
   let problems: LandingProblem[] = [];
   let totalProblems = 0;
   try {
-    const result = await listQuestions({ page: 1, limit: 6 });
-    problems = result.items.map((item) => ({
-      slug: item.slug,
-      title: item.title,
-      difficulty: item.difficulty,
-      category: item.category,
-      acceptanceRate: item.acceptanceRate,
-    }));
+    const result = await getLandingProblems();
+    problems = result.problems;
     totalProblems = result.total;
   } catch {
     // DB unavailable — render the landing without the problems section
