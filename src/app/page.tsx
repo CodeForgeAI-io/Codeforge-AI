@@ -2,10 +2,13 @@ import { auth } from "@/lib/auth";
 import { listQuestions } from "@/services/questions";
 import { Landing, type LandingProblem } from "@/features/marketing/landing";
 import { FAQS } from "@/features/marketing/faqs";
+import type { Metadata } from "next";
 import { getFeatureAccess } from "@/services/feature-access";
 import { buildPricingFeatures } from "@/lib/feature-catalog";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 /** FAQPage structured data — eligible for FAQ rich results in search. */
 const faqJsonLd = {

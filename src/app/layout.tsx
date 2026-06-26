@@ -60,7 +60,9 @@ export async function generateMetadata(): Promise<Metadata> {
       icon: "/icon.svg",
       apple: "/apple-touch-icon.png",
     },
-    alternates: { canonical: "/" },
+    // No global canonical — each page is self-canonical by default. (A hardcoded
+    // "/" here made every page, including /login, claim the homepage as its
+    // canonical, so Google showed "Sign in" as the homepage title.)
     verification: cfg.gscVerification ? { google: cfg.gscVerification } : undefined,
     openGraph: {
       type: "website",
@@ -105,6 +107,7 @@ export default async function RootLayout({
     "https://github.com/CodeForgeAI-io/Codeforge-AI",
     "https://www.linkedin.com/company/codeforge-ai/",
     "https://www.instagram.com/codeforgeai.io/",
+    "https://dev.to/codeforgeai-io",
     ...(twitter ? [`https://twitter.com/${twitter}`, `https://x.com/${twitter}`] : []),
   ];
 
@@ -120,13 +123,27 @@ export default async function RootLayout({
         url,
         description: desc,
         slogan: "Master coding interviews with AI.",
+        brand: { "@type": "Brand", name: "CodeForge AI" },
         email: "info@codeforgeai.io",
         telephone: "+91-6383984698",
-        foundingDate: "2026",
+        foundingDate: "2026-06-17",
         founder: { "@id": `${url}/#founder` },
         parentOrganization: { "@type": "Organization", name: "Setups Works" },
-        address: { "@type": "PostalAddress", addressCountry: "IN" },
-        foundingLocation: { "@type": "Place", name: "India" },
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Chennai",
+          addressRegion: "Tamil Nadu",
+          addressCountry: "IN",
+        },
+        foundingLocation: {
+          "@type": "Place",
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: "Chennai",
+            addressRegion: "Tamil Nadu",
+            addressCountry: "IN",
+          },
+        },
         areaServed: "Worldwide",
         knowsAbout: [
           "Coding interview preparation",
@@ -159,9 +176,11 @@ export default async function RootLayout({
         "@id": `${url}/#founder`,
         name: FOUNDER.name,
         jobTitle: FOUNDER.role,
-        description: `Founder and developer of ${name} (codeforgeai.io).`,
+        description: `Founder of ${name} (codeforgeai.io).`,
+        knowsAbout: [...FOUNDER.knowsAbout],
         worksFor: { "@id": `${url}/#org` },
         url: `${url}/about`,
+        ...(FOUNDER.image ? { image: FOUNDER.image } : {}),
         sameAs: [...FOUNDER.sameAs],
       },
       {
@@ -190,6 +209,16 @@ export default async function RootLayout({
         browserRequirements: "Requires JavaScript and a modern web browser.",
         inLanguage: "en",
         isAccessibleForFree: true,
+        brand: { "@type": "Brand", name: "CodeForge AI" },
+        keywords: [
+          "coding interview",
+          "leetcode",
+          "dsa",
+          "competitive programming",
+          "ai coding assistant",
+          "frontend interview",
+          "online compiler",
+        ],
         offers: {
           "@type": "Offer",
           price: "0",
@@ -203,6 +232,17 @@ export default async function RootLayout({
           "Spaced-repetition revision (SM-2)",
           "Coding contests and leaderboards",
           "Company-specific interview preparation",
+        ],
+        potentialAction: {
+          "@type": "UseAction",
+          target: `${url}/`,
+        },
+        hasPart: [
+          { "@type": "WebPage", name: "Practice Problems", url: `${url}/problems` },
+          { "@type": "WebPage", name: "Online Compiler", url: `${url}/compiler` },
+          { "@type": "WebPage", name: "Pricing", url: `${url}/pricing` },
+          { "@type": "WebPage", name: "Documentation", url: `${url}/help` },
+          { "@type": "WebPage", name: "Blog", url: `${url}/blog` },
         ],
         screenshot: ogImage,
         image: { "@id": `${url}/#logo` },
