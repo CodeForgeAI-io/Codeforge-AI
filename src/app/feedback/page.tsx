@@ -28,8 +28,16 @@ export default function FeedbackPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!title.trim() || !description.trim()) {
-      setError("Title and description are required.");
+    if (title.trim().length < 3) {
+      setError("Title must be at least 3 characters.");
+      return;
+    }
+    if (description.trim().length < 10) {
+      setError("Description must be at least 10 characters.");
+      return;
+    }
+    if (email.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
+      setError("Enter a valid email address or leave it blank.");
       return;
     }
     setSubmitting(true);
@@ -135,7 +143,12 @@ export default function FeedbackPage() {
               rows={6}
               maxLength={4000}
             />
-            <p className="text-right text-xs text-muted-foreground">{description.length}/4000</p>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span className={description.trim().length > 0 && description.trim().length < 10 ? "text-destructive" : ""}>
+                Minimum 10 characters
+              </span>
+              <span>{description.length}/4000</span>
+            </div>
           </div>
 
           {/* Email (optional) */}
