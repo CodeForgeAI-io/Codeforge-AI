@@ -38,7 +38,7 @@ export function ApplyForm({ role, roleTitle }: { role: string; roleTitle: string
     setError("");
     setUploading(true);
     try {
-      const blob = await upload(file.name, file, { access: "public", handleUploadUrl: "/api/careers/upload" });
+      const blob = await upload(`resumes/${file.name}`, file, { access: "private", handleUploadUrl: "/api/careers/upload" });
       setResume({ url: blob.url, name: file.name });
     } catch {
       setError("Résumé upload failed. Please try again.");
