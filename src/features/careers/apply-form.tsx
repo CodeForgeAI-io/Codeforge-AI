@@ -37,12 +37,29 @@ export function ApplyForm({ role, roleTitle }: { role: string; roleTitle: string
     if (file.size > 5 * 1024 * 1024) { setError("Résumé must be under 5 MB."); return; }
     setError("");
     setUploading(true);
+    // Never let the upload spin forever — abort after 60s so the user gets a
+    // clear error instead of an endless "Uploading…".
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), 60_000);
     try {
-      const blob = await upload(`resumes/${file.name}`, file, { access: "private", handleUploadUrl: "/api/careers/upload" });
+      // Browsers sometimes report an empty MIME for .doc/.docx — fall back to a
+      // type inferred from the extension so the upload token isn't rejected.
+      const contentType = file.type || contentTypeFromName(file.name);
+      const blob = await upload(`resumes/${file.name}`, file, {
+        access: "private",
+        contentType,
+        handleUploadUrl: "/api/careers/upload",
+        abortSignal: ac.signal,
+      });
       setResume({ url: blob.url, name: file.name });
-    } catch {
-      setError("Résumé upload failed. Please try again.");
+    } catch (err) {
+      // Surface the real reason (content-type rejected, network/CSP, timeout…).
+      const msg = ac.signal.aborted
+        ? "Upload timed out — check your connection and try again."
+        : err instanceof Error ? `Résumé upload failed: ${err.message}` : "Résumé upload failed. Please try again.";
+      setError(msg);
     } finally {
+      clearTimeout(timer);
       setUploading(false);
     }
   }
@@ -148,6 +165,14 @@ export function ApplyForm({ role, roleTitle }: { role: string; roleTitle: string
       </Button>
     </form>
   );
+}
+
+function contentTypeFromName(name: string): string {
+  const ext = name.toLowerCase().split(".").pop();
+  if (ext === "pdf") return "application/pdf";
+  if (ext === "doc") return "application/msword";
+  if (ext === "docx") return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  return "application/pdf";
 }
 
 function Field({ label, className, children }: { label: string; className?: string; children: React.ReactNode }) {
