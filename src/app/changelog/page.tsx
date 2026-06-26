@@ -10,10 +10,32 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "2.0.0",
-    date: "June 25, 2026",
+    version: "2.1.0",
+    date: "June 26, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Documentation Center at /help — a searchable knowledge base with guides, tutorials, API examples, SDK usage and FAQs across 7 categories, with real product screenshots in each article",
+        "Blog at /blog — admins upload a feature screenshot and AI writes the title, description, tags, SEO and full post body; the screenshot becomes the cover",
+        "About Us and Contact Us pages with company and support details",
+        "llms.txt — a machine-readable site guide for AI agents and crawlers",
+      ],
+      improved: [
+        "Docs and Blog added to the header and footer navigation across the site",
+        "Sitemap now includes the docs, blog posts and every published problem (including ones users generate)",
+        "Cleaner footer layout — links wrap and align neatly on every screen size",
+      ],
+      fixed: [
+        "Razorpay checkout no longer asks for your number/email twice — the custom checkout page prefills everything",
+      ],
+    },
+  },
+  {
+    version: "2.0.0",
+    date: "June 25, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Subscriptions with auto-pay — upgrade to Go or Plus with recurring Razorpay billing that renews automatically; cancel anytime to stop at period end",

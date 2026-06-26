@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { label: "Forum", href: "/forum" },
   { label: "Pricing", href: "/pricing" },
   { label: "Docs", href: "/help" },
+  { label: "Blog", href: "/blog" },
 ];
 
 /** Slim header for public pages (forum, profile, problems) */

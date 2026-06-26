@@ -9,6 +9,7 @@ import {
   FileQuestion,
   ListChecks,
   Lock,
+  Newspaper,
   Paintbrush,
   Settings,
   Tag,
@@ -40,6 +41,7 @@ const SECTIONS: AdminNavSection[] = [
       { href: "/admin/questions", label: "Questions", icon: FileQuestion },
       { href: "/admin/challenges", label: "Challenges", icon: Paintbrush },
       { href: "/admin/contests", label: "Contests", icon: Trophy },
+      { href: "/admin/blog", label: "Blog", icon: Newspaper },
     ],
   },
   {

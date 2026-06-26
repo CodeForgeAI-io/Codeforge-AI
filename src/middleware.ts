@@ -22,6 +22,8 @@ const PUBLIC_PREFIXES = [
   "/about",
   "/contact",
   "/help",
+  "/blog", // public blog (pages + /api/blog/cover image route)
+  "/api/blog",
   "/feedback",
   "/api/feedback",
   "/beta",
@@ -32,6 +34,7 @@ const PUBLIC_PREFIXES = [
   "/favicon",
   "/sitemap.xml",
   "/robots.txt",
+  "/llms.txt",
   "/manifest.webmanifest", // PWA manifest
   "/sw.js", // PWA service worker
   "/offline.html", // PWA offline fallback

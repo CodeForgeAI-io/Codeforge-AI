@@ -941,6 +941,7 @@ for (let i = 0; i < nums.length; i++) {
             </div>
             <div className="flex items-center gap-4 sm:justify-end">
               <Link href="/help" className="hover:text-neutral-900 dark:hover:text-white">Docs</Link>
+              <Link href="/blog" className="hover:text-neutral-900 dark:hover:text-white">Blog</Link>
               <Link href="/about" className="hover:text-neutral-900 dark:hover:text-white">About</Link>
               <Link href="/contact" className="hover:text-neutral-900 dark:hover:text-white">Contact</Link>
               <Link href="/terms" className="hover:text-neutral-900 dark:hover:text-white">Terms</Link>

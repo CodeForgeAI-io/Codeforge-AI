@@ -43,6 +43,7 @@ export { RazorpayPlan, type RazorpayPlanDoc } from "./RazorpayPlan";
 export { WebhookEvent, type WebhookEventDoc } from "./WebhookEvent";
 export { Coupon, type CouponDoc } from "./Coupon";
 export { CouponRedemption, type CouponRedemptionDoc } from "./CouponRedemption";
+export { BlogPost, type BlogPostDoc } from "./BlogPost";
 export { PromptTemplate, type PromptTemplateDoc } from "./PromptTemplate";
 export { DailyActivity, type DailyActivityDoc } from "./DailyActivity";
 export { Discussion, type DiscussionDoc, type DiscussionReply } from "./Discussion";
