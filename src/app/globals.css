@@ -459,6 +459,9 @@
 .prose-codeforge p {
   @apply my-2.5;
 }
+.prose-codeforge img {
+  @apply my-4 w-full rounded-xl border shadow-sm;
+}
 .prose-codeforge ul {
   @apply list-disc pl-5 my-2.5 space-y-1;
 }

@@ -50,6 +50,8 @@ export const DOC_ARTICLES: DocArticle[] = [
     tags: ["overview", "intro", "start"],
     body: `# What is CodeForge AI?
 
+![The CodeForge AI workspace](/docs/dashboard.png)
+
 CodeForge AI is an AI-powered coding-interview preparation platform. It combines a
 deep problem bank, an instant multi-language compiler, AI mentoring, spaced
 repetition, skill analytics, contests, and a community — so you can practice
@@ -101,6 +103,8 @@ and advanced features — see [Plans & pricing](/help/plans-and-pricing).
     tags: ["problems", "submit", "editor", "run"],
     body: `# Solve your first problem
 
+![Solving a problem in the editor](/docs/problem.png)
+
 1. Open [Problems](/problems) and pick an **Easy** one to start.
 2. Choose your language in the editor (12 are supported).
 3. Write your solution. Press **Run** to test against the sample cases — you'll
@@ -118,6 +122,8 @@ the idea without spoiling the solution. See [AI Mentor](/help/ai-mentor).`,
     description: "Run code in any language with custom stdin — no problem required.",
     tags: ["compiler", "run", "stdin", "languages"],
     body: `# Using the online compiler
+
+![The online compiler with stdin and output](/docs/compiler.png)
 
 The [Compiler](/compiler) is a blank-canvas editor that runs code in any of 12
 languages with your own input — no problem or test cases needed.
@@ -138,6 +144,8 @@ It's perfect for quick experiments, snippets and debugging.`,
     description: "Browse, filter and follow guided learning paths.",
     tags: ["problems", "tracks", "roadmaps", "filter"],
     body: `# Problems, tracks & roadmaps
+
+![Browsing the problem bank](/docs/problems.png)
 
 - **Problems** — filter by difficulty, category, tag or solve-status, and search
   the full bank from [/problems](/problems).
@@ -231,6 +239,8 @@ Open it at [Interview](/interview). It's part of the **Plus** plan.`,
     tags: ["ai", "mentor", "hints", "chat", "complexity"],
     body: `# AI Mentor
 
+![The AI Mentor panel with quick actions](/docs/ai-mentor.png)
+
 The AI Mentor is your in-workspace coding tutor. While solving a problem, open the
 mentor panel to:
 
@@ -252,6 +262,8 @@ Every AI message uses one **AI credit** — see [AI credits & limits](/help/ai-c
     tags: ["ai", "tools", "roadmap", "resume", "pair programmer"],
     body: `# AI Tools suite
 
+![The AI Tools page](/docs/ai-tools.png)
+
 The [AI Tools](/ai-tools) page bundles focused assistants:
 
 - **Learning Coach** — guidance tuned to your weak areas.
@@ -272,6 +284,8 @@ Each run uses AI credits, and you can reload your saved runs from history.`,
     description: "How AI usage is metered across plans.",
     tags: ["credits", "limits", "usage", "quota"],
     body: `# AI credits & monthly limits
+
+![AI credits and usage in Settings](/docs/billing.png)
 
 Every AI action (a mentor message or an AI tool run) costs **one AI credit**.
 Credits reset monthly.
@@ -465,6 +479,8 @@ Company Prep, Mock Interviews and the Resume Analyzer are part of paid plans.`,
     tags: ["plans", "pricing", "free", "go", "plus"],
     body: `# Plans & pricing
 
+![Plans and pricing](/docs/pricing.png)
+
 | | Free | Go | Plus |
 | :--- | :--- | :--- | :--- |
 | AI credits / month | 90 | 600 | Unlimited |
@@ -516,6 +532,8 @@ charge.`,
     description: "Get a printable invoice for every payment.",
     tags: ["invoice", "receipt", "download", "billing"],
     body: `# Downloading invoices
+
+![Billing & Usage with subscription history](/docs/billing.png)
 
 Every successful payment (including each auto-renewal) creates an invoice.
 
