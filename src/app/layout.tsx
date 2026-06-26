@@ -176,7 +176,7 @@ export default async function RootLayout({
         "@id": `${url}/#founder`,
         name: FOUNDER.name,
         jobTitle: FOUNDER.role,
-        description: `Founder of ${name} (codeforgeai.io).`,
+        description: FOUNDER.description,
         knowsAbout: [...FOUNDER.knowsAbout],
         worksFor: { "@id": `${url}/#org` },
         url: `${url}/about`,
