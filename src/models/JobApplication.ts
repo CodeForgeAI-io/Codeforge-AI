@@ -7,8 +7,15 @@ export interface JobApplicationDoc {
   name: string;
   email: string;
   phone?: string;
-  link?: string; // GitHub / portfolio / LinkedIn
-  message: string;
+  location?: string;
+  linkedin?: string;
+  github?: string;
+  portfolio?: string;
+  experience?: string; // years of experience
+  company?: string; // current company (optional)
+  resumeUrl?: string; // Vercel Blob URL
+  resumeName?: string;
+  message?: string;
   status: "new" | "reviewing" | "shortlisted" | "rejected";
   createdAt: Date;
   updatedAt: Date;
@@ -21,7 +28,14 @@ const jobApplicationSchema = new Schema<JobApplicationDoc>(
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, default: "" },
-    link: { type: String, default: "" },
+    location: { type: String, default: "" },
+    linkedin: { type: String, default: "" },
+    github: { type: String, default: "" },
+    portfolio: { type: String, default: "" },
+    experience: { type: String, default: "" },
+    company: { type: String, default: "" },
+    resumeUrl: { type: String, default: "" },
+    resumeName: { type: String, default: "" },
     message: { type: String, default: "" },
     status: {
       type: String,
