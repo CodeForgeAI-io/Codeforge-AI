@@ -51,8 +51,29 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   const session = await auth();
 
+  const SITE = "https://codeforgeai.io";
+  const articleLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.description,
+    image: [`${SITE}/api/blog/cover/${slug}`],
+    datePublished: new Date(post.publishedAt ?? post.createdAt).toISOString(),
+    dateModified: new Date(post.updatedAt ?? post.createdAt).toISOString(),
+    keywords: (post.tags ?? []).join(", "),
+    url: `${SITE}/blog/${slug}`,
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE}/blog/${slug}` },
+    author: { "@type": "Organization", name: APP_NAME, url: SITE },
+    publisher: {
+      "@type": "Organization",
+      name: APP_NAME,
+      logo: { "@type": "ImageObject", url: `${SITE}/icon-512.png` },
+    },
+  };
+
   return (
     <div className="min-h-svh bg-background">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />
       <PublicHeader signedIn={!!session?.user} />
 
       <article className="mx-auto max-w-3xl px-4 py-10 sm:px-6">

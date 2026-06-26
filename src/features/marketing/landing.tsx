@@ -491,7 +491,7 @@ export function Landing({ signedIn, problems, totalProblems, featuresByPlan, pay
                 <span style={{ color: ACCENT }}>AI.</span>
               </h1>
               <p className={cn("mt-4 max-w-lg text-pretty text-base leading-relaxed sm:mt-5 sm:text-lg", ink3)}>
-                The only platform that combines LeetCode-style problems, AI pair programming, spaced repetition and skill analytics — all free.
+                <strong>CodeForge AI</strong> is the all-in-one platform that combines LeetCode-style problems, an online compiler, AI pair programming, spaced repetition and skill analytics — all free.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                 <Button asChild size="lg" className={cn(primaryBtn, "h-11 w-full px-5 text-base sm:w-auto")}>
