@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { put } from "@vercel/blob";
 
 export const runtime = "nodejs";
 
+// Vercel serverless functions cap request bodies at ~4.5 MB, so keep résumés
+// comfortably under that.
+const MAX_BYTES = 4 * 1024 * 1024; // 4 MB
+const ALLOWED = new Map<string, string>([
+  ["application/pdf", "pdf"],
+  ["application/msword", "doc"],
+  ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docx"],
+]);
+const ALLOWED_EXT = new Set(["pdf", "doc", "docx"]);
+
 /**
- * Generates a client-upload token so résumés stream straight from the browser
- * to Vercel Blob (bypassing the API body limit). Requires BLOB_READ_WRITE_TOKEN.
+ * Receives an applicant's résumé and stores it in the *private* Vercel Blob
+ * store. The browser uploads to this same-origin route (not directly to the
+ * blob host) so cross-origin upload blockers — Brave Shields, ad-blockers,
+ * corporate proxies — can't silently break it. Requires BLOB_READ_WRITE_TOKEN.
  */
 export async function POST(req: NextRequest) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
@@ -15,36 +27,40 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: HandleUploadBody;
+  let form: FormData;
   try {
-    body = (await req.json()) as HandleUploadBody;
+    form = await req.formData();
   } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid upload" }, { status: 400 });
   }
 
+  const file = form.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return NextResponse.json({ error: "No file received" }, { status: 400 });
+  }
+  if (file.size > MAX_BYTES) {
+    return NextResponse.json({ error: "Résumé must be under 4 MB." }, { status: 413 });
+  }
+
+  const ext = file.name.toLowerCase().split(".").pop() ?? "";
+  if (!ALLOWED.has(file.type) && !ALLOWED_EXT.has(ext)) {
+    return NextResponse.json({ error: "Please upload a PDF or Word document." }, { status: 415 });
+  }
+  const contentType =
+    [...ALLOWED.entries()].find(([, e]) => e === ext)?.[0] ||
+    (ALLOWED.has(file.type) ? file.type : "application/pdf");
+
   try {
-    const json = await handleUpload({
-      body,
-      request: req,
-      onBeforeGenerateToken: async () => ({
-        allowedContentTypes: [
-          "application/pdf",
-          "application/msword",
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        ],
-        maximumSizeInBytes: 5 * 1024 * 1024, // 5 MB
-        addRandomSuffix: true,
-        tokenPayload: JSON.stringify({ kind: "resume" }),
-      }),
-      onUploadCompleted: async () => {
-        // Vercel calls this server-to-server after upload; nothing to do here.
-      },
+    const blob = await put(`resumes/${file.name}`, file, {
+      access: "private",
+      addRandomSuffix: true,
+      contentType,
     });
-    return NextResponse.json(json);
+    return NextResponse.json({ url: blob.url, name: file.name });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Upload failed" },
-      { status: 400 },
+      { status: 502 },
     );
   }
 }
