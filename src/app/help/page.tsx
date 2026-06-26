@@ -26,7 +26,7 @@ export default async function HelpHomePage() {
       <section className="border-b bg-muted/30">
         <div className="mx-auto max-w-3xl px-4 py-14 text-center sm:py-20">
           <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight text-primary">
-            <span className="size-1.5 rounded-full bg-primary" /> Documentation
+            <span className="size-1.5 rounded-full bg-[#006bff]" /> Documentation
           </span>
           <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
             How can we help?
