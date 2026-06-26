@@ -69,6 +69,9 @@ import {
   faCircleQuestion,
   faGraduationCap,
   faGripVertical,
+  faNewspaper,
+  faUpload,
+  faImage,
   faHeadphones,
   faHeart,
   faLightbulb,
@@ -210,6 +213,9 @@ export const Globe = make(faGlobe);
 export const GraduationCap = make(faGraduationCap);
 export const Layers = make(faLayerGroup);
 export const HelpCircle = make(faCircleQuestion);
+export const Newspaper = make(faNewspaper);
+export const Upload = make(faUpload);
+export const ImageIcon = make(faImage);
 export const GripVerticalIcon = make(faGripVertical);
 export const HeadphonesIcon = make(faHeadphones);
 export const Heart = make(faHeart);

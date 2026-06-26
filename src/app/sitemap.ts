@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getEffectiveConfig } from "@/lib/site-config";
 import { connectDB } from "@/lib/mongodb";
-import { Question } from "@/models";
+import { Question, BlogPost } from "@/models";
 import { DOC_ARTICLES } from "@/content/docs";
 
 // Render at request time so the build never has to reach the DB to prerender.
@@ -22,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/help`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/changelog`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/terms`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
     { url: `${base}/privacy`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
@@ -31,7 +32,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let problemRoutes: MetadataRoute.Sitemap = [];
   try {
     await connectDB();
-    const problems = await Question.find({}, "slug updatedAt").lean<{ slug: string; updatedAt: Date }[]>();
+    // Every published problem — including ones users generate — is indexed.
+    const problems = await Question.find({ isPublished: true }, "slug updatedAt").lean<{ slug: string; updatedAt: Date }[]>();
     problemRoutes = problems.map((p) => ({
       url: `${base}/problems/${p.slug}`,
       lastModified: p.updatedAt ?? now,
@@ -49,5 +51,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticRoutes, ...docRoutes, ...problemRoutes];
+  let blogRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const posts = await BlogPost.find({ status: "published" }, "slug updatedAt").lean<{ slug: string; updatedAt: Date }[]>();
+    blogRoutes = posts.map((p) => ({
+      url: `${base}/blog/${p.slug}`,
+      lastModified: p.updatedAt ?? now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }));
+  } catch {
+    // ignore DB errors
+  }
+
+  return [...staticRoutes, ...docRoutes, ...blogRoutes, ...problemRoutes];
 }

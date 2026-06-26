@@ -36,6 +36,7 @@ export function InfoLayout({ children }: { children: React.ReactNode }) {
           {/* link row — wraps and stays centered */}
           <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             <Link href="/help" className="hover:text-foreground transition-colors">Docs</Link>
+            <Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link>
             <Link href="/about" className="hover:text-foreground transition-colors">About</Link>
             <Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link>
             <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>

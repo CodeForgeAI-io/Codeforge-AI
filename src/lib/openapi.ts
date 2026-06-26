@@ -28,7 +28,7 @@ export const openApiSpec: Record<string, any> = {
   openapi: "3.0.3",
   info: {
     title: "CodeForge AI API",
-    version: "2.0.0",
+    version: "2.1.0",
     description:
       "REST API for CodeForge AI — an AI-powered coding practice platform. All protected endpoints require an active session cookie obtained via `/api/auth/signin`.",
     contact: { name: "CodeForge AI", email: "nitheeraj1@gmail.com" },
@@ -60,6 +60,7 @@ export const openApiSpec: Record<string, any> = {
     { name: "Beta", description: "Beta program signup" },
     { name: "Coupons", description: "Discount codes" },
     { name: "Account", description: "Account management" },
+    { name: "Blog", description: "AI-generated feature blog" },
     { name: "Admin", description: "Admin-only endpoints (role: admin)" },
   ],
   components: {
@@ -2036,6 +2037,56 @@ export const openApiSpec: Record<string, any> = {
     },
     "/admin/prompts": {
       get: { tags: ["Admin"], summary: "List AI prompt templates (admin)", responses: { "200": { description: "Prompt templates" }, "403": { description: "Admin only" } } },
+    },
+    "/blog/cover/{slug}": {
+      get: {
+        tags: ["Blog"],
+        summary: "Get a blog post's cover image",
+        security: [],
+        parameters: [{ name: "slug", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Image binary", content: { "image/*": { schema: { type: "string", format: "binary" } } } },
+          "404": { description: "Not found" },
+        },
+      },
+    },
+    "/admin/blog": {
+      get: { tags: ["Admin"], summary: "List blog posts (admin)", responses: { "200": { description: "Posts" }, "403": { description: "Admin only" } } },
+      post: {
+        tags: ["Admin"],
+        summary: "Create a blog post (admin)",
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { type: "object", required: ["title", "coverImage"], properties: { title: { type: "string" }, description: { type: "string" }, content: { type: "string" }, tags: { type: "array", items: { type: "string" } }, seoTitle: { type: "string" }, seoDescription: { type: "string" }, seoKeywords: { type: "string" }, coverImage: { type: "string", description: "data:image/...;base64,..." }, status: { type: "string", enum: ["draft", "published"] } } } } },
+        },
+        responses: { "201": { description: "Created" }, "403": { description: "Admin only" } },
+      },
+    },
+    "/admin/blog/generate": {
+      post: {
+        tags: ["Admin"],
+        summary: "Generate a draft blog post from a feature screenshot (vision AI, admin)",
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { type: "object", required: ["image"], properties: { image: { type: "string", description: "data:image/...;base64,..." }, hint: { type: "string" } } } } },
+        },
+        responses: { "200": { description: "Generated title, description, tags, content and SEO" }, "403": { description: "Admin only" }, "503": { description: "AI not configured" } },
+      },
+    },
+    "/admin/blog/{id}": {
+      patch: {
+        tags: ["Admin"],
+        summary: "Update a blog post (admin)",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        responses: { "200": { description: "Updated" }, "403": { description: "Admin only" } },
+      },
+      delete: {
+        tags: ["Admin"],
+        summary: "Delete a blog post (admin)",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: { "200": { description: "Deleted" }, "403": { description: "Admin only" } },
+      },
     },
     "/admin/coupons": {
       get: {
