@@ -418,6 +418,19 @@ Optimized for **Vercel** out of the box:
 
 ---
 
+## 👤 Founder
+
+**CodeForge AI** is founded, designed and built by **Nitheesh Rajendran** — Founder & Developer — under **Setups Works**.
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Nitheesh%20Rajendran-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/nitheeshdr/)
+[![IMDb](https://img.shields.io/badge/IMDb-Nitheesh%20Rajendran-F5C518?style=flat-square&logo=imdb&logoColor=black)](https://www.imdb.com/name/nm16304237/)
+[![GitHub](https://img.shields.io/badge/GitHub-nitheeshdr-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/nitheeshdr)
+[![Email](https://img.shields.io/badge/Email-info@codeforgeai.io-006bff?style=flat-square&logo=gmail&logoColor=white)](mailto:info@codeforgeai.io)
+
+> Founder of **CodeForge AI** ([codeforgeai.io](https://codeforgeai.io)).
+
+---
+
 <div align="center">
 
 <br/>
