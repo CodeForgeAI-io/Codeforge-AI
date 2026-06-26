@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { upload } from "@vercel/blob/client";
 import { CheckCircle2, FileText, Loader2, Upload, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,30 +33,26 @@ export function ApplyForm({ role, roleTitle }: { role: string; roleTitle: string
   async function onResume(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { setError("Résumé must be under 5 MB."); return; }
+    if (file.size > 4 * 1024 * 1024) { setError("Résumé must be under 4 MB."); return; }
     setError("");
     setUploading(true);
-    // Never let the upload spin forever — abort after 60s so the user gets a
-    // clear error instead of an endless "Uploading…".
+    // Upload to our own domain (not the blob host directly) so cross-origin
+    // blockers can't break it. Abort after 60s so it never spins forever.
     const ac = new AbortController();
     const timer = setTimeout(() => ac.abort(), 60_000);
     try {
-      // Browsers sometimes report an empty MIME for .doc/.docx — fall back to a
-      // type inferred from the extension so the upload token isn't rejected.
-      const contentType = file.type || contentTypeFromName(file.name);
-      const blob = await upload(`resumes/${file.name}`, file, {
-        access: "private",
-        contentType,
-        handleUploadUrl: "/api/careers/upload",
-        abortSignal: ac.signal,
-      });
-      setResume({ url: blob.url, name: file.name });
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/careers/upload", { method: "POST", body: fd, signal: ac.signal });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) { setError(data?.error ?? "Résumé upload failed. Please try again."); return; }
+      setResume({ url: data.url, name: data.name ?? file.name });
     } catch (err) {
-      // Surface the real reason (content-type rejected, network/CSP, timeout…).
-      const msg = ac.signal.aborted
-        ? "Upload timed out — check your connection and try again."
-        : err instanceof Error ? `Résumé upload failed: ${err.message}` : "Résumé upload failed. Please try again.";
-      setError(msg);
+      setError(
+        ac.signal.aborted
+          ? "Upload timed out — check your connection and try again."
+          : err instanceof Error ? `Résumé upload failed: ${err.message}` : "Résumé upload failed. Please try again.",
+      );
     } finally {
       clearTimeout(timer);
       setUploading(false);
@@ -134,7 +129,7 @@ export function ApplyForm({ role, roleTitle }: { role: string; roleTitle: string
 
       {/* résumé upload */}
       <div className="mt-4 space-y-1.5">
-        <Label>Résumé (PDF/DOC, max 5 MB)</Label>
+        <Label>Résumé (PDF/DOC, max 4 MB)</Label>
         {resume ? (
           <div className="flex items-center gap-3 rounded-lg border bg-background px-3 py-2.5">
             <FileText className="size-4 shrink-0 text-primary" />
@@ -165,14 +160,6 @@ export function ApplyForm({ role, roleTitle }: { role: string; roleTitle: string
       </Button>
     </form>
   );
-}
-
-function contentTypeFromName(name: string): string {
-  const ext = name.toLowerCase().split(".").pop();
-  if (ext === "pdf") return "application/pdf";
-  if (ext === "doc") return "application/msword";
-  if (ext === "docx") return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-  return "application/pdf";
 }
 
 function Field({ label, className, children }: { label: string; className?: string; children: React.ReactNode }) {
