@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
   AnimatePresence,
   motion,
@@ -391,7 +392,11 @@ function CardSlider({ children }: { children: ReactNode }) {
 
 /* ── page ─────────────────────────────────────────────────────────── */
 
-export function Landing({ signedIn, problems, totalProblems, featuresByPlan, paymentsEnabled }: { signedIn: boolean; problems: LandingProblem[]; totalProblems: number; featuresByPlan?: Record<"free" | "go" | "plus", { text: string; included: boolean }[]>; paymentsEnabled?: boolean }) {
+export function Landing({ problems, totalProblems, featuresByPlan, paymentsEnabled }: { problems: LandingProblem[]; totalProblems: number; featuresByPlan?: Record<"free" | "go" | "plus", { text: string; included: boolean }[]>; paymentsEnabled?: boolean }) {
+  // Read auth on the client so the page itself can be statically rendered (no
+  // per-request server work) — the header CTA hydrates to the right state.
+  const { data: session } = useSession();
+  const signedIn = !!session?.user;
   const ctaHref = signedIn ? "/dashboard" : "/register";
   const [mobileMenu, setMobileMenu] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
