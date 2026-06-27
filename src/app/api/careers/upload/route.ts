@@ -14,10 +14,10 @@ const ALLOWED = new Map<string, string>([
 const ALLOWED_EXT = new Set(["pdf", "doc", "docx"]);
 
 /**
- * Receives an applicant's résumé and stores it in the *private* Vercel Blob
- * store. The browser uploads to this same-origin route (not directly to the
- * blob host) so cross-origin upload blockers — Brave Shields, ad-blockers,
- * corporate proxies — can't silently break it. Requires BLOB_READ_WRITE_TOKEN.
+ * Receives an applicant's résumé and stores it in Vercel Blob. The browser
+ * uploads to this same-origin route (not directly to the blob host) so
+ * cross-origin upload blockers — Brave Shields, ad-blockers, corporate proxies
+ * — can't silently break it. Requires BLOB_READ_WRITE_TOKEN.
  */
 export async function POST(req: NextRequest) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const blob = await put(`resumes/${file.name}`, file, {
-      access: "private",
+      access: "public",
       addRandomSuffix: true,
       contentType,
     });

@@ -8,9 +8,8 @@ import { JobApplication } from "@/models";
 export const runtime = "nodejs";
 
 /**
- * Streams an applicant's résumé. Résumés live in a *private* Vercel Blob store
- * (they contain PII), so their URLs aren't publicly accessible — this admin-only
- * route fetches the blob server-side with the store token and streams it back.
+ * Streams an applicant's résumé through an admin-only, same-origin endpoint so
+ * the admin UI never surfaces the raw blob URL and downloads stay behind login.
  */
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { error } = await requireAdmin();
@@ -29,7 +28,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   let res;
   try {
-    res = await get(app.resumeUrl, { access: "private" });
+    res = await get(app.resumeUrl, { access: "public" });
   } catch {
     return NextResponse.json({ error: "Could not fetch résumé" }, { status: 502 });
   }
