@@ -119,7 +119,9 @@ export default auth((req) => {
     pathname.startsWith("/admin") ||
     pathname.startsWith("/api/admin") ||
     pathname.startsWith("/docs") ||
-    pathname.startsWith("/api/docs");
+    pathname.startsWith("/api/docs") ||
+    pathname.startsWith("/api-docs") || // API reference (Swagger UI) — admin only
+    pathname.startsWith("/api/openapi"); // OpenAPI spec behind the docs
   if (isAdminArea && session.user.role !== "admin") {
     if (pathname.startsWith("/api")) {
       return NextResponse.json(

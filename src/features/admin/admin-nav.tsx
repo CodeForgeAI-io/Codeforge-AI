@@ -72,6 +72,7 @@ const SECTIONS: AdminNavSection[] = [
     heading: "Config",
     items: [
       { href: "/admin/features", label: "Feature Access", icon: Lock },
+      { href: "/api-docs", label: "API Reference", icon: FileQuestion },
       { href: "/admin/settings", label: "Settings", icon: Settings },
     ],
   },
