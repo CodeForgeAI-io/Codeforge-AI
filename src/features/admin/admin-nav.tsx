@@ -14,6 +14,7 @@ import {
   Newspaper,
   Paintbrush,
   Settings,
+  ShieldCheck,
   Tag,
   Trophy,
   Users,
@@ -53,6 +54,7 @@ const SECTIONS: AdminNavSection[] = [
       { href: "/admin/submissions", label: "Submissions", icon: ListChecks },
       { href: "/admin/feedback", label: "Feedback", icon: MessageSquare },
       { href: "/admin/careers", label: "Applications", icon: Briefcase },
+      { href: "/admin/qa", label: "QA", icon: ShieldCheck },
     ],
   },
   {
