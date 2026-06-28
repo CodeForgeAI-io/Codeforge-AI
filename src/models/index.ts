@@ -54,3 +54,15 @@ export { Bookmark, type BookmarkDoc, type BookmarkKind } from "./Bookmark";
 export { Follow, type FollowDoc } from "./Follow";
 export { SpacedRepetition, type SpacedRepetitionDoc } from "./SpacedRepetition";
 export { SiteConfig, type SiteConfigDoc } from "./SiteConfig";
+export {
+  QaContributor,
+  type QaContributorDoc,
+  type QaContributorStatus,
+} from "./QaContributor";
+export {
+  BugReport,
+  type BugReportDoc,
+  type BugSeverity,
+  type BugStatus,
+  BUG_AREAS,
+} from "./BugReport";
