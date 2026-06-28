@@ -10,10 +10,31 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "2.1.0",
-    date: "June 26, 2026",
+    version: "2.2.0",
+    date: "June 28, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Careers at /careers — three open roles with detail pages and an application form; apply with your résumé (PDF/DOC), LinkedIn, GitHub, portfolio and experience. Applications appear in the admin panel with a full detail view, and every applicant gets a confirmation email",
+        "QA Program at /qa — sign-in members apply to become QA contributors, then report and track bugs with structured details (severity, steps, expected vs actual, environment). Admins approve contributors and triage each bug through a workflow (new → triaged → in progress → fixed) from the admin panel",
+        "API Reference with Swagger UI at /api-docs — interactive, try-it-out documentation of the public API, backed by an OpenAPI 3 spec served at /api/openapi",
+      ],
+      improved: [
+        "Much faster homepage — the landing now renders statically from the edge, cutting time-to-first-byte and load time; ads and analytics load only after the page is interactive",
+        "Snappier navigation — public pages show an instant loading skeleton instead of waiting on the server",
+        "Footer links wrap neatly onto two lines on mobile",
+      ],
+      fixed: [
+        "Résumé uploads now work reliably in Brave and behind ad-blockers — files upload through our own domain instead of a third-party host, so cross-origin blockers can't interrupt them",
+      ],
+    },
+  },
+  {
+    version: "2.1.0",
+    date: "June 26, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Documentation Center at /help — a searchable knowledge base with guides, tutorials, API examples, SDK usage and FAQs across 7 categories, with real product screenshots in each article",
