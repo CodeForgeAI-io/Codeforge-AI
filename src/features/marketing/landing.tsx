@@ -64,6 +64,7 @@ import LogoLoop from "@/components/reactbits/LogoLoop";
 import GlassIcons from "@/components/reactbits/GlassIcons";
 import ClickSpark from "@/components/reactbits/ClickSpark";
 import Magnet from "@/components/reactbits/Magnet";
+import { HeroCompiler } from "./hero-compiler";
 
 /* ── ReactBits (WebGL / window at mount: client-only) ─────────────── */
 const Aurora = dynamic(() => import("@/components/reactbits/Aurora"), { ssr: false });
@@ -567,13 +568,13 @@ export function Landing({ problems, totalProblems, featuresByPlan, paymentsEnabl
             </div>
           </div>
 
-          {/* hero showcase — editor mock in a glass frame with float chips */}
+          {/* hero showcase — a REAL working JS playground in a glass frame */}
           <div className="relative mx-auto max-w-3xl px-4 pb-16 sm:pb-24">
             <AnimatedContent distance={80} duration={0.9} scale={0.96}>
               <div className="relative">
                 <div aria-hidden className="absolute -inset-6 rounded-[28px] bg-[radial-gradient(60%_70%_at_50%_30%,rgba(0,107,255,0.14),transparent)] blur-xl dark:bg-[radial-gradient(60%_70%_at_50%_30%,rgba(0,107,255,0.22),transparent)]" />
                 <div className={cn("relative rounded-2xl p-2", glass)}>
-                  <EditorMock />
+                  <HeroCompiler />
                 </div>
                 <FloatChip className="-left-8 -top-5" delay={0.2}>
                   <Flame className="size-4" style={{ color: ACCENT }} /> 94-day streak
