@@ -1,3 +1,5 @@
+/* eslint-disable */
+// Vendored from reactbits.dev — keep upstream style; excluded from lint.
 'use client';
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import { gsap } from 'gsap';
