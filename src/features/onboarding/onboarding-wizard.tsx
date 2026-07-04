@@ -68,10 +68,41 @@ const TOTAL_STEPS = 7; // 0=welcome, 1=goal, 2=level, 3=topics, 4=companies, 5=d
 /* ── animation ──────────────────────────────────────────────────── */
 
 const variants = {
-  enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
+  enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0, scale: 0.98 }),
+  center: { x: 0, opacity: 1, scale: 1 },
+  exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0, scale: 0.98 }),
 };
+
+/* Staggered entrance for option grids/chips inside each step. */
+const staggerParent = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.055, delayChildren: 0.08 } },
+};
+const popItem = {
+  hidden: { opacity: 0, y: 16, scale: 0.96 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: "spring" as const, stiffness: 420, damping: 28 },
+  },
+};
+
+function Stagger({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <motion.div variants={staggerParent} initial="hidden" animate="show" className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
+function Pop({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <motion.div variants={popItem} className={className}>
+      {children}
+    </motion.div>
+  );
+}
 
 /* ── component ──────────────────────────────────────────────────── */
 
@@ -162,7 +193,7 @@ export function OnboardingWizard({ name }: { name: string }) {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.28, ease: "easeInOut" }}
+            transition={{ type: "spring", stiffness: 320, damping: 32 }}
             className="w-full max-w-2xl"
           >
             {step === 0 && <StepWelcome name={name} onNext={() => go(1)} />}
@@ -225,29 +256,43 @@ export function OnboardingWizard({ name }: { name: string }) {
 
 function StepWelcome({ name, onNext }: { name: string; onNext: () => void }) {
   return (
-    <div className="flex flex-col items-center text-center gap-6">
-      <div className="flex size-20 items-center justify-center rounded-2xl bg-[#006bff] shadow-lg shadow-[#006bff]/25">
-        <Flame className="size-10 text-white" />
-      </div>
-      <div>
+    <Stagger className="flex flex-col items-center text-center gap-6">
+      <motion.div
+        initial={{ scale: 0, rotate: -12 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: "spring", stiffness: 320, damping: 18, delay: 0.05 }}
+        className="flex size-20 items-center justify-center rounded-2xl bg-[#006bff] shadow-lg shadow-[#006bff]/25"
+      >
+        <motion.span
+          animate={{ y: [0, -4, 0] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
+        >
+          <Flame className="size-10 text-white" />
+        </motion.span>
+      </motion.div>
+      <Pop>
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
           Welcome, {name.split(" ")[0]}! 👋
         </h1>
         <p className="mt-3 text-muted-foreground text-base max-w-md mx-auto">
           Let&apos;s take 2 minutes to personalise your CodeForge AI experience so you hit your goals faster.
         </p>
-      </div>
-      <div className="flex flex-wrap justify-center gap-2 mt-1">
+      </Pop>
+      <Stagger className="flex flex-wrap justify-center gap-2 mt-1">
         {["SM-2 Spaced Repetition", "AI Pair Programmer", "Company Prep", "Smart Analytics"].map((f) => (
-          <span key={f} className="inline-flex items-center gap-1 rounded-full border bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
-            <Check className="size-3 text-primary" /> {f}
-          </span>
+          <Pop key={f} className="inline-block">
+            <span className="inline-flex items-center gap-1 rounded-full border bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
+              <Check className="size-3 text-primary" /> {f}
+            </span>
+          </Pop>
         ))}
-      </div>
-      <Button size="lg" className="mt-2 px-8" onClick={onNext}>
-        Get Started <ArrowRight className="size-4" />
-      </Button>
-    </div>
+      </Stagger>
+      <Pop>
+        <Button size="lg" className="mt-2 px-8" onClick={onNext}>
+          Get Started <ArrowRight className="size-4" />
+        </Button>
+      </Pop>
+    </Stagger>
   );
 }
 
@@ -269,13 +314,13 @@ function StepGoal({
         title="What's your main goal?"
         desc="We'll tailor your problem set and AI recommendations around this."
       />
-      <div className="grid gap-3 sm:grid-cols-2">
+      <Stagger className="grid gap-3 sm:grid-cols-2">
         {GOALS.map(({ id, icon: Icon, label, desc }) => (
+          <Pop key={id} className="h-full">
           <button
-            key={id}
             onClick={() => onChange(id)}
             className={cn(
-              "group flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all",
+              "group flex h-full w-full items-start gap-4 rounded-xl border-2 p-4 text-left transition-all",
               value === id
                 ? "border-primary bg-primary/5 shadow-sm"
                 : "border-border hover:border-primary/50 hover:bg-muted/40",
@@ -290,8 +335,9 @@ function StepGoal({
             </div>
             {value === id && <Check className="ml-auto size-4 text-primary shrink-0 mt-0.5" />}
           </button>
+          </Pop>
         ))}
-      </div>
+      </Stagger>
       <StepNav onBack={onBack} onNext={onNext} nextDisabled={!value} />
     </div>
   );
@@ -315,13 +361,13 @@ function StepLevel({
         title="What's your experience level?"
         desc="Be honest — we'll give you appropriately challenging problems."
       />
-      <div className="grid gap-3">
+      <Stagger className="grid gap-3">
         {LEVELS.map(({ id, icon: Icon, label, desc, color }) => (
+          <Pop key={id}>
           <button
-            key={id}
             onClick={() => onChange(id)}
             className={cn(
-              "group flex items-center gap-4 rounded-xl border-2 p-4 text-left transition-all",
+              "group flex w-full items-center gap-4 rounded-xl border-2 p-4 text-left transition-all",
               value === id
                 ? "border-primary bg-primary/5 shadow-sm"
                 : "border-border hover:border-primary/50 hover:bg-muted/40",
@@ -336,8 +382,9 @@ function StepLevel({
             </div>
             {value === id && <Check className="size-5 text-primary shrink-0" />}
           </button>
+          </Pop>
         ))}
-      </div>
+      </Stagger>
       <StepNav onBack={onBack} onNext={onNext} nextDisabled={!value} />
     </div>
   );
@@ -361,26 +408,27 @@ function StepTopics({
         title="Which topics do you want to focus on?"
         desc="Pick at least 1. You can change this any time from your settings."
       />
-      <div className="flex flex-wrap gap-2">
+      <Stagger className="flex flex-wrap gap-2">
         {TOPICS.map((t) => {
           const sel = value.includes(t);
           return (
-            <button
-              key={t}
-              onClick={() => onToggle(t)}
-              className={cn(
-                "rounded-full border-2 px-3.5 py-1.5 text-sm font-medium transition-all",
-                sel
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border hover:border-primary/60 hover:bg-muted/50",
-              )}
-            >
-              {sel && <Check className="inline size-3 mr-1 -mt-0.5" />}
-              {t}
-            </button>
+            <Pop key={t} className="inline-block">
+              <button
+                onClick={() => onToggle(t)}
+                className={cn(
+                  "rounded-full border-2 px-3.5 py-1.5 text-sm font-medium transition-all",
+                  sel
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border hover:border-primary/60 hover:bg-muted/50",
+                )}
+              >
+                {sel && <Check className="inline size-3 mr-1 -mt-0.5" />}
+                {t}
+              </button>
+            </Pop>
           );
         })}
-      </div>
+      </Stagger>
       <div className="flex items-center gap-2">
         <button
           className="text-xs text-primary hover:underline"
@@ -424,26 +472,27 @@ function StepCompanies({
         desc="We'll surface company-tagged problems in your feed. Totally optional."
         optional
       />
-      <div className="flex flex-wrap gap-2">
+      <Stagger className="flex flex-wrap gap-2">
         {COMPANIES.map((c) => {
           const sel = value.includes(c);
           return (
-            <button
-              key={c}
-              onClick={() => onToggle(c)}
-              className={cn(
-                "rounded-full border-2 px-4 py-2 text-sm font-medium transition-all",
-                sel
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border hover:border-primary/60 hover:bg-muted/50",
-              )}
-            >
-              {sel && <Check className="inline size-3 mr-1 -mt-0.5" />}
-              {c}
-            </button>
+            <Pop key={c} className="inline-block">
+              <button
+                onClick={() => onToggle(c)}
+                className={cn(
+                  "rounded-full border-2 px-4 py-2 text-sm font-medium transition-all",
+                  sel
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border hover:border-primary/60 hover:bg-muted/50",
+                )}
+              >
+                {sel && <Check className="inline size-3 mr-1 -mt-0.5" />}
+                {c}
+              </button>
+            </Pop>
           );
         })}
-      </div>
+      </Stagger>
       <StepNav onBack={onBack} onNext={onNext} nextDisabled={false} onSkip={onSkip} />
     </div>
   );
@@ -467,13 +516,13 @@ function StepDailyGoal({
         title="How many problems per day?"
         desc="Consistency beats intensity. Pick what you can realistically commit to."
       />
-      <div className="grid gap-3 sm:grid-cols-2">
+      <Stagger className="grid gap-3 sm:grid-cols-2">
         {DAILY_GOALS.map(({ value: v, icon: Icon, label, tag, desc }) => (
+          <Pop key={v} className="h-full">
           <button
-            key={v}
             onClick={() => onChange(v)}
             className={cn(
-              "group flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all",
+              "group flex h-full w-full items-start gap-4 rounded-xl border-2 p-4 text-left transition-all",
               value === v
                 ? "border-primary bg-primary/5 shadow-sm"
                 : "border-border hover:border-primary/50 hover:bg-muted/40",
@@ -493,8 +542,9 @@ function StepDailyGoal({
             </div>
             {value === v && <Check className="ml-auto size-4 text-primary shrink-0 mt-0.5" />}
           </button>
+          </Pop>
         ))}
-      </div>
+      </Stagger>
       <div className="flex items-center justify-between pt-2">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="size-4" /> Back
