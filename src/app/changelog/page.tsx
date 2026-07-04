@@ -10,10 +10,30 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "2.2.0",
-    date: "June 28, 2026",
+    version: "2.3.0",
+    date: "July 4, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Compiler Web mode — run HTML/CSS/JS with a live preview, build React with npm packages you add on the fly, and spin up Next.js on an in-browser Node runtime with a file explorer and a terminal streaming the dev-server output. Toggle between Language and Web at the top of /compiler",
+        "A completely redesigned landing page — floating glass navbar, animated aurora and particle backgrounds, animated headlines, a magic bento feature grid, stacking workflow cards, glass stat bars, marquees and magnetic buttons — in full light and dark themes, tuned for mobile",
+        "Smoother onboarding — springier step transitions and staggered, animated option cards throughout the setup wizard",
+      ],
+      improved: [
+        "Landing headings, cards and grids now align consistently across every screen size",
+      ],
+      fixed: [
+        "Frontend challenges and the compiler Web mode could show 'Couldn't connect to server' — the sandbox runtime was blocked by our security policy and is now allowed",
+        "The compiler page no longer flashes a hydration error when your saved editor settings differ from the defaults",
+      ],
+    },
+  },
+  {
+    version: "2.2.0",
+    date: "June 28, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Careers at /careers — three open roles with detail pages and an application form; apply with your résumé (PDF/DOC), LinkedIn, GitHub, portfolio and experience. Applications appear in the admin panel with a full detail view, and every applicant gets a confirmation email",
