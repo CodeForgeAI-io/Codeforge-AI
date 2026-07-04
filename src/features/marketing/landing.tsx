@@ -632,7 +632,7 @@ export function Landing({ problems, totalProblems, featuresByPlan, paymentsEnabl
             dark
             eyebrow="FEATURES"
             title={
-              <GradientText colors={[ACCENT_L, "#7cc4ff", "#ffffff", ACCENT_L]} animationSpeed={6} className="!mx-0">
+              <GradientText colors={[ACCENT_L, "#7cc4ff", "#ffffff", ACCENT_L]} animationSpeed={6}>
                 27+ features. Zero paywalls.
               </GradientText>
             }
@@ -906,11 +906,11 @@ export function Landing({ problems, totalProblems, featuresByPlan, paymentsEnabl
               </span>
               <h2 className={cn("mt-6 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl", inkHead)}>
                 {isLight ? (
-                  <GradientText colors={["#0f172a", ACCENT, "#0050c0", "#0f172a"]} animationSpeed={7} className="!mx-0">
+                  <GradientText colors={["#0f172a", ACCENT, "#0050c0", "#0f172a"]} animationSpeed={7}>
                     Your next offer starts now.
                   </GradientText>
                 ) : (
-                  <GradientText colors={["#ffffff", "#7cc4ff", ACCENT_L, "#ffffff"]} animationSpeed={7} className="!mx-0">
+                  <GradientText colors={["#ffffff", "#7cc4ff", ACCENT_L, "#ffffff"]} animationSpeed={7}>
                     Your next offer starts now.
                   </GradientText>
                 )}
