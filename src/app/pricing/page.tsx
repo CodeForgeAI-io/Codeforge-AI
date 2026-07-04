@@ -8,6 +8,7 @@ import { PricingCards } from "@/features/subscription/pricing-cards";
 import { getFeatureAccess } from "@/services/feature-access";
 import { buildPricingFeatures } from "@/lib/feature-catalog";
 import { Clock, RefreshCw, HeadphonesIcon, Sparkles } from "@/components/icons";
+import { PageAura } from "@/components/shared/reactbits-kit";
 
 export const metadata: Metadata = {
   title: "Pricing — CodeForge AI",
@@ -30,10 +31,11 @@ export default async function PricingPage() {
   const featuresByPlan = buildPricingFeatures(await getFeatureAccess());
 
   return (
-    <div className="min-h-svh bg-background">
+    <div className="relative min-h-svh overflow-hidden bg-background">
+      <PageAura height={520} />
       <PublicHeader signedIn={signedIn} />
 
-      <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+      <div className="relative z-10 mx-auto max-w-5xl px-4 py-12 sm:px-6">
         {/* header */}
         <div className="mb-10 text-center">
           <span className="inline-flex items-center rounded-full border bg-primary/5 px-3 py-1 text-xs font-semibold text-primary mb-3">
