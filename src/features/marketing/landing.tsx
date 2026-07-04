@@ -576,13 +576,13 @@ export function Landing({ problems, totalProblems, featuresByPlan, paymentsEnabl
                 <div className={cn("relative rounded-2xl p-2", glass)}>
                   <HeroCompiler />
                 </div>
-                <FloatChip className="-left-8 -top-5" delay={0.2}>
+                <FloatChip className="-left-8 top-16" delay={0.2}>
                   <Flame className="size-4" style={{ color: ACCENT }} /> 94-day streak
                 </FloatChip>
-                <FloatChip className="-right-8 top-10" delay={1}>
+                <FloatChip className="-right-8 top-1/2" delay={1}>
                   <Bot className="size-4" style={{ color: ACCENT }} /> AI hint ready
                 </FloatChip>
-                <FloatChip className="-bottom-5 -right-4" delay={1.6}>
+                <FloatChip className="-bottom-5 -left-4" delay={1.6}>
                   <Trophy className="size-4" style={{ color: ACCENT }} /> Top 3% rank
                 </FloatChip>
               </div>
