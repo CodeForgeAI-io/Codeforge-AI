@@ -38,7 +38,10 @@ import {
 import { LANGUAGES, type LanguageId } from "@/lib/constants";
 import { useWorkspaceStore } from "@/store/workspace";
 import { CodeEditor } from "@/features/workspace/code-editor";
+import { WebCompiler } from "@/features/compiler/web-compiler";
 import { cn } from "@/lib/utils";
+
+type CompilerMode = "language" | "web";
 import type { ExecutionStatus } from "@/services/execution/types";
 
 // ---------------------------------------------------------------------------
@@ -142,6 +145,7 @@ function OutputField({
 export function Compiler() {
   const store = useWorkspaceStore();
 
+  const [mode, setMode] = useState<CompilerMode>("language");
   const [language, setLanguage] = useState<LanguageId>(store.language);
   const [code, setCode] = useState<string>(
     () => HELLO_WORLD[store.language] ?? HELLO_WORLD.javascript,
@@ -338,8 +342,42 @@ export function Compiler() {
   // Responsive layout
   // -------------------------------------------------------------------------
 
+  const modeSwitch = (
+    <div className="flex shrink-0 items-center gap-1 border-b px-3 py-1.5">
+      <div className="inline-flex rounded-lg border bg-muted/40 p-0.5">
+        {(["language", "web"] as CompilerMode[]).map((m) => (
+          <button
+            key={m}
+            onClick={() => setMode(m)}
+            className={cn(
+              "rounded-md px-3 py-1 text-xs font-medium transition-colors",
+              mode === m
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {m === "language" ? "Language" : "Web / React"}
+          </button>
+        ))}
+      </div>
+      <span className="ml-2 text-[11px] text-muted-foreground">
+        {mode === "language"
+          ? "Run 12 languages against custom input"
+          : "HTML/CSS/JS · React (+ npm) · Next.js"}
+      </span>
+    </div>
+  );
+
   return (
     <div className="flex h-[calc(100svh-3.5rem)] flex-col">
+      {modeSwitch}
+
+      {mode === "web" ? (
+        <div className="min-h-0 flex-1">
+          <WebCompiler />
+        </div>
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col">
       {/* Desktop: horizontal resizable split */}
       <div className="hidden h-full md:block">
         <ResizablePanelGroup orientation="horizontal" className="h-full">
@@ -401,6 +439,8 @@ export function Compiler() {
           </TabsContent>
         </Tabs>
       </div>
+        </div>
+      )}
     </div>
   );
 }
