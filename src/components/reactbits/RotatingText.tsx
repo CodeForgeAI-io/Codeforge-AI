@@ -1,3 +1,5 @@
+/* eslint-disable */
+// Vendored from reactbits.dev — keep upstream style; excluded from lint.
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import {
   motion,

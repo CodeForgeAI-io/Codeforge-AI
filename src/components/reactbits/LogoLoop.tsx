@@ -1,3 +1,5 @@
+/* eslint-disable */
+// Vendored from reactbits.dev — keep upstream style; excluded from lint.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export type LogoItem =

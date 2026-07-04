@@ -1,3 +1,5 @@
+/* eslint-disable */
+// Vendored from reactbits.dev — keep upstream style; excluded from lint.
 import React, { useState, useEffect, useRef, ReactNode, HTMLAttributes } from 'react';
 
 interface MagnetProps extends HTMLAttributes<HTMLDivElement> {

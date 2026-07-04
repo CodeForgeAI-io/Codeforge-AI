@@ -1,3 +1,5 @@
+/* eslint-disable */
+// Vendored from reactbits.dev — keep upstream style; excluded from lint.
 import React, { useLayoutEffect, useRef, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import Lenis from 'lenis';
