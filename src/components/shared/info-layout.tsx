@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Heart } from "@/components/icons";
 import { APP_NAME, APP_VERSION } from "@/lib/constants";
+import { PageAura } from "@/components/shared/reactbits-kit";
 
 export function InfoLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-svh bg-background text-foreground flex flex-col">
-      <header className="sticky top-0 z-10 border-b bg-background/90 backdrop-blur-md">
+    <div className="relative min-h-svh bg-background text-foreground flex flex-col overflow-hidden">
+      <PageAura height={520} />
+      <header className="sticky top-0 z-20 border-b border-black/[0.06] bg-background/70 backdrop-blur-xl dark:border-white/[0.08]">
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
           <Link href="/" className="text-sm font-bold text-primary">
             {APP_NAME}
@@ -27,11 +29,11 @@ export function InfoLayout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 mx-auto w-full max-w-4xl px-4 py-12">
+      <main className="relative z-10 flex-1 mx-auto w-full max-w-4xl px-4 py-12">
         {children}
       </main>
 
-      <footer className="border-t">
+      <footer className="relative z-10 border-t">
         <div className="mx-auto max-w-4xl space-y-4 px-4 py-6 text-xs text-muted-foreground">
           {/* link row — wraps and stays centered */}
           <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">

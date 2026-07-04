@@ -10,6 +10,7 @@ import {
   articlesByCategory,
   searchIndex,
 } from "@/content/docs";
+import { PageAura } from "@/components/shared/reactbits-kit";
 
 export const metadata: Metadata = {
   title: "Documentation — CodeForge AI",
@@ -23,11 +24,12 @@ export default async function HelpHomePage() {
   const index = searchIndex();
 
   return (
-    <div className="min-h-svh bg-background">
+    <div className="relative min-h-svh overflow-hidden bg-background">
+      <PageAura height={480} />
       <PublicHeader signedIn={!!session?.user} />
 
       {/* hero + search */}
-      <section className="border-b bg-muted/30">
+      <section className="relative z-10 border-b border-black/[0.06] dark:border-white/[0.08]">
         <div className="mx-auto max-w-3xl px-4 py-14 text-center sm:py-20">
           <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight text-[#006bff]">
             <span className="size-1.5 rounded-full bg-[#006bff]" />{" "}

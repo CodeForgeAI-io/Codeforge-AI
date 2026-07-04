@@ -7,6 +7,7 @@ import { CareerIcon } from "@/features/careers/career-icon";
 import { ArrowRight, MapPin } from "@/components/icons";
 import { CAREERS } from "@/content/careers";
 import { APP_NAME } from "@/lib/constants";
+import { PageAura } from "@/components/shared/reactbits-kit";
 
 export const metadata: Metadata = {
   title: `Careers — ${APP_NAME}`,
@@ -18,10 +19,11 @@ export default async function CareersPage() {
   const session = await auth();
 
   return (
-    <div className="flex min-h-svh flex-col bg-background">
+    <div className="relative flex min-h-svh flex-col overflow-hidden bg-background">
+      <PageAura height={520} />
       <PublicHeader signedIn={!!session?.user} />
 
-      <main className="flex-1">
+      <main className="relative z-10 flex-1">
         <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-20">
           <div className="text-center">
             <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight text-primary">
