@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -144,6 +144,12 @@ function OutputField({
 
 export function Compiler() {
   const store = useWorkspaceStore();
+
+  // The workspace store is persisted to localStorage, so the client's first
+  // render can differ from the server-rendered default (saved language, font
+  // size…). Render only after mount to avoid hydration mismatches.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const [mode, setMode] = useState<CompilerMode>("language");
   const [language, setLanguage] = useState<LanguageId>(store.language);
@@ -341,6 +347,10 @@ export function Compiler() {
   // -------------------------------------------------------------------------
   // Responsive layout
   // -------------------------------------------------------------------------
+
+  if (!mounted) {
+    return <div className="h-[calc(100svh-3.5rem)] animate-pulse bg-muted/20" />;
+  }
 
   const modeSwitch = (
     <div className="flex shrink-0 items-center gap-1 border-b px-3 py-1.5">
