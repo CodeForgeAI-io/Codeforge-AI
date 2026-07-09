@@ -85,7 +85,10 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
-      { source: "/(.*)", headers: securityHeaders },
+      // Apply the strict site-wide policy everywhere EXCEPT the JS-runner worker
+      // route, which ships its own worker-scoped CSP (it needs eval; the site
+      // policy forbids it). A second CSP header here would intersect and re-block.
+      { source: "/((?!api/js-runner).*)", headers: securityHeaders },
       // Never let a proxy/CDN cache sensitive responses (auth, money, admin).
       { source: "/api/auth/(.*)", headers: noStore },
       { source: "/api/billing/(.*)", headers: noStore },
