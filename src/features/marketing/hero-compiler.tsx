@@ -27,29 +27,10 @@ interface OutLine {
   text: string;
 }
 
-/** Source for the sandboxed Web Worker that executes the visitor's code.
- *  Console output is relayed via postMessage; the parent enforces a timeout. */
-const WORKER_SRC = `
-  const fmt = (v) => {
-    if (typeof v === "string") return v;
-    try { return JSON.stringify(v); } catch { return String(v); }
-  };
-  const send = (type) => (...args) => postMessage({ type, text: args.map(fmt).join(" ") });
-  console.log = send("log");
-  console.error = send("error");
-  console.warn = send("warn");
-  console.info = send("info");
-  onmessage = (e) => {
-    const start = performance.now();
-    try {
-      new Function(e.data)();
-      postMessage({ type: "done", ms: Math.max(1, Math.round(performance.now() - start)) });
-    } catch (err) {
-      postMessage({ type: "error", text: String(err) });
-      postMessage({ type: "done", ms: Math.max(1, Math.round(performance.now() - start)) });
-    }
-  };
-`;
+/** Sandboxed Web Worker that executes the visitor's code. Served from its own
+ *  same-origin route so it can carry a worker-scoped CSP that permits eval —
+ *  a blob: worker would inherit the document's strict, eval-free policy. */
+const WORKER_URL = "/api/js-runner";
 
 /** A real, working JavaScript playground for the landing hero. Code runs
  *  client-side in a Web Worker — no login, no server cost, hard 3s timeout. */
@@ -75,10 +56,7 @@ export function HeroCompiler() {
     setMs(null);
     setRunning(true);
 
-    const blob = new Blob([WORKER_SRC], { type: "application/javascript" });
-    const url = URL.createObjectURL(blob);
-    const worker = new Worker(url);
-    URL.revokeObjectURL(url);
+    const worker = new Worker(WORKER_URL);
     workerRef.current = worker;
 
     worker.onmessage = (e) => {
