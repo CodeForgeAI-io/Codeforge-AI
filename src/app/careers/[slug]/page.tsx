@@ -9,6 +9,7 @@ import { ApplyForm } from "@/features/careers/apply-form";
 import { ArrowLeft, Check, MapPin } from "@/components/icons";
 import { CAREERS, getCareer } from "@/content/careers";
 import { APP_NAME } from "@/lib/constants";
+import { JsonLd } from "@/components/json-ld";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -67,7 +68,7 @@ export default async function CareerDetailPage({ params }: PageProps) {
 
   return (
     <div className="flex min-h-svh flex-col bg-background">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jobLd) }} />
+      <JsonLd data={jobLd} />
       <PublicHeader signedIn={!!session?.user} />
 
       <main className="flex-1">
