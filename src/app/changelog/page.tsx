@@ -10,10 +10,26 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "2.3.0",
-    date: "July 4, 2026",
+    version: "2.3.1",
+    date: "July 11, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [],
+      improved: [
+        "The landing code playground is now screen-reader accessible — every control has a clear label and program output is announced aloud as it runs",
+        "Strengthened reliability behind the scenes with new automated tests around payments, coupon discounts and other security-sensitive logic",
+      ],
+      fixed: [
+        "Structured-data (SEO) markup on the blog, careers and landing pages is now safely escaped, closing a content-injection gap",
+      ],
+    },
+  },
+  {
+    version: "2.3.0",
+    date: "July 4, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Compiler Web mode — run HTML/CSS/JS with a live preview, build React with npm packages you add on the fly, and spin up Next.js on an in-browser Node runtime with a file explorer and a terminal streaming the dev-server output. Toggle between Language and Web at the top of /compiler",
