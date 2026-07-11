@@ -3,6 +3,25 @@ import { connectDB } from "@/lib/mongodb";
 import { User, Subscription, WebhookEvent } from "@/models";
 import { verifyWebhookSignature } from "@/lib/razorpay";
 import { getPostHogServer } from "@/lib/posthog-server";
+import { PLANS, type PlanId } from "@/lib/plans";
+import { sendEmail } from "@/lib/mailer";
+import {
+  paymentReceiptEmailHtml,
+  paymentReceiptEmailSubject,
+  paymentFailedEmailHtml,
+  paymentFailedEmailSubject,
+} from "@/lib/email-templates";
+
+const APP_URL =
+  process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://codeforgeai.io";
+
+function fmtDate(d: Date): string {
+  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function planLabel(plan: string): string {
+  return PLANS[plan as PlanId]?.name ?? "your";
+}
 
 export const runtime = "nodejs";
 // Razorpay needs the raw, unmodified body to validate the signature.
@@ -73,8 +92,9 @@ export async function POST(req: NextRequest) {
           : addPeriod(periodStart, cycle);
 
         // Record the charge as an invoice (idempotent on payment id).
+        let newInvoice = false;
         if (payEntity?.id) {
-          await Subscription.updateOne(
+          const res = await Subscription.updateOne(
             { razorpayPaymentId: payEntity.id },
             {
               $setOnInsert: {
@@ -93,6 +113,7 @@ export async function POST(req: NextRequest) {
             },
             { upsert: true },
           );
+          newInvoice = (res.upsertedCount ?? 0) > 0;
         }
 
         await User.findByIdAndUpdate(userId, {
@@ -103,6 +124,25 @@ export async function POST(req: NextRequest) {
           subscriptionStatus: "active",
         });
         getPostHogServer()?.capture({ distinctId: String(userId), event: "subscription_renewed", properties: { plan, billing_cycle: cycle } });
+
+        // Receipt email for genuine new charges only (renewals + the first
+        // charge after a trial). The immediate first purchase was already
+        // emailed by the verify route, whose invoice row already exists, so
+        // newInvoice is false there and we don't double-send.
+        if (newInvoice && user?.email) {
+          sendEmail({
+            to: user.email,
+            subject: paymentReceiptEmailSubject(planLabel(plan), true),
+            html: paymentReceiptEmailHtml({
+              name: user.name ?? user.email.split("@")[0],
+              planName: planLabel(plan),
+              amountLabel: `₹${(payEntity?.amount ?? 0) / 100}`,
+              periodEndLabel: fmtDate(periodEnd),
+              renewal: true,
+              manageUrl: `${APP_URL}/settings?tool=billing`,
+            }),
+          }).catch(() => {});
+        }
         break;
       }
 
@@ -115,7 +155,25 @@ export async function POST(req: NextRequest) {
 
       case "subscription.halted": {
         const subId = subEntity?.id;
-        if (subId) await User.updateOne({ razorpaySubscriptionId: subId }, { subscriptionStatus: "halted" });
+        if (subId) {
+          const u = await User.findOneAndUpdate(
+            { razorpaySubscriptionId: subId },
+            { subscriptionStatus: "halted" },
+          );
+          // A recurring charge failed → auto-pay paused. Ask them to fix the card.
+          if (u?.email) {
+            const plan = u.plan && u.plan !== "free" ? u.plan : subEntity?.notes?.plan ?? "go";
+            sendEmail({
+              to: u.email,
+              subject: paymentFailedEmailSubject(planLabel(plan)),
+              html: paymentFailedEmailHtml({
+                name: u.name ?? u.email.split("@")[0],
+                planName: planLabel(plan),
+                updateUrl: `${APP_URL}/settings?tool=billing`,
+              }),
+            }).catch(() => {});
+          }
+        }
         break;
       }
 
