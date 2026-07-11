@@ -92,7 +92,7 @@ export const completeVision = traceable(
     const response = await groq.chat.completions.create({
       model: GROQ_VISION_MODEL,
       // groq-sdk types are OpenAI-compatible; multimodal content is supported.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       messages: [
         { role: "system", content: system },
         {

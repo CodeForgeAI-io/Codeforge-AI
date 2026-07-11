@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 // Vendored from reactbits.dev — keep upstream style; excluded from lint.
 import React from 'react';
 
