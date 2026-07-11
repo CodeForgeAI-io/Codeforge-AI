@@ -10,6 +10,7 @@ import {
   FileQuestion,
   ListChecks,
   Lock,
+  Mail,
   MessageSquare,
   Newspaper,
   Paintbrush,
@@ -55,6 +56,7 @@ const SECTIONS: AdminNavSection[] = [
       { href: "/admin/feedback", label: "Feedback", icon: MessageSquare },
       { href: "/admin/careers", label: "Applications", icon: Briefcase },
       { href: "/admin/qa", label: "QA", icon: ShieldCheck },
+      { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
     ],
   },
   {

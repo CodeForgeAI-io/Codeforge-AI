@@ -10,10 +10,25 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "2.3.1",
+    version: "2.4.0",
     date: "July 11, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Newsletter broadcasts from the admin panel — compose a rich email with formatting, an image and a call-to-action button, let AI write the first draft from a one-line prompt, then send it to every subscriber or a single address. One-click unsubscribe is built into every email",
+      ],
+      improved: [
+        "You now get a clear, branded email at every billing moment — when your free trial starts, when a payment or renewal goes through, if a charge fails, and when you cancel",
+      ],
+      fixed: [],
+    },
+  },
+  {
+    version: "2.3.1",
+    date: "July 11, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "7-day free trial with auto-pay — start any paid plan free for a week from the landing page, pricing, or onboarding. Your card is saved securely via Razorpay and the first charge only happens when the trial ends; cancel anytime before then and you pay nothing",
