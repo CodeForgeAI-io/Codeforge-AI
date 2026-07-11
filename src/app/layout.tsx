@@ -11,6 +11,7 @@ import { FOUNDER } from "@/lib/founder";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import "./globals.css";
+import { JsonLd } from "@/components/json-ld";
 
 // Font Awesome inserts its own CSS at runtime by default; we import the
 // stylesheet above and disable auto-insertion to avoid a flash of oversized
@@ -255,10 +256,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        <JsonLd data={jsonLd} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>

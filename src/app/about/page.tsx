@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { APP_NAME } from "@/lib/constants";
 import { FOUNDER } from "@/lib/founder";
 import { InfoLayout } from "@/components/shared/info-layout";
+import { JsonLd } from "@/components/json-ld";
 import {
   Building2,
   Code2,
@@ -63,10 +64,7 @@ const VALUES = [
 export default function AboutPage() {
   return (
     <InfoLayout>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(founderLd) }}
-      />
+      <JsonLd data={founderLd} />
       <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight text-[#006bff]">
         <span className="size-1.5 rounded-full bg-[#006bff]" /> About us
       </span>

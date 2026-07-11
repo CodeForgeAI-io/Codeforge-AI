@@ -5,6 +5,7 @@ import { FAQS } from "@/features/marketing/faqs";
 import type { Metadata } from "next";
 import { getFeatureAccess } from "@/services/feature-access";
 import { buildPricingFeatures } from "@/lib/feature-catalog";
+import { JsonLd } from "@/components/json-ld";
 
 // Statically render the landing and revalidate every 5 minutes. The signed-in
 // header state is resolved on the client, so there's no per-request server work
@@ -66,10 +67,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
+      <JsonLd data={faqJsonLd} />
       <Landing
         problems={problems}
         totalProblems={totalProblems}

@@ -9,6 +9,7 @@ import { PublicHeader } from "@/components/layout/public-header";
 import { Markdown } from "@/components/shared/markdown";
 import { ArrowLeft } from "@/components/icons";
 import { APP_NAME } from "@/lib/constants";
+import { JsonLd } from "@/components/json-ld";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -73,7 +74,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <div className="min-h-svh bg-background">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />
+      <JsonLd data={articleLd} />
       <PublicHeader signedIn={!!session?.user} />
 
       <article className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
