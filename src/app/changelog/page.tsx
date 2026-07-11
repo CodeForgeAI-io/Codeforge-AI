@@ -22,6 +22,7 @@ const RELEASES: Release[] = [
       ],
       fixed: [
         "Structured-data (SEO) markup on the blog, careers and landing pages is now safely escaped, closing a content-injection gap",
+        "Vercel Speed Insights and Google ad units were being blocked by our security policy — they now load correctly",
       ],
     },
   },
