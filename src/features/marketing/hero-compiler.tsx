@@ -154,7 +154,7 @@ export function HeroCompiler() {
 
       {/* output */}
       <div className="border-t border-black/[0.06] bg-neutral-950 px-4 py-3 font-mono text-[11.5px] leading-relaxed sm:px-5 dark:border-white/10 dark:bg-black/60">
-        <div className="mb-1 flex items-center justify-between text-neutral-600">
+        <div className="mb-1 flex items-center justify-between text-neutral-400">
           <span>{"// output"}</span>
           {ms !== null && (
             <span className="flex items-center gap-1.5 text-[10.5px] text-neutral-500">
@@ -170,7 +170,7 @@ export function HeroCompiler() {
           aria-label="Program output"
         >
           {out.length === 0 && !running && (
-            <div className="text-neutral-600">Hit Run (or ⌘/Ctrl + Enter) to execute…</div>
+            <div className="text-neutral-400">Hit Run (or ⌘/Ctrl + Enter) to execute…</div>
           )}
           {out.map((line, i) => (
             <div key={i} className={cn("whitespace-pre-wrap break-all", line.type === "error" ? "text-red-400" : line.type === "warn" ? "text-amber-300" : "text-neutral-300")}>

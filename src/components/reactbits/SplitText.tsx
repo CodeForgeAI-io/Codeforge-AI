@@ -166,8 +166,12 @@ const SplitText: React.FC<SplitTextProps> = ({
     const classes = `split-parent overflow-hidden inline-block whitespace-normal ${className}`;
     const Tag = (tag || 'p') as React.ElementType;
 
+    // GSAP's SplitText adds aria-label (the full string) to this container and
+    // aria-hidden to the per-character spans. aria-label is prohibited on a
+    // roleless span, so expose role="text" — it groups the split characters as
+    // a single readable string without adding a landmark or heading.
     return (
-      <Tag ref={ref} style={style} className={classes}>
+      <Tag ref={ref} style={style} className={classes} role="text">
         {text}
       </Tag>
     );

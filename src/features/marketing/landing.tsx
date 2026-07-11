@@ -278,9 +278,9 @@ function EditorMock() {
       <div className={mockBar}>
         {mockDots}
         <span className={cn("ml-2 font-mono text-xs", inkFaint)}>solution.py</span>
-        <span className="ml-auto rounded-md px-1.5 py-0.5 text-[10px] font-medium" style={{ background: `${ACCENT}22`, color: ACCENT }}>AI</span>
+        <span className="ml-auto rounded-md px-1.5 py-0.5 text-[10px] font-medium text-white" style={{ background: ACCENT }}>AI</span>
       </div>
-      <pre className={cn("overflow-x-auto p-4 font-mono text-[11.5px] leading-relaxed sm:p-5 sm:text-[12.5px]", mockText)}>
+      <pre tabIndex={0} className={cn("overflow-x-auto p-4 font-mono text-[11.5px] leading-relaxed sm:p-5 sm:text-[12.5px]", mockText)}>
 {`def maxProfit(prices):
     min_price = float("inf")
     max_profit = 0
@@ -305,14 +305,14 @@ function CompilerMock() {
         <span className={cn("ml-2 font-mono text-xs", inkFaint)}>main.py</span>
         <span className="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium text-white" style={{ background: ACCENT }}>Run ▶</span>
       </div>
-      <pre className={cn("overflow-x-auto px-5 py-4 font-mono text-[12px] leading-relaxed", mockText)}>
+      <pre tabIndex={0} className={cn("overflow-x-auto px-5 py-4 font-mono text-[12px] leading-relaxed", mockText)}>
 {`name = input()
 print(f"Hello, {name}!")
 for i in range(3):
     print(i * i)`}
       </pre>
       <div className="border-t border-black/[0.06] bg-neutral-950 px-5 py-3 font-mono text-[11.5px] leading-relaxed text-neutral-300 dark:border-white/10 dark:bg-black/60">
-        <div className="text-neutral-600">{"// output"}</div>
+        <div className="text-neutral-400">{"// output"}</div>
         <div>Hello, Ada!</div>
         <div>0</div>
         <div>1</div>
