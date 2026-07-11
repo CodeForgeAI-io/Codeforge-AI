@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PLANS, formatPrice, yearlyDiscount, monthlyCredits } from "@/lib/plans";
 import type { PlanId, BillingCycle } from "@/lib/plans";
-import { toast } from "sonner";
 
 export function PricingCards({
   cycle: defaultCycle = "monthly",
@@ -33,30 +32,20 @@ export function PricingCards({
   const { data: session } = useSession();
   const router = useRouter();
 
-  async function startTrial(plan: PlanId) {
-    if (!session) { router.push("/login?callbackUrl=/pricing"); return; }
+  // Card-on-file free trial: routes to checkout in trial mode (card captured
+  // now, first charge only after the 7-day trial). Server enforces one trial
+  // per account, so ineligible users simply see the normal "subscribe" state.
+  function startTrial(plan: PlanId) {
     setLoading(plan);
-    try {
-      const res = await fetch("/api/subscription/start-trial", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      toast.success(`${PLANS[plan].name} trial started! 7 days free.`);
-      onPlanChosen?.(plan);
-      router.refresh();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to start trial");
-    } finally {
-      setLoading(null);
-    }
+    onPlanChosen?.(plan);
+    const target = `/checkout?plan=${plan}&cycle=${cycle}&trial=1`;
+    router.push(session ? target : `/login?callbackUrl=${encodeURIComponent(target)}`);
   }
 
   // Send the user to our custom checkout page (collects billing details and
   // prefills Razorpay so it jumps straight to the payment apps).
   function subscribe(plan: PlanId) {
+    setLoading(plan);
     const target = `/checkout?plan=${plan}&cycle=${cycle}`;
     router.push(session ? target : `/login?callbackUrl=${encodeURIComponent(target)}`);
   }

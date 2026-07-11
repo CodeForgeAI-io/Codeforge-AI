@@ -46,6 +46,8 @@ export function CheckoutForm({
   amount,
   planName,
   trialDays,
+  trialEligible,
+  initialTrial,
   defaults,
 }: {
   plan: "go" | "plus";
@@ -53,12 +55,23 @@ export function CheckoutForm({
   amount: number;
   planName: string;
   trialDays: number;
+  /** True when this account has never trialed and the plan offers a trial. */
+  trialEligible: boolean;
+  /** Whether to open in trial mode (from ?trial=1). */
+  initialTrial: boolean;
   defaults: Defaults;
 }) {
   const router = useRouter();
   const { data: session, update } = useSession();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<Defaults>(defaults);
+  // Card-on-file trial: the card is authenticated now, the first charge fires
+  // when the trial ends. Only offered to eligible accounts.
+  const [trial, setTrial] = useState(initialTrial && trialEligible);
+  const firstChargeDate = new Date(Date.now() + trialDays * 86400_000).toLocaleDateString(
+    undefined,
+    { day: "numeric", month: "short", year: "numeric" },
+  );
 
   // Coupon state
   const [couponInput, setCouponInput] = useState("");
@@ -136,7 +149,8 @@ export function CheckoutForm({
       const res = await fetch("/api/subscription/create-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, cycle, billing, coupon: coupon?.code }),
+        // A trial delays the first charge; coupons apply to immediate purchases only.
+        body: JSON.stringify({ plan, cycle, billing, trial, coupon: trial ? undefined : coupon?.code }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not start subscription");
@@ -154,7 +168,9 @@ export function CheckoutForm({
         key: data.key,
         subscription_id: data.subscriptionId,
         name: "CodeForge AI",
-        description: `${planName} — ${cycle} (auto-renews)`,
+        description: trial
+          ? `${planName} — ${trialDays}-day free trial, then ${cycle}`
+          : `${planName} — ${cycle} (auto-renews)`,
         image: `${window.location.origin}/icon-192.png`,
         theme: { color: "#006bff" },
         // Prefilled so Razorpay skips the contact/email step and goes straight
@@ -188,7 +204,11 @@ export function CheckoutForm({
           });
           const v = await verify.json();
           if (verify.ok) {
-            toast.success(`Welcome to ${planName}! Auto-pay is on.`);
+            toast.success(
+              trial
+                ? `Your ${trialDays}-day free trial started! First charge on ${firstChargeDate}.`
+                : `Welcome to ${planName}! Auto-pay is on.`,
+            );
             await update();
             router.push("/settings?tool=billing");
             router.refresh();
@@ -262,11 +282,36 @@ export function CheckoutForm({
               </span>
               <div>
                 <h2 className="text-sm font-semibold">{planName} plan</h2>
-                <p className="text-xs capitalize text-muted-foreground">{cycle} · auto-renews</p>
+                <p className="text-xs text-muted-foreground">
+                  {trial ? `${trialDays}-day free trial, then ${cycle}` : `${cycle} · auto-renews`}
+                </p>
               </div>
             </div>
 
-            {/* coupon */}
+            {/* trial / subscribe toggle */}
+            {trialEligible && (
+              <div className="mt-4 grid grid-cols-2 gap-1 rounded-lg border p-1">
+                <button
+                  type="button"
+                  onClick={() => setTrial(true)}
+                  aria-pressed={trial}
+                  className={cn("rounded-md px-2 py-1.5 text-xs font-medium transition-colors", trial ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+                >
+                  {trialDays}-day free trial
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTrial(false)}
+                  aria-pressed={!trial}
+                  className={cn("rounded-md px-2 py-1.5 text-xs font-medium transition-colors", !trial ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+                >
+                  Subscribe now
+                </button>
+              </div>
+            )}
+
+            {/* coupon (immediate purchases only) */}
+            {!trial && (
             <div className="mt-5 border-t pt-4">
               {coupon ? (
                 <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
@@ -293,33 +338,50 @@ export function CheckoutForm({
               )}
               {couponError && <p className="mt-1.5 text-xs text-destructive">{couponError}</p>}
             </div>
+            )}
 
             <div className="mt-4 space-y-2 border-t pt-4 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{planName} ({cycle})</span>
                 <span className="font-medium tabular-nums">{formatPrice(amount)}</span>
               </div>
-              {coupon && coupon.discount > 0 && (
+              {!trial && coupon && coupon.discount > 0 && (
                 <div className="flex justify-between text-primary">
                   <span>Discount ({coupon.code})</span>
                   <span className="tabular-nums">−{formatPrice(coupon.discount)}</span>
                 </div>
               )}
               <div className="flex justify-between border-t pt-2 text-base font-semibold">
-                <span>Total due today</span>
-                <span className="tabular-nums">{formatPrice(due)}</span>
+                <span>Due today</span>
+                <span className="tabular-nums">{trial ? formatPrice(0) : formatPrice(due)}</span>
               </div>
+              {trial && (
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>First charge · {firstChargeDate}</span>
+                  <span className="tabular-nums">{formatPrice(amount)}</span>
+                </div>
+              )}
             </div>
 
-            {trialDays > 0 && (
+            {trial ? (
               <p className="mt-3 flex items-center gap-1.5 text-xs text-primary">
-                <Sparkles className="size-3.5" /> {trialDays}-day free trial for new users
+                <Sparkles className="size-3.5" /> Free for {trialDays} days · cancel anytime before {firstChargeDate}
               </p>
-            )}
+            ) : trialEligible ? (
+              <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Sparkles className="size-3.5" /> Prefer to try first? Switch to the {trialDays}-day free trial above.
+              </p>
+            ) : null}
 
             <Button onClick={pay} disabled={loading} size="lg" className="mt-5 w-full gap-2">
               {loading ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
-              {loading ? "Opening payment…" : due <= 0 ? "Activate plan" : `Pay ${formatPrice(due)}`}
+              {loading
+                ? "Opening payment…"
+                : trial
+                  ? `Start ${trialDays}-day free trial`
+                  : due <= 0
+                    ? "Activate plan"
+                    : `Pay ${formatPrice(due)}`}
             </Button>
 
             <div className="mt-4 space-y-1.5 text-[11px] text-muted-foreground">
