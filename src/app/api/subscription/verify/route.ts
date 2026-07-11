@@ -6,6 +6,22 @@ import { User, Subscription } from "@/models";
 import { verifyCheckoutSignature } from "@/lib/razorpay";
 import { redeemCoupon } from "@/lib/coupons";
 import { getPostHogServer } from "@/lib/posthog-server";
+import { PLANS } from "@/lib/plans";
+import { sendEmail } from "@/lib/mailer";
+import {
+  trialStartedEmailHtml,
+  trialStartedEmailSubject,
+  paymentReceiptEmailHtml,
+  paymentReceiptEmailSubject,
+} from "@/lib/email-templates";
+
+const APP_URL =
+  process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://codeforgeai.io";
+
+/** Format a date for billing emails, e.g. "18 Jul 2026". */
+function fmtDate(d: Date): string {
+  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
 
 export const runtime = "nodejs";
 
@@ -91,6 +107,41 @@ export async function POST(req: NextRequest) {
     // Record coupon redemption only after a confirmed payment (never on a trial).
     if (sub.couponCode && !isTrial) {
       await redeemCoupon({ code: sub.couponCode, userId: session.user.id, discount: sub.discount ?? 0 });
+    }
+
+    // Confirmation email (fire-and-forget — never block or fail the payment).
+    const to = session.user.email;
+    if (to) {
+      const name = session.user.name ?? to.split("@")[0];
+      const planName = PLANS[sub.plan].name;
+      const manageUrl = `${APP_URL}/settings?tool=billing`;
+      if (isTrial) {
+        sendEmail({
+          to,
+          subject: trialStartedEmailSubject(planName, PLANS[sub.plan].trialDays),
+          html: trialStartedEmailHtml({
+            name,
+            planName,
+            trialDays: PLANS[sub.plan].trialDays,
+            firstChargeDate: fmtDate(accessUntil),
+            amountLabel: `₹${sub.amount}`,
+            manageUrl,
+          }),
+        }).catch(() => {});
+      } else {
+        sendEmail({
+          to,
+          subject: paymentReceiptEmailSubject(planName, false),
+          html: paymentReceiptEmailHtml({
+            name,
+            planName,
+            amountLabel: `₹${sub.amount}`,
+            periodEndLabel: fmtDate(accessUntil),
+            renewal: false,
+            manageUrl,
+          }),
+        }).catch(() => {});
+      }
     }
   } else {
     // One-time order.
