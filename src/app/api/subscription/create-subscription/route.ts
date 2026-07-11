@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     postalCode?: string;
     country?: string;
   }
-  let body: { plan?: PlanId; cycle?: BillingCycle; billing?: Billing; coupon?: string };
+  let body: { plan?: PlanId; cycle?: BillingCycle; billing?: Billing; coupon?: string; trial?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -80,6 +80,18 @@ export async function POST(req: NextRequest) {
   await connectDB();
   await User.findByIdAndUpdate(session.user.id, { billing });
 
+  // Card-on-file free trial: only for new users who never trialed, only when
+  // no coupon is applied (a discounted first charge and a delayed first charge
+  // don't mix cleanly). The card is authenticated up front; Razorpay makes the
+  // first real charge at `start_at`, so the user pays nothing during the trial.
+  const trialDays = PLANS[plan].trialDays;
+  const existingUser = await User.findById(session.user.id).select("trialEndsAt").lean();
+  const wantsTrial =
+    body.trial === true && trialDays > 0 && !couponCode && !existingUser?.trialEndsAt;
+  const trialEndsAt = wantsTrial
+    ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000)
+    : null;
+
   // 100%-off coupon → grant the plan directly without a Razorpay charge.
   if (finalAmount <= 0 && couponCode) {
     const now = new Date();
@@ -122,6 +134,9 @@ export async function POST(req: NextRequest) {
       // Recurring auto-pay: charge for many cycles (≈5 yrs) until cancelled.
       total_count: cycle === "yearly" ? 5 : 60,
       customer_notify: 1,
+      // Trial: delay the first charge to the trial's end. Card is authenticated
+      // now (₹0/nominal), first real charge fires at start_at → subscription.charged.
+      ...(trialEndsAt ? { start_at: Math.floor(trialEndsAt.getTime() / 1000) } : {}),
       notes: {
         userId: session.user.id,
         plan,
@@ -144,6 +159,7 @@ export async function POST(req: NextRequest) {
       couponCode,
       discount,
       status: "created",
+      ...(trialEndsAt ? { trialEndsAt } : {}),
     });
 
     return NextResponse.json({
@@ -155,6 +171,8 @@ export async function POST(req: NextRequest) {
       amount: finalAmount,
       discount,
       coupon: couponCode ?? null,
+      trial: Boolean(trialEndsAt),
+      trialEndsAt,
     });
   } catch (e) {
     console.error("[create-subscription]", e);

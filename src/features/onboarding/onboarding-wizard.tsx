@@ -141,16 +141,13 @@ export function OnboardingWizard({ name }: { name: string }) {
       });
       if (!res.ok) throw new Error();
 
-      // Start trial if paid plan chosen
-      if (chosenPlan !== "free") {
-        await fetch("/api/subscription/start-trial", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ plan: chosenPlan }),
-        });
-      }
-
       await update();
+      // Paid plan → card-on-file free trial: capture the card in checkout so the
+      // first charge fires automatically when the 7-day trial ends.
+      if (chosenPlan !== "free") {
+        window.location.href = `/checkout?plan=${chosenPlan}&cycle=monthly&trial=1`;
+        return;
+      }
       // Hard reload ensures middleware reads the refreshed JWT cookie
       window.location.href = "/dashboard";
     } catch {
@@ -575,7 +572,7 @@ function StepPlan({
         <span className="text-xs font-bold text-primary uppercase tracking-widest">Step 6 / 6</span>
         <h2 className="text-2xl font-bold tracking-tight mt-0.5">Choose your plan</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          All paid plans include a <strong>7-day free trial</strong> — no credit card needed to start.
+          All paid plans start with a <strong>7-day free trial</strong> — you won&apos;t be charged until it ends, and you can cancel anytime.
         </p>
       </div>
 

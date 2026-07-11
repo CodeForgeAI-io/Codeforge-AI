@@ -60,30 +60,36 @@ export async function POST(req: NextRequest) {
   const periodEnd = addPeriod(now, sub.billingCycle);
 
   if (razorpaySubscriptionId) {
-    // Recurring: mark the tracking doc paid and record the first invoice.
+    // Card-on-file trial: the mandate is authenticated now but the first charge
+    // fires later (Razorpay `start_at`). Grant access until the trial ends and
+    // keep trialEndsAt set; `subscription.charged` will extend it on first bill.
+    const isTrial = Boolean(sub.trialEndsAt && sub.trialEndsAt.getTime() > now.getTime());
+    const accessUntil = isTrial ? sub.trialEndsAt! : periodEnd;
+
     await Subscription.updateOne(
       { _id: sub._id },
       {
         $set: {
-          status: "paid",
+          // Trial isn't paid until the first real charge; mark it authenticated.
+          status: isTrial ? "created" : "paid",
           razorpayPaymentId,
           razorpaySignature,
           periodStart: now,
-          periodEnd,
+          periodEnd: accessUntil,
         },
       },
     );
     await User.findByIdAndUpdate(session.user.id, {
       plan: sub.plan,
       billingCycle: sub.billingCycle,
-      planExpiresAt: periodEnd,
+      planExpiresAt: accessUntil,
       razorpaySubscriptionId,
       subscriptionStatus: "active",
       cancelAtPeriodEnd: false,
-      trialEndsAt: null,
+      trialEndsAt: isTrial ? accessUntil : null,
     });
-    // Record coupon redemption only after a confirmed payment.
-    if (sub.couponCode) {
+    // Record coupon redemption only after a confirmed payment (never on a trial).
+    if (sub.couponCode && !isTrial) {
       await redeemCoupon({ code: sub.couponCode, userId: session.user.id, discount: sub.discount ?? 0 });
     }
   } else {

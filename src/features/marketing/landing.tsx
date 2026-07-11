@@ -843,7 +843,7 @@ export function Landing({ problems, totalProblems, featuresByPlan, paymentsEnabl
         {/* ── PRICING ───────────────────────────────────────────────── */}
         <section id="pricing" className={cn("border-t py-16 sm:py-24", lineCls)}>
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <SectionHead eyebrow="PRICING" title="Start free, level up fast." sub="7-day free trial on all paid plans. No credit card required." />
+            <SectionHead eyebrow="PRICING" title="Start free, level up fast." sub="7-day free trial on all paid plans — you're not charged until it ends, and you can cancel anytime." />
             <Reveal delay={0.1} className="mt-12">
               <PricingCards featuresByPlan={featuresByPlan} paymentsEnabled={paymentsEnabled} />
             </Reveal>
@@ -928,7 +928,7 @@ export function Landing({ problems, totalProblems, featuresByPlan, paymentsEnabl
                   </StarBorder>
                 </Magnet>
                 <Button asChild variant="outline" size="lg" className={cn("h-12 px-7 text-base", outlineBtn)}>
-                  <Link href="/problems">Browse Problems</Link>
+                  <Link href="/pricing">Start 7-day free trial</Link>
                 </Button>
               </div>
             </Reveal>

@@ -16,6 +16,9 @@ export interface SubscriptionDoc {
   couponCode?: string;
   discount?: number;
   status: "created" | "paid" | "failed" | "cancelled";
+  /** Set on card-on-file trials: when the free trial ends and Razorpay makes
+   *  the first real charge (subscription `start_at`). Absent for non-trials. */
+  trialEndsAt?: Date;
   periodStart: Date;
   periodEnd: Date;
   createdAt: Date;
@@ -38,6 +41,7 @@ const subscriptionSchema = new Schema<SubscriptionDoc>(
     couponCode: { type: String },
     discount: { type: Number, default: 0 },
     status: { type: String, enum: ["created", "paid", "failed", "cancelled"], default: "created" },
+    trialEndsAt: { type: Date },
     periodStart: { type: Date },
     periodEnd: { type: Date },
   },

@@ -15,7 +15,9 @@ const RELEASES: Release[] = [
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
     changes: {
-      new: [],
+      new: [
+        "7-day free trial with auto-pay — start any paid plan free for a week from the landing page, pricing, or onboarding. Your card is saved securely via Razorpay and the first charge only happens when the trial ends; cancel anytime before then and you pay nothing",
+      ],
       improved: [
         "The landing code playground is now screen-reader accessible — every control has a clear label and program output is announced aloud as it runs",
         "Strengthened reliability behind the scenes with new automated tests around payments, coupon discounts and other security-sensitive logic",
