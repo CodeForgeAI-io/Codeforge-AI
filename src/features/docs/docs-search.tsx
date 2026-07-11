@@ -49,7 +49,7 @@ export function DocsSearch({
       <Input
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        // eslint-disable-next-line jsx-a11y/no-autofocus
+         
         autoFocus={autoFocus}
         placeholder={placeholder}
         aria-label="Search documentation"
