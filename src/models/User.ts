@@ -40,6 +40,8 @@ export interface UserDoc {
   role: "user" | "admin";
   providers: string[];
   banned: boolean;
+  /** True if the user opted out of newsletters/marketing (one-click unsubscribe). */
+  emailOptOut?: boolean;
   bio?: string;
   location?: string;
   website?: string;
@@ -93,6 +95,7 @@ const userSchema = new Schema<UserDoc>(
       index: true,
     },
     password: { type: String, default: null, select: false },
+    emailOptOut: { type: Boolean, default: false, index: true },
     image: { type: String, default: null },
     role: { type: String, enum: ["user", "admin"], default: "user" },
     providers: { type: [String], default: ["credentials"] },

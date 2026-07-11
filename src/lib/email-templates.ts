@@ -420,3 +420,45 @@ export function subscriptionCancelledEmailHtml({
 export function subscriptionCancelledEmailSubject(planName: string): string {
   return `Your ${planName} auto-renewal is cancelled`;
 }
+
+// ─── Newsletter / Broadcast ───────────────────────────────────────────────────
+
+/**
+ * Admin newsletter/broadcast. `bodyHtml` must already be sanitized
+ * (see {@link import('./newsletter').sanitizeNewsletterHtml}). All fields
+ * except `bodyHtml` and `unsubscribeUrl` are optional.
+ */
+export function newsletterEmailHtml({
+  heading,
+  bodyHtml,
+  imageUrl,
+  ctaLabel,
+  ctaUrl,
+  unsubscribeUrl,
+}: {
+  heading?: string;
+  bodyHtml: string;
+  imageUrl?: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  unsubscribeUrl: string;
+}): string {
+  const img = imageUrl
+    ? `<img src="${imageUrl}" alt="" style="width:100%;height:auto;border-radius:12px;display:block;margin:0 0 24px;" />`
+    : "";
+  const head = heading ? `<h1 style="${H1}">${heading}</h1>` : "";
+  const cta = ctaLabel && ctaUrl ? btn(ctaLabel, ctaUrl) : "";
+  return base(`
+    ${img}
+    ${head}
+    <div style="color:${SECONDARY};font-size:16px;line-height:24px;">
+      ${bodyHtml}
+    </div>
+    ${cta}
+    ${divider()}
+    <p style="margin:0;color:${MUTED};font-size:12px;line-height:18px;text-align:center;">
+      You're receiving this because you have a CodeForge AI account.
+      <a href="${unsubscribeUrl}" style="color:${MUTED};text-decoration:underline;">Unsubscribe</a>
+    </p>
+  `);
+}

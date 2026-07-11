@@ -28,6 +28,7 @@ const PUBLIC_PREFIXES = [
   "/api/careers", // public apply endpoint
   "/feedback",
   "/api/feedback",
+  "/api/newsletter", // one-click unsubscribe link from newsletter emails
   "/beta",
   "/api/beta",
   "/api/subscription/webhook", // Razorpay webhook — verified by signature, no session
