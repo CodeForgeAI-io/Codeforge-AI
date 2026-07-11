@@ -4,12 +4,15 @@ const isDev = process.env.NODE_ENV === "development";
 
 // Google AdSense pulls scripts, renders ad iframes, and fires measurement
 // beacons across several domains — allowlist each in the directive it needs.
+// *.adtrafficquality.google is Google's "Sodar" ad-verification service — it
+// loads sodar2.js (script), renders a verification iframe, and beacons back,
+// so it needs to appear in script-, frame-, and connect-src.
 const ADS_SCRIPT_SRC =
-  "https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://adservice.google.com";
+  "https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://adservice.google.com https://*.adtrafficquality.google";
 const ADS_FRAME_SRC =
-  "https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com";
+  "https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://*.adtrafficquality.google";
 const ADS_CONNECT_SRC =
-  "https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google";
+  "https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.adtrafficquality.google";
 
 // Content-Security-Policy
 // 'unsafe-inline' required for Next.js inline styles/scripts and analytics
