@@ -249,3 +249,174 @@ export function resetPasswordEmailHtml({
 }
 
 export const resetPasswordEmailSubject = "Reset your CodeForge AI password";
+
+// ─── Billing / Payments ───────────────────────────────────────────────────────
+
+/** A label→value row for the summary card in billing emails. */
+function summaryRow(label: string, value: string, last = false): string {
+  return `<tr>
+    <td style="padding:${last ? "0" : "0 0 12px"};color:${SECONDARY};font-size:14px;line-height:20px;">${label}</td>
+    <td align="right" style="padding:${last ? "0" : "0 0 12px"};color:${PRIMARY};font-size:14px;font-weight:600;line-height:20px;">${value}</td>
+  </tr>`;
+}
+
+function summaryCard(rows: string): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td style="background:${SOFT};border:1px solid ${BORDER};border-radius:12px;padding:20px 24px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>
+      </td>
+    </tr>
+  </table>`;
+}
+
+/** Card-on-file free trial started (no charge yet; first charge at trial end). */
+export function trialStartedEmailHtml({
+  name,
+  planName,
+  trialDays,
+  firstChargeDate,
+  amountLabel,
+  manageUrl,
+}: {
+  name: string;
+  planName: string;
+  trialDays: number;
+  firstChargeDate: string;
+  amountLabel: string;
+  manageUrl: string;
+}): string {
+  return base(`
+    ${eyebrow("Free trial started")}
+    <h1 style="${H1}">Your ${trialDays}-day free trial is live, ${name}</h1>
+    <p style="${COPY}">
+      You now have full access to <strong>${planName}</strong>. You won't be charged
+      today — your first payment happens only when the trial ends, and you can
+      cancel anytime before then at no cost.
+    </p>
+    ${summaryCard(
+      summaryRow("Plan", planName) +
+        summaryRow("Due today", "₹0") +
+        summaryRow(`First charge · ${firstChargeDate}`, amountLabel, true),
+    )}
+    ${btn("Manage subscription", manageUrl)}
+    ${divider()}
+    <p style="margin:0;color:${MUTED};font-size:13px;line-height:18px;text-align:center;">
+      Change your mind? Cancel before ${firstChargeDate} and you pay nothing.
+    </p>
+  `);
+}
+
+export function trialStartedEmailSubject(planName: string, trialDays: number): string {
+  return `Your ${trialDays}-day ${planName} free trial has started`;
+}
+
+/** Payment received — used for both the first purchase and each renewal. */
+export function paymentReceiptEmailHtml({
+  name,
+  planName,
+  amountLabel,
+  periodEndLabel,
+  renewal,
+  manageUrl,
+}: {
+  name: string;
+  planName: string;
+  amountLabel: string;
+  periodEndLabel: string;
+  renewal: boolean;
+  manageUrl: string;
+}): string {
+  return base(`
+    ${eyebrow(renewal ? "Payment received" : "Payment successful")}
+    <h1 style="${H1}">${renewal ? `Thanks — your ${planName} plan renewed` : `Welcome to ${planName}, ${name}`}</h1>
+    <p style="${COPY}">
+      ${
+        renewal
+          ? `We've received your payment and extended your <strong>${planName}</strong> plan. No action needed.`
+          : `Your payment went through and <strong>${planName}</strong> is now active. Auto-pay is on, so you'll never lose access mid-flow.`
+      }
+    </p>
+    ${summaryCard(
+      summaryRow("Plan", planName) +
+        summaryRow("Amount", amountLabel) +
+        summaryRow("Renews on", periodEndLabel, true),
+    )}
+    ${btn("View billing", manageUrl)}
+    ${divider()}
+    <p style="margin:0;color:${MUTED};font-size:13px;line-height:18px;text-align:center;">
+      You can cancel auto-renewal anytime from your billing settings.
+    </p>
+  `);
+}
+
+export function paymentReceiptEmailSubject(planName: string, renewal: boolean): string {
+  return renewal
+    ? `Your CodeForge AI ${planName} plan renewed`
+    : `Payment received — ${planName} is active`;
+}
+
+/** A recurring charge failed / the subscription was halted. */
+export function paymentFailedEmailHtml({
+  name,
+  planName,
+  updateUrl,
+}: {
+  name: string;
+  planName: string;
+  updateUrl: string;
+}): string {
+  return base(`
+    ${eyebrow("Action needed")}
+    <h1 style="${H1}">We couldn't process your payment, ${name}</h1>
+    <p style="${COPY}">
+      A charge for your <strong>${planName}</strong> plan didn't go through, so
+      auto-pay is paused. Update your payment method to keep your access and
+      avoid losing your streak, progress and AI tools.
+    </p>
+    ${btn("Update payment method", updateUrl)}
+    ${divider()}
+    <p style="margin:0;color:${MUTED};font-size:13px;line-height:18px;text-align:center;">
+      Already fixed it? You can safely ignore this email.
+    </p>
+  `);
+}
+
+export function paymentFailedEmailSubject(planName: string): string {
+  return `Action needed: your ${planName} payment failed`;
+}
+
+/** Auto-renewal cancelled — access continues until the period ends. */
+export function subscriptionCancelledEmailHtml({
+  name,
+  planName,
+  accessUntilLabel,
+  resubscribeUrl,
+}: {
+  name: string;
+  planName: string;
+  accessUntilLabel: string;
+  resubscribeUrl: string;
+}): string {
+  return base(`
+    ${eyebrow("Subscription cancelled")}
+    <h1 style="${H1}">Your auto-renewal is cancelled, ${name}</h1>
+    <p style="${COPY}">
+      We've turned off auto-pay for your <strong>${planName}</strong> plan. You
+      keep full access until your current period ends — nothing changes before then.
+    </p>
+    ${summaryCard(
+      summaryRow("Plan", planName) +
+        summaryRow("Access until", accessUntilLabel, true),
+    )}
+    ${btn("Reactivate subscription", resubscribeUrl)}
+    ${divider()}
+    <p style="margin:0;color:${MUTED};font-size:13px;line-height:18px;text-align:center;">
+      Changed your mind? Resubscribe anytime — your progress is always saved.
+    </p>
+  `);
+}
+
+export function subscriptionCancelledEmailSubject(planName: string): string {
+  return `Your ${planName} auto-renewal is cancelled`;
+}
