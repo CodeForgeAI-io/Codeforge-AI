@@ -121,18 +121,20 @@ export function HeroCompiler() {
             type="button"
             onClick={() => { setCode(DEFAULT_CODE); setOut([]); setMs(null); }}
             title="Reset code"
+            aria-label="Reset code"
             className="flex size-6 items-center justify-center rounded-md text-neutral-500 transition-colors hover:bg-black/[0.05] hover:text-neutral-800 dark:hover:bg-white/10 dark:hover:text-white"
           >
-            <RotateCcw className="size-3.5" />
+            <RotateCcw className="size-3.5" aria-hidden="true" />
           </button>
           <button
             type="button"
             onClick={run}
             disabled={running}
+            aria-label={running ? "Running code" : "Run code"}
             className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold text-white transition-opacity disabled:opacity-60"
             style={{ background: ACCENT }}
           >
-            {running ? <Loader2 className="size-3 animate-spin" /> : <Play className="size-3" />}
+            {running ? <Loader2 className="size-3 animate-spin" aria-hidden="true" /> : <Play className="size-3" aria-hidden="true" />}
             Run
           </button>
         </div>
@@ -160,7 +162,13 @@ export function HeroCompiler() {
             </span>
           )}
         </div>
-        <div className="max-h-28 min-h-14 overflow-auto">
+        <div
+          className="max-h-28 min-h-14 overflow-auto"
+          role="status"
+          aria-live="polite"
+          aria-atomic="false"
+          aria-label="Program output"
+        >
           {out.length === 0 && !running && (
             <div className="text-neutral-600">Hit Run (or ⌘/Ctrl + Enter) to execute…</div>
           )}
