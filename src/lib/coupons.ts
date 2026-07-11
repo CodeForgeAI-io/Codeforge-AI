@@ -2,10 +2,11 @@ import { Types } from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { Coupon, CouponRedemption, type CouponDoc } from "@/models";
 import { PLANS, type PlanId, type BillingCycle } from "@/lib/plans";
+import { computeDiscount, normalizeCode } from "@/lib/coupon-math";
 
-export function normalizeCode(code: string): string {
-  return String(code ?? "").trim().toUpperCase().slice(0, 40);
-}
+// Re-exported so existing importers of `@/lib/coupons` keep working; the pure
+// implementations now live in the dependency-free `@/lib/coupon-math`.
+export { computeDiscount, normalizeCode };
 
 export interface CouponResult {
   ok: boolean;
@@ -21,14 +22,6 @@ export interface CouponResult {
 function baseAmount(plan: PlanId, cycle: BillingCycle): number {
   const def = PLANS[plan];
   return cycle === "yearly" ? def.price.yearly : def.price.monthly;
-}
-
-/** Compute the discount (rupees) a coupon grants on an order amount. */
-export function computeDiscount(coupon: Pick<CouponDoc, "type" | "value">, amount: number): number {
-  if (coupon.type === "percent") {
-    return Math.min(amount, Math.round((amount * coupon.value) / 100));
-  }
-  return Math.min(amount, Math.round(coupon.value));
 }
 
 /**

@@ -2,20 +2,12 @@ import { unstable_cache } from "next/cache";
 import { connectDB } from "@/lib/mongodb";
 import { SiteConfig, type SiteConfigDoc } from "@/models/SiteConfig";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants";
+import { SITE_CONFIG_TAG, resolve } from "@/lib/site-config-shared";
 
-export const SITE_CONFIG_TAG = "site-config";
-export const MASKED = "__MASKED__";
-
-export const SENSITIVE_FIELDS: (keyof SiteConfigDoc)[] = [
-  "smtpPass",
-  "groqApiKey",
-  "googleClientSecret",
-  "githubClientSecret",
-  "razorpayKeySecret",
-  "redisToken",
-  "judge0ApiKey",
-  "paizaApiKey",
-];
+// Pure helpers/constants moved to the dependency-free `@/lib/site-config-shared`
+// (unit-testable without pulling in `next/cache`); re-exported here so existing
+// importers of `@/lib/site-config` keep working unchanged.
+export { SITE_CONFIG_TAG, MASKED, SENSITIVE_FIELDS, resolve, maskConfig } from "@/lib/site-config-shared";
 
 /** Fetch and cache the site config. Revalidated when admin saves settings. */
 export const getSiteConfig = unstable_cache(
@@ -34,11 +26,6 @@ export const getSiteConfig = unstable_cache(
   [SITE_CONFIG_TAG],
   { revalidate: 60, tags: [SITE_CONFIG_TAG] },
 );
-
-/** Resolve a config value: DB value takes priority over env fallback. */
-export function resolve(dbVal: string | undefined, envVal: string | undefined): string {
-  return (dbVal && dbVal.trim()) ? dbVal.trim() : (envVal ?? "");
-}
 
 /** Canonical production domain — used when nothing better is configured and to
  *  override Vercel preview URLs that must never appear in canonical/sitemap/OG. */
@@ -72,14 +59,4 @@ export async function getEffectiveConfig() {
     clarityId: resolve(cfg.clarityId, process.env.NEXT_PUBLIC_CLARITY_ID),
     gscVerification: resolve(cfg.gscVerification, process.env.GOOGLE_SITE_VERIFICATION),
   };
-}
-
-/** Mask sensitive fields before sending to client. */
-export function maskConfig(cfg: Partial<SiteConfigDoc>): Record<string, unknown> {
-  const out: Record<string, unknown> = { ...cfg };
-  for (const field of SENSITIVE_FIELDS) {
-    const val = cfg[field] as string | undefined;
-    out[field as string] = val ? MASKED : "";
-  }
-  return out;
 }
