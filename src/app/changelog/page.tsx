@@ -10,10 +10,23 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "2.5.2",
+    version: "2.5.3",
     date: "July 12, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [],
+      improved: [
+        "Added invisible bot protection (reCAPTCHA v3) to the sign-up and feedback forms — no puzzles or checkboxes for you, just fewer spam accounts and messages",
+      ],
+      fixed: [],
+    },
+  },
+  {
+    version: "2.5.2",
+    date: "July 12, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [],
       improved: [

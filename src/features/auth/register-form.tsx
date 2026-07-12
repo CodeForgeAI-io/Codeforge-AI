@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { OAuthButtons } from "./oauth-buttons";
+import { getRecaptchaToken } from "@/lib/recaptcha-client";
 
 export function RegisterForm({
   google,
@@ -40,10 +41,11 @@ export function RegisterForm({
   async function onSubmit(values: RegisterInput) {
     setSubmitting(true);
     try {
+      const recaptchaToken = await getRecaptchaToken("register");
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, recaptchaToken }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => null)) as {

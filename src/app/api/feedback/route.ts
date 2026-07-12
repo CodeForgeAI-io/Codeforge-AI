@@ -7,6 +7,7 @@ import { Feedback } from "@/models";
 import { sendEmail } from "@/lib/mailer";
 import { serverLog, flushLogs } from "@/lib/otel-logger";
 import { APP_NAME } from "@/lib/constants";
+import { verifyRecaptcha } from "@/lib/recaptcha";
 
 const feedbackSchema = z.object({
   type: z.enum(["feature", "bug", "issue"]),
@@ -27,6 +28,12 @@ export async function POST(req: NextRequest) {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  const token = body && typeof body === "object" ? (body as Record<string, unknown>).recaptchaToken : undefined;
+  const rc = await verifyRecaptcha(typeof token === "string" ? token : undefined, { action: "feedback" });
+  if (!rc.ok) {
+    return NextResponse.json({ error: "Couldn't verify you're human. Please try again." }, { status: 400 });
   }
 
   const parsed = feedbackSchema.safeParse(body);
