@@ -10,10 +10,23 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "2.5.0",
+    version: "2.5.1",
     date: "July 12, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [],
+      improved: [
+        "The code visualizer now animates far more than arrays — grids and matrices, linked lists, and graphs and trees, each with colour-coded states (comparing, swapping, visited, done) and a legend, so almost any problem type comes to life",
+      ],
+      fixed: [],
+    },
+  },
+  {
+    version: "2.5.0",
+    date: "July 12, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Watch your code run — a new Visualize tab on every problem animates your solution step by step after you run it. If your code is correct, you see how it works; if it's wrong, it highlights exactly where it breaks and explains why",
