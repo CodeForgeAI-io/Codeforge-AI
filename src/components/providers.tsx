@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { SessionProvider } from "next-auth/react";
+import { SupabaseAuthProvider } from "@/lib/auth-client";
 import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
@@ -24,7 +24,7 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <PostHogProvider>
-      <SessionProvider>
+      <SupabaseAuthProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider
             attribute="class"
@@ -36,7 +36,7 @@ export function Providers({ children }: { children: ReactNode }) {
             <Toaster richColors position="bottom-right" />
           </ThemeProvider>
         </QueryClientProvider>
-      </SessionProvider>
+      </SupabaseAuthProvider>
     </PostHogProvider>
   );
 }

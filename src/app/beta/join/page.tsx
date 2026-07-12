@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signInWithProvider } from "@/lib/auth-client";
+import { signInAction } from "@/lib/auth-actions";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -88,12 +89,8 @@ export default function BetaJoinPage() {
       if (!res.ok) { setError(data.error ?? "Something went wrong"); return; }
 
       setSuccess(true);
-      const r = await signIn("credentials", {
-        email: form.email,
-        password: form.password,
-        redirect: false,
-      });
-      if (r?.ok) router.push("/dashboard");
+      const r = await signInAction(form.email, form.password);
+      if (r.ok) router.push("/dashboard");
       else router.push("/login");
     } catch {
       setError("Network error — please try again.");
@@ -104,7 +101,7 @@ export default function BetaJoinPage() {
 
   async function handleGoogle() {
     setGoogleLoading(true);
-    await signIn("google", { callbackUrl: "/beta/success" });
+    await signInWithProvider("google", { callbackUrl: "/beta/success" });
   }
 
   if (success) {

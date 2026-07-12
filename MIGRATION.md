@@ -86,16 +86,28 @@ migration must land before the interconnected core can flip.
   identities, then switch sign-in/up + middleware in **one deploy**; rollback =
   revert the deploy. Not auto-merged.
 
-### Open decisions (need your call before I build)
-1. **Password migration** — import existing bcrypt hashes into Supabase Auth
-   (seamless, no user action) **or** reset-on-first-login (simpler, but every
-   user gets a "set your password" email)?
-2. **OAuth-only accounts** — fine to let them re-auth via Supabase on next
-   login (matched by email)?
-3. **Transition** — run Supabase Auth + NextAuth in parallel behind a flag for
-   a bake period, or a hard switch on cutover day?
-4. **Maintenance window** — is a short one acceptable for the identity backfill
-   + switch?
+### Decisions (locked)
+- Password migration: **import bcrypt hashes** (verified compatible — no resets).
+- Cutover: **hard switch** on cutover day.
+
+### Build status (branch `feature/auth-supabase-switch`, off main)
+1. ✅ Supabase session reader (`supabase-auth.ts`), `@/lib/auth` re-exports it.
+2. ✅ Sign-in/up/OAuth backend (`auth-actions.ts`, `user-provision.ts`, `/auth/callback`).
+3. ✅ Forms (login/register/oauth/beta) + `SupabaseAuthProvider`/`useSession`/`signOut` shim (`auth-client.tsx`, `/api/auth/me`).
+4. ✅ Middleware → Supabase `getClaims()`; admin gate reads `app_metadata.role` (set on provision + import).
+5. ✅ `api-auth` uses `AppSession`; all `auth()` call sites unchanged.
+6. ✅ Removed NextAuth route/config/register-route/type-aug. (dep `next-auth` still in package.json — harmless, remove at cleanup.)
+
+Typecheck + 100 tests + lint green. Coexists safely off main.
+
+### Remaining before cutover
+- **Password reset** (`/api/auth/forgot-password`, `/reset-password`) still uses
+  Mongo tokens → port to `supabase.auth.resetPasswordForEmail` + a recovery page.
+- Remove the `next-auth` dependency.
+- **Cutover runbook**: (1) `node scripts/backfill/users.mjs --apply` (identities +
+  hashes + `app_metadata.role`), (2) backfill the rest of the core, (3) set
+  `DATA_BACKEND=supabase`, (4) deploy this branch, (5) verify sign-in / sign-up /
+  Google / GitHub / admin gate / a protected route. Rollback = revert the deploy.
 
 ## Applying migrations
 Migrations live in `supabase/migrations/*.sql`. Apply with the Supabase CLI

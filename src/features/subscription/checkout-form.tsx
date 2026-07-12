@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { ArrowLeft, Crown, Loader2, Lock, ShieldCheck, Sparkles, Tag, Zap } from "@/components/icons";
 import { Button } from "@/components/ui/button";

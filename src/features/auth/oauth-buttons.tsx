@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signInWithProvider } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -44,7 +44,7 @@ export function OAuthButtons({
           <Button
             type="button"
             variant="outline"
-            onClick={() => signIn("google", { callbackUrl })}
+            onClick={() => signInWithProvider("google", { callbackUrl })}
           >
             <GoogleIcon />
             Continue with Google
@@ -54,7 +54,7 @@ export function OAuthButtons({
           <Button
             type="button"
             variant="outline"
-            onClick={() => signIn("github", { callbackUrl })}
+            onClick={() => signInWithProvider("github", { callbackUrl })}
           >
             <GitHubIcon />
             Continue with GitHub

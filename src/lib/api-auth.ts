@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import type { Session } from "next-auth";
+import type { AppSession as Session } from "@/lib/supabase-auth";
 
 type AuthResult =
   | { session: Session; error: null }

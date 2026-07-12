@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut } from "@/lib/auth-client";
 import { LogOut, Menu, Search, Settings, User } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -115,7 +115,7 @@ export function Topbar() {
             <DropdownMenuItem
               variant="destructive"
               onClick={() =>
-                signOut({ redirect: false }).then(() => router.push("/"))
+                signOut({ callbackUrl: "/" })
               }
             >
               <LogOut className="size-4" /> Sign out
