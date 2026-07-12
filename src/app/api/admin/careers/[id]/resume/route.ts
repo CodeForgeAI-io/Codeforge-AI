@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Types } from "mongoose";
 import { get } from "@vercel/blob";
-import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { JobApplication } from "@/models";
+import { getApplicationResume } from "@/services/job-application-store";
+
+const isValidId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id) || /^[0-9a-fA-F-]{36}$/.test(id);
 
 export const runtime = "nodejs";
 
@@ -16,12 +16,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
+  if (!isValidId(id)) {
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   }
 
-  await connectDB();
-  const app = await JobApplication.findById(id).select("resumeUrl resumeName").lean();
+  const app = await getApplicationResume(id);
   if (!app?.resumeUrl) {
     return NextResponse.json({ error: "No résumé on file" }, { status: 404 });
   }

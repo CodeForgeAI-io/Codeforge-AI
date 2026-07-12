@@ -13,11 +13,24 @@ until each piece is tested and cut over.
 | **1. Foundation** | Supabase project, clients, core schema, plan | ✅ done |
 | **2. Data-access pattern** | `backendFor()` flag + repository; **feedback pilot** (create/list/update/delete) verified against Supabase | ✅ pilot done |
 | **3. Schema completion** | All 33 tables + indexes applied to Supabase | ✅ done |
-| 4. Port modules | Repository + route swap per module, behind `DATA_BACKEND_<MODULE>` | ⬜ |
+| 4. Port modules | Repository + route swap per module | 🟡 feedback + job_applications done |
 | 5. **Auth → Supabase Auth** | Replace NextAuth with Supabase Auth (email/password + Google/GitHub OAuth already configured in Supabase); migrate user identities | ⬜ (large) |
 | 6. **Storage → Supabase Storage** | Move résumé / blog cover / newsletter uploads off Vercel Blob | ⬜ |
 | 7. Data backfill | Copy + transform all live documents (ObjectId → uuid remap) | ⬜ |
 | 8. Cutover | Flip `DATA_BACKEND=supabase`, verify, keep Mongo as rollback | ⬜ |
+
+## Cutover ordering (important)
+The per-module flag lets code target either backend, but **data cutover order is
+constrained by references**:
+- **Standalone modules** (no cross-refs) can be backfilled + flipped on their
+  own: `feedback` ✅, `job_applications` ✅, and later `bug_reports`,
+  `qa_contributors`, `coupons`, `prompt_templates`, `feature_access`,
+  `site_config`, `webhook_events`, `razorpay_plans`.
+- **The interconnected core** (`users` ↔ `questions` ↔ `submissions` ↔
+  `bookmarks`/`notes`/`progress`/`discussions`/`ai_*` …) references itself, so
+  its Supabase reads only work once *all* of it is backfilled. These get the
+  repository/route swap now, but flip **together** via global `DATA_BACKEND=supabase`
+  after a full backfill — not one at a time.
 
 ## The flag
 `backendFor(module)` (`src/lib/data-backend.ts`) chooses per module:
