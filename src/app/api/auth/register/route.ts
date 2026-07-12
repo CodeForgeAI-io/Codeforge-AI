@@ -6,6 +6,7 @@ import { registerSchema } from "@/schemas/auth";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/mailer";
 import { welcomeEmailHtml, welcomeEmailSubject } from "@/lib/email-templates";
+import { verifyRecaptcha } from "@/lib/recaptcha";
 
 export async function POST(req: NextRequest) {
   const limited = await enforceRateLimit("auth", req);
@@ -16,6 +17,16 @@ export async function POST(req: NextRequest) {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  // Bot check (reCAPTCHA v3). No-ops when reCAPTCHA isn't configured.
+  const token = body && typeof body === "object" ? (body as Record<string, unknown>).recaptchaToken : undefined;
+  const rc = await verifyRecaptcha(typeof token === "string" ? token : undefined, { action: "register" });
+  if (!rc.ok) {
+    return NextResponse.json(
+      { error: "Couldn't verify you're human. Please refresh and try again." },
+      { status: 400 },
+    );
   }
 
   const parsed = registerSchema.safeParse(body);

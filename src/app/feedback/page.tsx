@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, Loader2 } from "@/components/icons";
+import { getRecaptchaToken } from "@/lib/recaptcha-client";
 
 const TYPES = [
   { value: "feature", label: "Feature Request", color: "border-blue-500/50 bg-blue-500/10 text-blue-500" },
@@ -42,10 +43,11 @@ export default function FeedbackPage() {
     }
     setSubmitting(true);
     try {
+      const recaptchaToken = await getRecaptchaToken("feedback");
       const res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, title: title.trim(), description: description.trim(), email: email.trim() }),
+        body: JSON.stringify({ type, title: title.trim(), description: description.trim(), email: email.trim(), recaptchaToken }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null) as { error?: string } | null;
