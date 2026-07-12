@@ -55,3 +55,5 @@ next-env.d.ts
 
 
 .claude
+# Agent skills (installed tooling)
+.agents/
