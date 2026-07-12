@@ -10,10 +10,23 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "2.5.1",
+    version: "2.5.2",
     date: "July 12, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [],
+      improved: [
+        "The code visualizer now covers string and markup problems too — strings animate character by character, and HTML/JSX renders as an element tree",
+      ],
+      fixed: [],
+    },
+  },
+  {
+    version: "2.5.1",
+    date: "July 12, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [],
       improved: [

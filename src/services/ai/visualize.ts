@@ -60,7 +60,7 @@ Return ONLY JSON: { "feedback": "...", "visualization": { ... } }.
 
 Pick the "visualization" shape that best fits the data structure the code works with. Every cell/node may carry a "state": one of "default", "active" (current), "compare" (being compared), "swap" (being moved), "visited", "done". Prefer states over bare highlights.
 
-array (lists, two-pointer, sorting, sliding window):
+array (lists, two-pointer, sorting, sliding window; also STRINGS — put one character per cell and scan/build it):
 { "kind":"array", "title":"...", "input":[nums, max ${MAX_ARRAY}], "steps":[ { "array":[same length], "states":["default"|...], "pointers":[{"label":"i","index":0}], "note":"..." } ] }
 
 grid (matrix, DP tables, islands, pathfinding):
@@ -69,13 +69,13 @@ grid (matrix, DP tables, islands, pathfinding):
 linkedlist:
 { "kind":"linkedlist", "title":"...", "steps":[ { "values":[...], "states":[...], "pointers":[{"label":"slow","index":0}], "note":"..." } ] }
 
-graph / tree (BFS, DFS, trees — use "layout":"tree" for trees, "circle" otherwise):
+graph / tree (BFS, DFS, binary/n-ary trees, and DOM/HTML/JSX element trees or parse/AST trees — nodes are tags/elements, children are nested elements or text; use "layout":"tree"):
 { "kind":"graph", "title":"...", "layout":"tree"|"circle", "directed":true|false, "nodes":[{"id":"1","label":"1"}], "edges":[{"from":"1","to":"2"}], "steps":[ { "states":{"1":"visited","2":"active"}, "activeEdges":[["1","2"]], "note":"..." } ] }
 
 Rules:
 - Trace the ACTUAL behaviour of the given code, including its bug when it fails; on the failing step, mark the offending cell/node and say what goes wrong in "note".
 - Max ${MAX_STEPS} steps. Node ids are strings. No prose outside JSON.
-- If nothing maps to these structures, return {"feedback":"...","visualization":{"kind":"unsupported","reason":"..."}}.`,
+- Almost everything maps to one of these: a string is a character array, and nested markup (HTML/JSX) is a tree. Only return {"kind":"unsupported","reason":"..."} when the output is genuinely non-visual.`,
       },
     ],
     { json: true, temperature: 0.4, maxTokens: 2600 },
@@ -98,6 +98,6 @@ Rules:
 
   return {
     feedback,
-    visualization: viz ?? { kind: "unsupported", reason: "This problem isn't array-based, so there's nothing to animate." },
+    visualization: viz ?? { kind: "unsupported", reason: "This run doesn't map cleanly to a structure we can animate." },
   };
 }
