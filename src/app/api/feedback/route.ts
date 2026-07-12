@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { connectDB } from "@/lib/mongodb";
-import { Feedback } from "@/models";
+import { createFeedback } from "@/services/feedback-store";
 import { sendEmail } from "@/lib/mailer";
 import { serverLog, flushLogs } from "@/lib/otel-logger";
 import { APP_NAME } from "@/lib/constants";
@@ -61,10 +60,9 @@ export async function POST(req: NextRequest) {
   const userId = session?.user?.id ?? null;
   const replyEmail = (email || session?.user?.email || "").trim();
 
-  // Persist for the admin inbox.
+  // Persist for the admin inbox (backend selected by DATA_BACKEND_FEEDBACK).
   try {
-    await connectDB();
-    await Feedback.create({ type, title, description, email: replyEmail, user: userId });
+    await createFeedback({ type, title, description, email: replyEmail, userId });
   } catch (err) {
     console.error("[feedback] Could not save feedback:", err);
   }

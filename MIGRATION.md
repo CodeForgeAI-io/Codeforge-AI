@@ -1,20 +1,29 @@
 # MongoDB → Supabase (Postgres) Migration
 
-A **phased** migration of the whole backend from MongoDB/Mongoose to Supabase
-Postgres. The app keeps running on MongoDB until the final cutover — nothing in
-production is touched until each phase is tested.
+A **phased** migration of the whole backend from MongoDB/Mongoose to **Supabase**
+for everything: **Auth** (Supabase Auth, replacing NextAuth), **Storage**
+(Supabase Storage, replacing Vercel Blob), and **Database** (Postgres). Each
+module flips behind a default-off flag, so the app keeps working on MongoDB
+until each piece is tested and cut over.
 
 ## Status
 
 | Phase | What | State |
 |---|---|---|
-| **1. Foundation** | Supabase project, clients, core schema, plan | ✅ done (this branch) |
-| 2. Data-access layer | Pick query layer (postgres.js + a typed repo), repository per table | ⬜ next |
+| **1. Foundation** | Supabase project, clients, core schema, plan | ✅ done |
+| **2. Data-access pattern** | `backendFor()` flag + repository; **feedback pilot** (create/list/update/delete) verified against Supabase | ✅ pilot done |
 | 3. Schema completion | Remaining ~24 tables + indexes | ⬜ |
-| 4. Auth | Move users + rewrite `authorize()` / OAuth provisioning to Postgres (keep NextAuth JWT) | ⬜ |
-| 5. Port modules | Migrate services/routes table-by-table behind a flag | ⬜ |
-| 6. Data backfill | Copy + transform all live documents (ObjectId → uuid remap) | ⬜ |
-| 7. Cutover | Maintenance window, flip `DATA_BACKEND`, verify, keep Mongo as rollback | ⬜ |
+| 4. Port modules | Repository + route swap per module, behind `DATA_BACKEND_<MODULE>` | ⬜ |
+| 5. **Auth → Supabase Auth** | Replace NextAuth with Supabase Auth (email/password + Google/GitHub OAuth already configured in Supabase); migrate user identities | ⬜ (large) |
+| 6. **Storage → Supabase Storage** | Move résumé / blog cover / newsletter uploads off Vercel Blob | ⬜ |
+| 7. Data backfill | Copy + transform all live documents (ObjectId → uuid remap) | ⬜ |
+| 8. Cutover | Flip `DATA_BACKEND=supabase`, verify, keep Mongo as rollback | ⬜ |
+
+## The flag
+`backendFor(module)` (`src/lib/data-backend.ts`) chooses per module:
+`DATA_BACKEND_<MODULE>=supabase` (one module) → `DATA_BACKEND=supabase` (all) →
+`mongo` (default). So merging migration code to main changes **nothing** in
+production until a flag is set in Vercel env.
 
 ## Phase 1 delivered
 
@@ -36,12 +45,15 @@ companies, contests, daily_activity, discussions, feature_access, follows,
 frontend_challenges, gen_usage, job_applications, notes, progress,
 prompt_templates, qa_contributors, roadmaps, spaced_repetition, user_badges.
 
-## Auth (Phase 4)
-Auth is **NextAuth JWT + Credentials, no DB adapter** — sessions are JWTs, and
-`authorize()` / OAuth sign-in query the `User` model directly. So the auth
-migration is small: move the `users` table, then repoint those two lookups at
-Postgres. NextAuth stays; we are **not** switching to Supabase Auth (that would
-rearchitect every session/OAuth path for no functional gain here).
+## Auth (Phase 5) — moving to Supabase Auth
+Target: replace **NextAuth** with **Supabase Auth** (email/password + Google &
+GitHub OAuth, whose callbacks are already configured in Supabase). This is the
+largest phase — it touches every session read, the middleware, OAuth flows, and
+sign-in/up UI. Plan: stand up Supabase Auth alongside NextAuth, migrate user
+identities (email/password hashes may need a reset-on-first-login flow since
+Supabase manages its own `auth.users`), switch session handling to
+`@supabase/ssr`, then remove NextAuth. Kept behind its own rollout so the rest
+of the DB migration isn't blocked on it.
 
 ## Applying migrations
 Migrations live in `supabase/migrations/*.sql`. Apply with the Supabase CLI
