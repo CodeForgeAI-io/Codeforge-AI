@@ -61,15 +61,41 @@ production until a flag is set in Vercel env.
 Cross-entity FKs (challenge_id, discussion_id, …) are plain uuid for now; a
 final migration will add them once backfill has populated ids.
 
-## Auth (Phase 5) — moving to Supabase Auth
-Target: replace **NextAuth** with **Supabase Auth** (email/password + Google &
-GitHub OAuth, whose callbacks are already configured in Supabase). This is the
-largest phase — it touches every session read, the middleware, OAuth flows, and
-sign-in/up UI. Plan: stand up Supabase Auth alongside NextAuth, migrate user
-identities (email/password hashes may need a reset-on-first-login flow since
-Supabase manages its own `auth.users`), switch session handling to
-`@supabase/ssr`, then remove NextAuth. Kept behind its own rollout so the rest
-of the DB migration isn't blocked on it.
+## Auth (Phase 5) — moving to Supabase Auth  ← CRITICAL PATH
+
+This is the linchpin: **most modules are user-linked** (they filter by
+`session.user.id`), and today that id is a Mongo ObjectId. Supabase paths for
+those modules only work once identities live in Supabase. So the users/auth
+migration must land before the interconnected core can flip.
+
+### Design
+- **`auth.users` vs `public.users`.** Supabase Auth owns `auth.users` (email,
+  password hash, OAuth identities, sessions). Our `public.users` becomes a
+  **profile** table whose `id` **equals** `auth.users.id`
+  (`id uuid primary key references auth.users(id)`), not a standalone
+  gen_random_uuid(). → the Phase-1 `users` table needs this adjustment before
+  backfill.
+- **Session/middleware.** Replace NextAuth JWT with Supabase Auth cookies via
+  `@supabase/ssr` (clients already scaffolded). Every `auth()` /
+  `session.user.id` call site and the route-protection middleware change to
+  `supabase.auth.getUser()`. Large surface, but mechanical.
+- **OAuth.** Google + GitHub are already configured in Supabase; users re-link
+  by email on their next OAuth sign-in.
+- **Cutover.** For a given request, either NextAuth or Supabase issues the
+  session — no half state. Build Supabase Auth flows alongside, migrate
+  identities, then switch sign-in/up + middleware in **one deploy**; rollback =
+  revert the deploy. Not auto-merged.
+
+### Open decisions (need your call before I build)
+1. **Password migration** — import existing bcrypt hashes into Supabase Auth
+   (seamless, no user action) **or** reset-on-first-login (simpler, but every
+   user gets a "set your password" email)?
+2. **OAuth-only accounts** — fine to let them re-auth via Supabase on next
+   login (matched by email)?
+3. **Transition** — run Supabase Auth + NextAuth in parallel behind a flag for
+   a bake period, or a hard switch on cutover day?
+4. **Maintenance window** — is a short one acceptable for the identity backfill
+   + switch?
 
 ## Applying migrations
 Migrations live in `supabase/migrations/*.sql`. Apply with the Supabase CLI
