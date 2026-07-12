@@ -83,11 +83,14 @@ async function main() {
     const { data: exists } = await sb.from("users").select("id").eq("legacy_mongo_id", legacy).maybeSingle();
     if (exists) { skipped++; continue; }
     try {
+      const isAdmin = (env.ADMIN_EMAILS ?? env.ADMIN_EMAIL ?? "")
+        .split(",").map((e) => e.trim().toLowerCase()).includes(String(u.email).toLowerCase());
       const created = await sb.auth.admin.createUser({
         email: String(u.email).toLowerCase(),
         email_confirm: true,
         ...(u.password ? { password_hash: u.password } : {}),
         user_metadata: { name: u.name ?? "", username: u.username },
+        app_metadata: { role: u.role ?? (isAdmin ? "admin" : "user") },
       });
       if (created.error) throw new Error(created.error.message);
       const id = created.data.user.id;

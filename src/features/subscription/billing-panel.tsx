@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { format } from "date-fns";
 import { CreditCard, Crown, Zap, AlertTriangle, Sparkles } from "@/components/icons";
 import Link from "next/link";

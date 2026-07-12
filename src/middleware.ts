@@ -1,13 +1,11 @@
-import NextAuth from "next-auth";
 import { NextResponse, type NextRequest } from "next/server";
-import { authConfig } from "@/lib/auth.config";
-
-const { auth } = NextAuth(authConfig);
+import { createServerClient } from "@supabase/ssr";
 
 const PUBLIC_PREFIXES = [
   "/login",
   "/register",
-  "/api/auth",
+  "/auth", // Supabase OAuth callback (/auth/callback)
+  "/api/auth", // /api/auth/me (session for the client shim)
   "/profile", // public profiles
   "/problems", // browsing problems is public; solving requires auth
   "/api/questions", // public question listing/search APIs
@@ -56,8 +54,7 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "")
 function isSameOrigin(req: NextRequest): boolean {
   const origin = req.headers.get("origin");
   if (!origin) return true; // same-origin requests don't send Origin
-  const appUrl =
-    process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const appUrl = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
   if (appUrl && origin === new URL(appUrl).origin) return true;
   if (ALLOWED_ORIGINS.includes(origin)) return true;
   return false;
@@ -66,20 +63,16 @@ function isSameOrigin(req: NextRequest): boolean {
 /** Reject API request bodies larger than this (defense against memory-exhaustion fuzzing). */
 const MAX_BODY_BYTES = 1_000_000; // 1 MB
 
-export default auth((req) => {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const session = req.auth;
   const method = req.method;
 
   const isMutatingApi =
     pathname.startsWith("/api/") &&
     (method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE");
 
-  // ── Payload-size guard ───────────────────────────────────────────────────
+  // ── Payload-size guard ─────────────────────────────────────────────────────
   if (isMutatingApi) {
-    // The résumé upload streams a file through this route, so it gets a larger
-    // ceiling (still under Vercel's ~4.5 MB function body limit); everything
-    // else stays at the tight default.
     const cap = pathname === "/api/careers/upload" ? 4_500_000 : MAX_BODY_BYTES;
     const len = Number(req.headers.get("content-length") ?? "0");
     if (Number.isFinite(len) && len > cap) {
@@ -87,57 +80,73 @@ export default auth((req) => {
     }
   }
 
-  // ── CORS guard for mutating API requests ─────────────────────────────────
+  // ── CORS guard for mutating API requests ───────────────────────────────────
   if (isMutatingApi && !pathname.startsWith("/api/auth")) {
     if (!isSameOrigin(req)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   }
 
-  // ── Public routes ─────────────────────────────────────────────────────────
+  // ── Supabase session (also refreshes the auth cookies) ─────────────────────
+  let res = NextResponse.next({ request: req });
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
+          res = NextResponse.next({ request: req });
+          cookiesToSet.forEach(({ name, value, options }) => res.cookies.set(name, value, options));
+        },
+      },
+    },
+  );
+
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims as { sub?: string; app_metadata?: { role?: string } } | undefined;
+  const isAuthed = Boolean(claims?.sub);
+  const role = claims?.app_metadata?.role ?? "user";
+
+  // ── Public routes ───────────────────────────────────────────────────────────
   if (pathname === "/" || PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) {
-    if (session && (pathname === "/login" || pathname === "/register")) {
+    if (isAuthed && (pathname === "/login" || pathname === "/register")) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
-    return NextResponse.next();
+    return res;
   }
 
-  // ── Require auth ──────────────────────────────────────────────────────────
-  if (!session) {
+  // ── Require auth ────────────────────────────────────────────────────────────
+  if (!isAuthed) {
     if (pathname.startsWith("/api")) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // ── Admin-only areas ──────────────────────────────────────────────────────
+  // ── Admin-only areas ────────────────────────────────────────────────────────
   const isAdminArea =
     pathname.startsWith("/admin") ||
     pathname.startsWith("/api/admin") ||
     pathname.startsWith("/docs") ||
     pathname.startsWith("/api/docs") ||
-    pathname.startsWith("/api-docs") || // API reference (Swagger UI) — admin only
-    pathname.startsWith("/api/openapi"); // OpenAPI spec behind the docs
-  if (isAdminArea && session.user.role !== "admin") {
+    pathname.startsWith("/api-docs") ||
+    pathname.startsWith("/api/openapi");
+  if (isAdminArea && role !== "admin") {
     if (pathname.startsWith("/api")) {
-      return NextResponse.json(
-        { error: "Admin access required" },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  return NextResponse.next();
-});
+  return res;
+}
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
 };

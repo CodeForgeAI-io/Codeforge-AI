@@ -52,14 +52,18 @@ export async function ensureProfile(input: {
   }
 
   const username = input.username ?? (await generateUniqueUsername(input.name || input.email.split("@")[0]));
+  const role = isAdminEmail(input.email) ? "admin" : "user";
   const { error } = await sb.from("users").insert({
     id: input.id,
     email: input.email.toLowerCase(),
     name: input.name ?? "",
     username,
     image: input.image ?? null,
-    role: isAdminEmail(input.email) ? "admin" : "user",
+    role,
     providers: input.provider ? [input.provider] : [],
   });
   if (error) throw new Error(error.message);
+  // Mirror role into the auth JWT so middleware can gate admin areas without a
+  // DB read (read as claims.app_metadata.role).
+  await sb.auth.admin.updateUserById(input.id, { app_metadata: { role } });
 }

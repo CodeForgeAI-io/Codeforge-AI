@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { signInAction } from "@/lib/auth-actions";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "@/components/icons";
 import { loginSchema, type LoginInput } from "@/schemas/auth";
@@ -42,12 +42,9 @@ export function LoginForm({
   async function onSubmit(values: LoginInput) {
     setSubmitting(true);
     try {
-      const result = await signIn("credentials", {
-        ...values,
-        redirect: false,
-      });
-      if (result?.error) {
-        toast.error("Invalid email or password");
+      const result = await signInAction(values.email, values.password);
+      if (!result.ok) {
+        toast.error(result.error ?? "Invalid email or password");
         return;
       }
       import("posthog-js").then(({ default: posthog }) => {

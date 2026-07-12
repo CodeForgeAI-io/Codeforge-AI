@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { signUpAction } from "@/lib/auth-actions";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "@/components/icons";
 import { registerSchema, type RegisterInput } from "@/schemas/auth";
@@ -42,30 +42,9 @@ export function RegisterForm({
     setSubmitting(true);
     try {
       const recaptchaToken = await getRecaptchaToken("register");
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...values, recaptchaToken }),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        toast.error(data?.error ?? "Registration failed");
-        return;
-      }
-      const result = await signIn("credentials", {
-        email: values.email,
-        password: values.password,
-        redirect: false,
-      });
-      if (result?.error) {
-        import("posthog-js").then(({ default: posthog }) => {
-          posthog.identify(values.email, { email: values.email, name: values.name, username: values.username });
-          posthog.capture("user_registered", { method: "email" });
-        });
-        toast.success("Account created. Please sign in.");
-        router.push("/login");
+      const result = await signUpAction(values, recaptchaToken);
+      if (!result.ok) {
+        toast.error(result.error ?? "Registration failed");
         return;
       }
       import("posthog-js").then(({ default: posthog }) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { Loader2, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
