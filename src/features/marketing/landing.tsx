@@ -166,6 +166,7 @@ const AI_TOOLS = [
 const BENTO_CARDS = [
   { color: "#070b16", label: "Editor", title: "VS Code-style workspace", description: "Monaco editor with Vim mode, IntelliSense and instant verdicts." },
   { color: "#070b16", label: "AI", title: "Live AI mentor", description: "Progressive hints that see your code — never the full answer." },
+  { color: "#070b16", label: "Visualize", title: "See your code run", description: "Run your solution and watch it animate step by step — correct or wrong, it shows you exactly what your code does." },
   { color: "#070b16", label: "Compiler", title: "Instant online compiler", description: "A blank editor for 12 languages with custom stdin, real stdout/stderr and runtime + memory stats. Plus a Web mode: HTML/CSS/JS, React with npm packages, and Next.js — right in the browser." },
   { color: "#070b16", label: "Memory", title: "Spaced repetition", description: "SM-2 resurfaces problems right before you forget them, so patterns stick for the long term." },
   { color: "#070b16", label: "Compete", title: "Contests & streaks", description: "Leaderboards, XP, badges and a GitHub-style heatmap." },
@@ -355,6 +356,63 @@ function AnalyticsMock() {
           const on = [2, 3, 4, 7, 8, 9, 13, 14, 16, 17, 21, 22].includes(i);
           return <span key={i} className={cn("aspect-square rounded-[3px]", !on && "bg-black/[0.06] dark:bg-white/10")} style={on ? { background: ACCENT } : undefined} />;
         })}
+      </div>
+    </div>
+  );
+}
+
+const VIZ_FRAMES = [
+  { arr: [5, 2, 8, 1, 6], hi: [0, 1], note: "Compare 5 and 2 → swap" },
+  { arr: [2, 5, 8, 1, 6], hi: [2, 3], note: "Compare 8 and 1 → swap" },
+  { arr: [2, 5, 1, 8, 6], hi: [3, 4], note: "Compare 8 and 6 → swap" },
+  { arr: [2, 5, 1, 6, 8], hi: [4], note: "Largest bubbled to the end ✓" },
+];
+
+/** Auto-cycling mini algorithm visualizer for the workflow stack. */
+function VisualizerMock() {
+  const [i, setI] = useState(0);
+  const reduce = useReducedMotion();
+  useEffect(() => {
+    if (reduce) return;
+    const t = setInterval(() => setI((n) => (n + 1) % VIZ_FRAMES.length), 1100);
+    return () => clearInterval(t);
+  }, [reduce]);
+  const f = VIZ_FRAMES[i];
+  return (
+    <div className={cn(mockShell, "shadow-[0_24px_80px_rgba(0,40,120,0.18)] dark:shadow-[0_24px_80px_rgba(0,40,120,0.35)]")}>
+      <div className={mockBar}>
+        {mockDots}
+        <span className={cn("ml-2 font-mono text-xs", mockMeta)}>visualizer.run</span>
+        <span className="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium text-white" style={{ background: ACCENT }}>
+          <Sparkles className="size-2.5" /> live
+        </span>
+      </div>
+      <div className="p-5">
+        <div className="flex h-28 items-end justify-center gap-2">
+          {f.arr.map((v, idx) => {
+            const active = f.hi.includes(idx);
+            return (
+              <div key={idx} className="flex flex-col items-center gap-1">
+                <motion.div
+                  layout
+                  animate={{ height: 20 + (v / 8) * 80 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 26 }}
+                  className={cn(
+                    "flex w-7 items-start justify-center rounded-md pt-1 text-[11px] font-semibold tabular-nums",
+                    active ? "text-white" : "text-neutral-700 dark:text-neutral-200",
+                  )}
+                  style={{ background: active ? ACCENT : `${ACCENT}26` }}
+                >
+                  {v}
+                </motion.div>
+                <span className={cn("text-[9px]", mockMeta)}>{idx}</span>
+              </div>
+            );
+          })}
+        </div>
+        <p className={cn("mt-3 rounded-md bg-black/[0.04] px-3 py-1.5 text-center text-[11px] dark:bg-white/[0.06]", mockText)}>
+          {f.note}
+        </p>
       </div>
     </div>
   );
@@ -686,6 +744,10 @@ export function Landing({ problems, totalProblems, featuresByPlan, paymentsEnabl
                 {
                   icon: Bot, title: "AI mentor that never spoils", desc: "Progressive hints that read your exact code and output — concept, approach, edge cases, optimization.",
                   bullets: ["Sees your code live", "Streams in real time", "On-topic by design"], mock: <MentorChatMock />,
+                },
+                {
+                  icon: Sparkles, title: "Watch your code run", desc: "Run your solution and see it animate step by step. If it's right, watch how it works; if it's wrong, see exactly where it breaks.",
+                  bullets: ["Animated on every run", "Pinpoints the bug", "Correct-vs-wrong verdict"], mock: <VisualizerMock />,
                 },
                 {
                   icon: BarChart3, title: "Analytics + spaced repetition", desc: "Weakness detection tells you where to focus; SM-2 resurfaces problems right before you forget.",
