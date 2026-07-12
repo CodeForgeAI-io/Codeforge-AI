@@ -100,14 +100,24 @@ migration must land before the interconnected core can flip.
 
 Typecheck + 100 tests + lint green. Coexists safely off main.
 
-### Remaining before cutover
-- **Password reset** (`/api/auth/forgot-password`, `/reset-password`) still uses
-  Mongo tokens → port to `supabase.auth.resetPasswordForEmail` + a recovery page.
-- Remove the `next-auth` dependency.
-- **Cutover runbook**: (1) `node scripts/backfill/users.mjs --apply` (identities +
-  hashes + `app_metadata.role`), (2) backfill the rest of the core, (3) set
-  `DATA_BACKEND=supabase`, (4) deploy this branch, (5) verify sign-in / sign-up /
-  Google / GitHub / admin gate / a protected route. Rollback = revert the deploy.
+7. ✅ Password reset ported to Supabase: `forgot-password` uses
+   `admin.generateLink` (recovery) inside our branded email → `/auth/callback`
+   → `/reset-password`, which calls `supabase.auth.updateUser`. `next-auth`
+   dependency + Mongo reset route removed.
+
+**The code side of the auth switch is done** (typecheck + 100 tests + lint green,
+off main, runtime-unverified until deploy).
+
+### Cutover runbook (step 8 — a deliberate op, you run it)
+1. `node scripts/backfill/users.mjs --apply` — identities + bcrypt hashes + `app_metadata.role`.
+2. Backfill the rest of the core (users first, then dependents).
+3. Set `DATA_BACKEND=supabase` (+ Supabase env) in Vercel.
+4. Deploy this branch.
+5. **Verify**: email sign-in, sign-up, Google, GitHub, forgot/reset password, the admin gate, and a protected route.
+6. Rollback = revert the deploy (Mongo stays intact as the fallback).
+
+Configure in Supabase before cutover: Auth → URL config (Site URL + redirect
+allowlist incl. `/auth/callback`), and the Google/GitHub providers.
 
 ## Applying migrations
 Migrations live in `supabase/migrations/*.sql`. Apply with the Supabase CLI

@@ -1,79 +1,60 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "sonner";
 import { Loader2, Eye, EyeOff, Lock, CheckCircle2 } from "@/components/icons";
-import { resetPasswordSchema, type ResetPasswordInput } from "@/schemas/auth";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+// The recovery session is established by /auth/callback before we get here, so
+// there's no token in the URL — we just set the new password on the session.
+const schema = z
+  .object({
+    password: z.string().min(8, "At least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+type ResetInput = z.infer<typeof schema>;
 
 export function ResetPasswordForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token") ?? "";
-
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const form = useForm<ResetPasswordInput>({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: { token, password: "", confirmPassword: "" },
+  const form = useForm<ResetInput>({
+    resolver: zodResolver(schema),
+    defaultValues: { password: "", confirmPassword: "" },
   });
 
-  async function onSubmit(values: ResetPasswordInput) {
-    if (!token) {
-      toast.error("Invalid reset link. Please request a new one.");
-      return;
-    }
+  async function onSubmit(values: ResetInput) {
     setSubmitting(true);
     try {
-      const res = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-      const data = await res.json().catch(() => null) as { error?: string } | null;
-      if (!res.ok) {
-        toast.error(data?.error ?? "Failed to reset password. Try again.");
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ password: values.password });
+      if (error) {
+        toast.error(
+          /session|jwt|token|Auth/i.test(error.message)
+            ? "Your reset link is invalid or has expired. Please request a new one."
+            : error.message,
+        );
         return;
       }
       setDone(true);
     } finally {
       setSubmitting(false);
     }
-  }
-
-  if (!token) {
-    return (
-      <Card className="glass">
-        <CardContent className="pt-8 pb-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            Invalid reset link. Please{" "}
-            <button
-              type="button"
-              className="text-primary hover:underline"
-              onClick={() => router.push("/forgot-password")}
-            >
-              request a new one
-            </button>
-            .
-          </p>
-        </CardContent>
-      </Card>
-    );
   }
 
   if (done) {
@@ -87,8 +68,7 @@ export function ResetPasswordForm() {
             <div>
               <h2 className="text-lg font-bold">Password updated!</h2>
               <p className="mt-1.5 text-sm text-muted-foreground">
-                Your password has been changed successfully.
-                You can now sign in with your new password.
+                Your password has been changed successfully. You can now sign in with your new password.
               </p>
             </div>
             <Button onClick={() => router.push("/login")} className="mt-2">
@@ -106,14 +86,10 @@ export function ResetPasswordForm() {
     <Card className="glass">
       <CardHeader>
         <CardTitle className="text-xl">Set a new password</CardTitle>
-        <CardDescription>
-          Choose a strong password for your CodeForge AI account.
-        </CardDescription>
+        <CardDescription>Choose a strong password for your CodeForge AI account.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-          <input type="hidden" {...form.register("token")} />
-
           <div className="grid gap-1.5">
             <Label htmlFor="password">New password</Label>
             <div className="relative">
@@ -135,9 +111,7 @@ export function ResetPasswordForm() {
                 {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
               </button>
             </div>
-            {errors.password && (
-              <p className="text-xs text-destructive">{errors.password.message}</p>
-            )}
+            {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
           </div>
 
           <div className="grid gap-1.5">
@@ -161,11 +135,7 @@ export function ResetPasswordForm() {
                 {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
               </button>
             </div>
-            {errors.confirmPassword && (
-              <p className="text-xs text-destructive">
-                {errors.confirmPassword.message}
-              </p>
-            )}
+            {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>}
           </div>
 
           <Button type="submit" disabled={submitting}>
