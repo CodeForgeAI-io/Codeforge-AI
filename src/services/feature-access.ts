@@ -3,6 +3,8 @@ import { unstable_cache } from "next/cache";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { FeatureAccess } from "@/models";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor } from "@/lib/data-backend";
 import {
   resolveAccessMap,
   canUse,
@@ -19,6 +21,16 @@ export const FEATURE_ACCESS_TAG = "feature-access";
 export const getFeatureAccess = unstable_cache(
   async (): Promise<AccessMap> => {
     try {
+      if (backendFor("feature_access") === "supabase") {
+        const { data } = await supabaseAdmin()
+          .from("feature_access")
+          .select("access")
+          .eq("id", "global")
+          .maybeSingle();
+        return resolveAccessMap(
+          (data as { access?: Record<string, string> } | null)?.access ?? null,
+        );
+      }
       await connectDB();
       const doc = await FeatureAccess.findById("global").lean<{ access?: Record<string, string> }>();
       return resolveAccessMap(doc?.access ?? null);
