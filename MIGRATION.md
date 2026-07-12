@@ -39,11 +39,17 @@ production until a flag is set in Vercel env.
 - `snake_case` columns (Postgres idiom); the data layer maps to the app's camelCase.
 - **RLS enabled, no policies** → only the service-role backend can read/write; anon gets nothing.
 
-## Remaining tables (Phase 3)
-ai_chats, ai_tool_runs, ai_usage, badges, blog_posts, bookmarks, bug_reports,
-companies, contests, daily_activity, discussions, feature_access, follows,
-frontend_challenges, gen_usage, job_applications, notes, progress,
-prompt_templates, qa_contributors, roadmaps, spaced_repetition, user_badges.
+## Schema progress (Phase 3)
+**23 tables live** in Supabase.
+- 0001 (core): users, questions, submissions, subscriptions, coupons,
+  coupon_redemptions, feedback, razorpay_plans, webhook_events, site_config.
+- 0003 (content/learning): notes, bookmarks, progress, daily_activity,
+  spaced_repetition, discussions, contests, roadmaps, companies, badges,
+  user_badges, follows, blog_posts.
+
+**Still to add:** ai_chats, ai_tool_runs, ai_usage, bug_reports,
+feature_access, frontend_challenges, gen_usage, job_applications,
+prompt_templates, qa_contributors.
 
 ## Auth (Phase 5) — moving to Supabase Auth
 Target: replace **NextAuth** with **Supabase Auth** (email/password + Google &
