@@ -429,6 +429,8 @@ Optimized for **Vercel** out of the box:
 
 > Founder of **CodeForge AI** ([codeforgeai.io](https://codeforgeai.io)).
 
+> Founder of **Setups Works** ([setups.works](https://setups.works)).
+
 ---
 
 <div align="center">
