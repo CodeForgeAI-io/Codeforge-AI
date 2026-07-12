@@ -1,7 +1,7 @@
 import { connectDB } from "@/lib/mongodb";
 import { Feedback } from "@/models";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { backendFor } from "@/lib/data-backend";
+import { backendFor, toUuidOrNull } from "@/lib/data-backend";
 
 /**
  * Feedback data access — the Phase-2 pilot of the Supabase migration.
@@ -43,7 +43,8 @@ export async function createFeedback(input: FeedbackInput): Promise<void> {
       title: input.title,
       description: input.description,
       email: input.email ?? "",
-      user_id: input.userId ?? null,
+      // ObjectId can't go in a uuid column; re-linked during the users backfill.
+      user_id: toUuidOrNull(input.userId),
     });
     if (error) throw new Error(error.message);
     return;
