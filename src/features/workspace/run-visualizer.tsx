@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   AlertTriangle,
@@ -16,7 +15,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { DisplayTestResult } from "./test-results";
-import type { ArrayVisualization, RunVizResponse } from "@/lib/visualization";
+import type { CellState, RunVizResponse, VizResult } from "@/lib/visualization";
+import { ArrayStage, GridStage, ListStage, GraphStage, Legend } from "./viz-stages";
 
 export function RunVisualizer({
   slug,
@@ -35,7 +35,6 @@ export function RunVisualizer({
   const [data, setData] = useState<RunVizResponse | null>(null);
 
   const hasRun = results.length > 0;
-  // Prefer the first failing case so the animation shows what went wrong.
   const target = useMemo(
     () => results.find((r) => r.passed === false) ?? results[0] ?? null,
     [results],
@@ -52,12 +51,7 @@ export function RunVisualizer({
         body: JSON.stringify({
           code,
           language,
-          test: {
-            input: target.input,
-            expected: target.expected,
-            actual: target.actual,
-            passed: target.passed === true,
-          },
+          test: { input: target.input, expected: target.expected, actual: target.actual, passed: target.passed === true },
         }),
       });
       const json = await res.json();
@@ -70,20 +64,16 @@ export function RunVisualizer({
     }
   }
 
-  if (!signedIn) {
-    return <Empty icon={Sparkles}>Sign in to visualize your solution running step by step.</Empty>;
-  }
-  if (!hasRun) {
-    return <Empty icon={Play}>Run your code, then visualize exactly how it processes the test case.</Empty>;
-  }
+  if (!signedIn) return <Empty icon={Sparkles}>Sign in to visualize your solution running step by step.</Empty>;
+  if (!hasRun) return <Empty icon={Play}>Run your code, then visualize exactly how it processes the test case.</Empty>;
 
   return (
     <div className="flex h-full flex-col overflow-y-auto p-3">
       {!data && (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
           <p className="max-w-xs text-sm text-muted-foreground">
-            Animate your run on {target?.passed === false ? "the failing test case" : "the sample test case"} and see
-            what your code does — right or wrong.
+            Animate your run on {target?.passed === false ? "the failing test case" : "the sample test case"} and see what
+            your code does — right or wrong.
           </p>
           <Button onClick={visualize} disabled={loading} className="gap-1.5">
             {loading ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
@@ -95,12 +85,10 @@ export function RunVisualizer({
       {data && (
         <div className="space-y-3">
           <Verdict data={data} />
-          {data.visualization.kind === "array" ? (
-            <ArrayPlayer viz={data.visualization} />
+          {data.visualization.kind === "unsupported" ? (
+            <p className="rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">{data.visualization.reason}</p>
           ) : (
-            <p className="rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
-              {data.visualization.reason}
-            </p>
+            <VizPlayer viz={data.visualization} />
           )}
           <Button variant="outline" size="sm" onClick={visualize} disabled={loading} className="gap-1.5">
             {loading ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}
@@ -115,12 +103,7 @@ export function RunVisualizer({
 function Verdict({ data }: { data: RunVizResponse }) {
   const correct = data.verdict === "correct";
   return (
-    <div
-      className={cn(
-        "flex gap-2.5 rounded-lg border p-3",
-        correct ? "border-success/30 bg-success/5" : "border-destructive/40 bg-destructive/5",
-      )}
-    >
+    <div className={cn("flex gap-2.5 rounded-lg border p-3", correct ? "border-success/30 bg-success/5" : "border-destructive/40 bg-destructive/5")}>
       <span className={cn("mt-0.5 shrink-0", correct ? "text-success" : "text-destructive")}>
         {correct ? <Check className="size-4" /> : <AlertTriangle className="size-4" />}
       </span>
@@ -134,11 +117,39 @@ function Verdict({ data }: { data: RunVizResponse }) {
   );
 }
 
-function ArrayPlayer({ viz }: { viz: ArrayVisualization }) {
+/** All non-unsupported visualizations share a `steps` list with a `.note`. */
+type PlayableViz = Exclude<VizResult, { kind: "unsupported" }>;
+
+const KIND_LABEL: Record<PlayableViz["kind"], string> = {
+  array: "Array",
+  grid: "Grid",
+  linkedlist: "Linked list",
+  graph: "Graph",
+};
+
+function collectStates(viz: PlayableViz): Set<CellState> {
+  const set = new Set<CellState>();
+  if (viz.kind === "array") {
+    for (const s of viz.steps) {
+      s.states?.forEach((st) => set.add(st));
+      if (s.highlight.length) set.add("compare");
+    }
+  } else if (viz.kind === "grid") {
+    for (const s of viz.steps) s.states?.forEach((row) => row.forEach((st) => set.add(st)));
+  } else if (viz.kind === "linkedlist") {
+    for (const s of viz.steps) s.states?.forEach((st) => set.add(st));
+  } else {
+    for (const s of viz.steps) Object.values(s.states ?? {}).forEach((st) => set.add(st));
+  }
+  return set;
+}
+
+function VizPlayer({ viz }: { viz: PlayableViz }) {
   const [cur, setCur] = useState(0);
   const [playing, setPlaying] = useState(true);
   const last = viz.steps.length - 1;
-  const step = viz.steps[Math.min(cur, last)];
+  const note = viz.steps[Math.min(cur, last)].note;
+  const states = useMemo(() => collectStates(viz), [viz]);
 
   const next = useCallback(() => setCur((c) => Math.min(c + 1, last)), [last]);
   const prev = useCallback(() => setCur((c) => Math.max(c - 1, 0)), []);
@@ -151,69 +162,30 @@ function ArrayPlayer({ viz }: { viz: ArrayVisualization }) {
     return () => clearTimeout(t);
   }, [playing, cur, last]);
 
-  // Numeric arrays render as height-scaled bars; otherwise as value cells.
-  const numeric = step.array.every((v) => typeof v === "number");
-  const maxAbs = Math.max(1, ...step.array.map((v) => (typeof v === "number" ? Math.abs(v) : 0)));
-
   return (
     <div className="rounded-lg border bg-card p-3">
-      <p className="mb-2 text-xs font-medium text-muted-foreground">{viz.title}</p>
-
-      {/* stage */}
-      <div className="flex min-h-44 items-end justify-center gap-1.5 overflow-x-auto rounded-md bg-muted/20 p-3">
-        {step.array.map((val, i) => {
-          const active = step.highlight.includes(i);
-          const ptrs = step.pointers.filter((p) => p.index === i);
-          const h = numeric ? 24 + (Math.abs(Number(val)) / maxAbs) * 110 : 44;
-          return (
-            <div key={i} className="flex flex-col items-center gap-1">
-              <div className="flex h-4 items-end gap-0.5">
-                {ptrs.map((p) => (
-                  <span key={p.label} className="rounded bg-primary px-1 text-[9px] font-bold leading-4 text-primary-foreground">
-                    {p.label}
-                  </span>
-                ))}
-              </div>
-              <motion.div
-                layout
-                animate={{ height: h }}
-                transition={{ type: "spring", stiffness: 300, damping: 26 }}
-                className={cn(
-                  "flex w-8 items-start justify-center rounded-md pt-1 text-[11px] font-semibold tabular-nums",
-                  active ? "bg-primary text-primary-foreground" : "bg-primary/15 text-foreground",
-                )}
-                style={{ height: h }}
-              >
-                {String(val)}
-              </motion.div>
-              <span className="text-[9px] text-muted-foreground">{i}</span>
-            </div>
-          );
-        })}
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-xs font-medium text-muted-foreground">{viz.title}</p>
+        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">{KIND_LABEL[viz.kind]}</span>
       </div>
 
-      {/* note */}
-      <p className="mt-2 min-h-8 rounded-md bg-muted/30 px-3 py-1.5 text-xs leading-relaxed text-foreground/80">
-        {step.note || " "}
-      </p>
+      {viz.kind === "array" && <ArrayStage viz={viz} cur={cur} />}
+      {viz.kind === "grid" && <GridStage viz={viz} cur={cur} />}
+      {viz.kind === "linkedlist" && <ListStage viz={viz} cur={cur} />}
+      {viz.kind === "graph" && <GraphStage viz={viz} cur={cur} />}
 
-      {/* controls */}
+      <Legend states={states} />
+
+      <p className="mt-2 min-h-8 rounded-md bg-muted/30 px-3 py-1.5 text-xs leading-relaxed text-foreground/80">{note || " "}</p>
+
       <div className="mt-2 flex items-center gap-1">
-        <Button variant="ghost" size="icon" className="size-8" onClick={restart} title="Restart">
-          <RotateCcw className="size-4" />
-        </Button>
-        <Button variant="ghost" size="icon" className="size-8" onClick={() => { setPlaying(false); prev(); }} disabled={cur === 0} title="Previous step">
-          <ChevronLeft className="size-4" />
-        </Button>
+        <Button variant="ghost" size="icon" className="size-8" onClick={restart} title="Restart"><RotateCcw className="size-4" /></Button>
+        <Button variant="ghost" size="icon" className="size-8" onClick={() => { setPlaying(false); prev(); }} disabled={cur === 0} title="Previous step"><ChevronLeft className="size-4" /></Button>
         <Button variant="ghost" size="icon" className="size-8" onClick={() => (cur >= last ? restart() : setPlaying((p) => !p))} title={playing ? "Pause" : "Play"}>
           {playing ? <PauseGlyph /> : <Play className="size-4" />}
         </Button>
-        <Button variant="ghost" size="icon" className="size-8" onClick={() => { setPlaying(false); next(); }} disabled={cur >= last} title="Next step">
-          <ChevronRight className="size-4" />
-        </Button>
-        <span className="ml-1 text-xs tabular-nums text-muted-foreground">
-          {Math.min(cur + 1, viz.steps.length)} / {viz.steps.length}
-        </span>
+        <Button variant="ghost" size="icon" className="size-8" onClick={() => { setPlaying(false); next(); }} disabled={cur >= last} title="Next step"><ChevronRight className="size-4" /></Button>
+        <span className="ml-1 text-xs tabular-nums text-muted-foreground">{Math.min(cur + 1, viz.steps.length)} / {viz.steps.length}</span>
       </div>
     </div>
   );

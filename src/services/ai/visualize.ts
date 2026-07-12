@@ -54,28 +54,28 @@ TEST CASE:
 - actual output from the code: ${ctx.actual.slice(0, 400)}
 - result: ${ctx.passed ? "PASSED" : "FAILED"}
 
-Return ONLY JSON with this shape:
-{
-  "feedback": "2-4 short sentences. If PASSED: explain the approach the code takes and why it is correct. If FAILED: pinpoint the bug — which step/line/condition is wrong and why the output differs from expected.",
-  "visualization": {
-    "kind": "array",
-    "title": "short label of what is being traced",
-    "input": [/* the primary array/list from the input, numbers or short strings, max ${MAX_ARRAY} items */],
-    "steps": [
-      {
-        "array": [/* array state at this step, same length as input */],
-        "highlight": [/* indices being compared/changed */],
-        "pointers": [{ "label": "i", "index": 0 }],
-        "note": "one short sentence describing this step"
-      }
-    ]
-  }
-}
+Return ONLY JSON: { "feedback": "...", "visualization": { ... } }.
+
+"feedback": 2-4 short sentences. If PASSED, explain the approach and why it's correct. If FAILED, pinpoint the bug — which step/line/condition is wrong and why the output differs.
+
+Pick the "visualization" shape that best fits the data structure the code works with. Every cell/node may carry a "state": one of "default", "active" (current), "compare" (being compared), "swap" (being moved), "visited", "done". Prefer states over bare highlights.
+
+array (lists, two-pointer, sorting, sliding window):
+{ "kind":"array", "title":"...", "input":[nums, max ${MAX_ARRAY}], "steps":[ { "array":[same length], "states":["default"|...], "pointers":[{"label":"i","index":0}], "note":"..." } ] }
+
+grid (matrix, DP tables, islands, pathfinding):
+{ "kind":"grid", "title":"...", "steps":[ { "grid":[[...],[...]], "states":[[...],[...]], "note":"..." } ] }   // grid <= ${12}x${12}
+
+linkedlist:
+{ "kind":"linkedlist", "title":"...", "steps":[ { "values":[...], "states":[...], "pointers":[{"label":"slow","index":0}], "note":"..." } ] }
+
+graph / tree (BFS, DFS, trees — use "layout":"tree" for trees, "circle" otherwise):
+{ "kind":"graph", "title":"...", "layout":"tree"|"circle", "directed":true|false, "nodes":[{"id":"1","label":"1"}], "edges":[{"from":"1","to":"2"}], "steps":[ { "states":{"1":"visited","2":"active"}, "activeEdges":[["1","2"]], "note":"..." } ] }
 
 Rules:
-- Trace the ACTUAL behavior of the given code, including its bug if it fails; on the failing step, set "note" to what goes wrong and highlight the offending index.
-- Max ${MAX_STEPS} steps. Keep arrays <= ${MAX_ARRAY} items. No prose outside JSON.
-- If the problem has no array/list to animate, return {"feedback":"...","visualization":{"kind":"unsupported","reason":"..."}}.`,
+- Trace the ACTUAL behaviour of the given code, including its bug when it fails; on the failing step, mark the offending cell/node and say what goes wrong in "note".
+- Max ${MAX_STEPS} steps. Node ids are strings. No prose outside JSON.
+- If nothing maps to these structures, return {"feedback":"...","visualization":{"kind":"unsupported","reason":"..."}}.`,
       },
     ],
     { json: true, temperature: 0.4, maxTokens: 2600 },

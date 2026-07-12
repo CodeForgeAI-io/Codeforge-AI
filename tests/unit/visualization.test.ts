@@ -59,4 +59,69 @@ describe("normalizeVisualization", () => {
     expect(normalizeVisualization({ kind: "array", input: [], steps: [] })).toBeNull();
     expect(normalizeVisualization({ kind: "array", input: [1], steps: [] })).toBeNull();
   });
+
+  it("coerces an invalid cell state to 'default'", () => {
+    const v = normalizeVisualization({
+      kind: "array", input: [1, 2],
+      steps: [{ array: [1, 2], states: ["active", "nonsense"], highlight: [], pointers: [], note: "" }],
+    });
+    if (v?.kind !== "array") throw new Error("expected array");
+    expect(v.steps[0].states).toEqual(["active", "default"]);
+  });
+});
+
+describe("normalizeVisualization · grid", () => {
+  it("accepts a matrix with per-cell states", () => {
+    const v = normalizeVisualization({
+      kind: "grid", title: "DP",
+      steps: [{ grid: [[0, 1], [1, 0]], states: [["done", "active"], ["default", "compare"]], note: "fill" }],
+    });
+    expect(v?.kind).toBe("grid");
+    if (v?.kind === "grid") expect(v.steps[0].grid).toEqual([[0, 1], [1, 0]]);
+  });
+
+  it("returns null when no step has a grid", () => {
+    expect(normalizeVisualization({ kind: "grid", steps: [{ note: "x" }] })).toBeNull();
+  });
+});
+
+describe("normalizeVisualization · linkedlist", () => {
+  it("accepts nodes with pointers", () => {
+    const v = normalizeVisualization({
+      kind: "linkedlist",
+      steps: [{ values: [1, 2, 3], states: ["visited", "active", "default"], pointers: [{ label: "slow", index: 1 }], note: "" }],
+    });
+    if (v?.kind !== "linkedlist") throw new Error("expected linkedlist");
+    expect(v.steps[0].pointers[0]).toEqual({ label: "slow", index: 1 });
+  });
+});
+
+describe("normalizeVisualization · graph", () => {
+  it("keeps valid nodes/edges and drops dangling references", () => {
+    const v = normalizeVisualization({
+      kind: "graph", layout: "tree", directed: true,
+      nodes: [{ id: "1", label: "1" }, { id: "2", label: "2" }],
+      edges: [{ from: "1", to: "2" }, { from: "1", to: "99" }],
+      steps: [{ states: { "1": "visited", "99": "active" }, activeEdges: [["1", "2"], ["1", "99"]], note: "bfs" }],
+    });
+    if (v?.kind !== "graph") throw new Error("expected graph");
+    expect(v.edges).toHaveLength(1);
+    expect(v.steps[0].states).toEqual({ "1": "visited" });
+    expect(v.steps[0].activeEdges).toEqual([["1", "2"]]);
+    expect(v.layout).toBe("tree");
+  });
+
+  it("maps kind 'tree' onto the graph normalizer", () => {
+    const v = normalizeVisualization({
+      kind: "tree",
+      nodes: [{ id: "a", label: "a" }, { id: "b", label: "b" }],
+      edges: [{ from: "a", to: "b" }],
+      steps: [{ states: {}, note: "" }],
+    });
+    expect(v?.kind).toBe("graph");
+  });
+
+  it("returns null with fewer than two nodes", () => {
+    expect(normalizeVisualization({ kind: "graph", nodes: [{ id: "1", label: "1" }], edges: [], steps: [{ note: "" }] })).toBeNull();
+  });
 });
