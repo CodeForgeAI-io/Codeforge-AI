@@ -1,5 +1,37 @@
-import { Badge, UserBadge, type UserDoc, type BadgeDoc } from "@/models";
+import { Badge, UserBadge, type BadgeDoc } from "@/models";
 import type { Types } from "mongoose";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor } from "@/lib/data-backend";
+
+const be = () => backendFor("gamification");
+
+/** Stats fields badge criteria are evaluated against (backend-agnostic). */
+export interface BadgeStats {
+  solved: { easy: number; medium: number; hard: number; total: number };
+  streak: { current: number };
+  frontendCompleted: number;
+  level: number;
+}
+
+/** Minimal user the badge engine needs, from either backend. */
+export interface AwardUser {
+  id: string;
+  stats: BadgeStats;
+}
+
+/** Normalized earned-badge shape returned to callers. */
+export interface EarnedBadge {
+  key: string;
+  name: string;
+  description: string;
+  icon: string;
+  tier: string;
+}
+
+interface BadgeCriteria {
+  type: string;
+  threshold: number;
+}
 
 export const DEFAULT_BADGES = [
   // solving
@@ -27,6 +59,20 @@ let badgesEnsured = false;
 
 export async function ensureDefaultBadges(): Promise<void> {
   if (badgesEnsured) return;
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    const { count } = await sb
+      .from("badges")
+      .select("id", { count: "exact", head: true });
+    if ((count ?? 0) === 0) {
+      // ignoreDuplicates so a concurrent seed race is harmless (key is unique).
+      await sb
+        .from("badges")
+        .upsert([...DEFAULT_BADGES], { onConflict: "key", ignoreDuplicates: true });
+    }
+    badgesEnsured = true;
+    return;
+  }
   const count = await Badge.estimatedDocumentCount();
   if (count === 0) {
     await Badge.insertMany(DEFAULT_BADGES, { ordered: false }).catch(() => {
@@ -36,22 +82,22 @@ export async function ensureDefaultBadges(): Promise<void> {
   badgesEnsured = true;
 }
 
-function badgeMetric(user: UserDoc, badge: BadgeDoc): number {
-  switch (badge.criteria.type) {
+function badgeMetric(stats: BadgeStats, type: string): number {
+  switch (type) {
     case "solved_total":
-      return user.stats.solved.total;
+      return stats.solved.total;
     case "solved_easy":
-      return user.stats.solved.easy;
+      return stats.solved.easy;
     case "solved_medium":
-      return user.stats.solved.medium;
+      return stats.solved.medium;
     case "solved_hard":
-      return user.stats.solved.hard;
+      return stats.solved.hard;
     case "streak":
-      return user.stats.streak.current;
+      return stats.streak.current;
     case "frontend_completed":
-      return user.stats.frontendCompleted;
+      return stats.frontendCompleted;
     case "level":
-      return user.stats.level;
+      return stats.level;
     case "contest_participation":
       return 0; // awarded explicitly from the contest flow
     default:
@@ -59,15 +105,56 @@ function badgeMetric(user: UserDoc, badge: BadgeDoc): number {
   }
 }
 
+interface SbBadgeRow {
+  id: string;
+  key: string;
+  name: string;
+  description: string;
+  icon: string;
+  tier: string;
+  criteria: BadgeCriteria;
+}
+
 /** Awards any badges the user now qualifies for. Returns newly earned badges. */
 export async function checkAndAwardBadges(
-  user: UserDoc,
-): Promise<BadgeDoc[]> {
+  user: AwardUser,
+): Promise<EarnedBadge[]> {
   await ensureDefaultBadges();
+
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    const [badgesRes, ownedRes] = await Promise.all([
+      sb.from("badges").select("id,key,name,description,icon,tier,criteria"),
+      sb.from("user_badges").select("badge_id").eq("user_id", user.id),
+    ]);
+    const allBadges = (badgesRes.data ?? []) as SbBadgeRow[];
+    const ownedIds = new Set(
+      ((ownedRes.data ?? []) as { badge_id: string }[]).map((e) => e.badge_id),
+    );
+    const earned = allBadges.filter(
+      (badge) =>
+        !ownedIds.has(badge.id) &&
+        badge.criteria.type !== "contest_participation" &&
+        badgeMetric(user.stats, badge.criteria.type) >= badge.criteria.threshold,
+    );
+    if (earned.length > 0) {
+      await sb.from("user_badges").upsert(
+        earned.map((badge) => ({ user_id: user.id, badge_id: badge.id })),
+        { onConflict: "user_id,badge_id", ignoreDuplicates: true },
+      );
+    }
+    return earned.map((b) => ({
+      key: b.key,
+      name: b.name,
+      description: b.description,
+      icon: b.icon,
+      tier: b.tier,
+    }));
+  }
 
   const [allBadges, owned] = await Promise.all([
     Badge.find().lean(),
-    UserBadge.find({ user: user._id }).select("badge").lean(),
+    UserBadge.find({ user: user.id }).select("badge").lean(),
   ]);
   const ownedIds = new Set(owned.map((entry) => entry.badge.toString()));
 
@@ -75,37 +162,61 @@ export async function checkAndAwardBadges(
     (badge) =>
       !ownedIds.has(badge._id.toString()) &&
       badge.criteria.type !== "contest_participation" &&
-      badgeMetric(user, badge) >= badge.criteria.threshold,
+      badgeMetric(user.stats, badge.criteria.type) >= badge.criteria.threshold,
   );
 
   if (earned.length > 0) {
     await UserBadge.insertMany(
-      earned.map((badge) => ({ user: user._id, badge: badge._id })),
+      earned.map((badge) => ({ user: user.id, badge: badge._id })),
       { ordered: false },
     ).catch(() => {
       // duplicate key from a concurrent award — safe to ignore
     });
   }
-  return earned;
+  return earned.map((b: BadgeDoc) => ({
+    key: b.key,
+    name: b.name,
+    description: b.description,
+    icon: b.icon,
+    tier: b.tier,
+  }));
 }
 
+const CONTENDER_BADGE = {
+  key: "contender",
+  name: "Contender",
+  description: "Participate in a contest",
+  icon: "trophy",
+  tier: "bronze",
+  criteria: { type: "contest_participation", threshold: 1 },
+};
+
 export async function awardContestBadge(
-  userId: Types.ObjectId,
+  userId: Types.ObjectId | string,
 ): Promise<void> {
   await ensureDefaultBadges();
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    await sb
+      .from("badges")
+      .upsert([CONTENDER_BADGE], { onConflict: "key", ignoreDuplicates: true });
+    const { data: badge } = await sb
+      .from("badges")
+      .select("id")
+      .eq("key", "contender")
+      .maybeSingle();
+    if (badge) {
+      await sb.from("user_badges").upsert(
+        { user_id: String(userId), badge_id: (badge as { id: string }).id },
+        { onConflict: "user_id,badge_id", ignoreDuplicates: true },
+      );
+    }
+    return;
+  }
   const badge = await Badge.findOneAndUpdate(
     { key: "contender" },
-    {
-      $setOnInsert: {
-        key: "contender",
-        name: "Contender",
-        description: "Participate in a contest",
-        icon: "trophy",
-        tier: "bronze",
-        criteria: { type: "contest_participation", threshold: 1 },
-      },
-    },
-    { upsert: true, returnDocument: 'after' },
+    { $setOnInsert: CONTENDER_BADGE },
+    { upsert: true, returnDocument: "after" },
   );
   await UserBadge.updateOne(
     { user: userId, badge: badge._id },
