@@ -12,7 +12,7 @@ until each piece is tested and cut over.
 |---|---|---|
 | **1. Foundation** | Supabase project, clients, core schema, plan | ✅ done |
 | **2. Data-access pattern** | `backendFor()` flag + repository; **feedback pilot** (create/list/update/delete) verified against Supabase | ✅ pilot done |
-| 3. Schema completion | Remaining ~24 tables + indexes | ⬜ |
+| **3. Schema completion** | All 33 tables + indexes applied to Supabase | ✅ done |
 | 4. Port modules | Repository + route swap per module, behind `DATA_BACKEND_<MODULE>` | ⬜ |
 | 5. **Auth → Supabase Auth** | Replace NextAuth with Supabase Auth (email/password + Google/GitHub OAuth already configured in Supabase); migrate user identities | ⬜ (large) |
 | 6. **Storage → Supabase Storage** | Move résumé / blog cover / newsletter uploads off Vercel Blob | ⬜ |
@@ -39,17 +39,14 @@ production until a flag is set in Vercel env.
 - `snake_case` columns (Postgres idiom); the data layer maps to the app's camelCase.
 - **RLS enabled, no policies** → only the service-role backend can read/write; anon gets nothing.
 
-## Schema progress (Phase 3)
-**23 tables live** in Supabase.
-- 0001 (core): users, questions, submissions, subscriptions, coupons,
-  coupon_redemptions, feedback, razorpay_plans, webhook_events, site_config.
-- 0003 (content/learning): notes, bookmarks, progress, daily_activity,
-  spaced_repetition, discussions, contests, roadmaps, companies, badges,
-  user_badges, follows, blog_posts.
+## Schema (Phase 3 — ✅ complete)
+**All 33 tables live** in Supabase (one per Mongoose model):
+- 0001 core: users, questions, submissions, subscriptions, coupons, coupon_redemptions, feedback, razorpay_plans, webhook_events, site_config.
+- 0003 content/learning: notes, bookmarks, progress, daily_activity, spaced_repetition, discussions, contests, roadmaps, companies, badges, user_badges, follows, blog_posts.
+- 0004 ai/qa/careers: frontend_challenges, job_applications, bug_reports, qa_contributors, prompt_templates, feature_access, ai_chats, ai_tool_runs, ai_usage, gen_usage.
 
-**Still to add:** ai_chats, ai_tool_runs, ai_usage, bug_reports,
-feature_access, frontend_challenges, gen_usage, job_applications,
-prompt_templates, qa_contributors.
+Cross-entity FKs (challenge_id, discussion_id, …) are plain uuid for now; a
+final migration will add them once backfill has populated ids.
 
 ## Auth (Phase 5) — moving to Supabase Auth
 Target: replace **NextAuth** with **Supabase Auth** (email/password + Google &
