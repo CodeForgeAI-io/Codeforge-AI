@@ -11,6 +11,7 @@ import {
   Play,
   RotateCcw,
   Settings2,
+  Sparkles,
 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -40,6 +41,7 @@ import { useWorkspaceStore } from "@/store/workspace";
 import type { QuestionDetail } from "@/services/questions";
 import { CodeEditor } from "./code-editor";
 import { TestResults, type DisplayTestResult } from "./test-results";
+import { RunVisualizer } from "./run-visualizer";
 import { QuestionPanel } from "./question-panel";
 import { MentorPanel } from "@/features/ai-mentor/mentor-panel";
 
@@ -334,6 +336,9 @@ export function Workspace({
       <TabsList className="m-1.5 w-fit">
         <TabsTrigger value="results">Test Results</TabsTrigger>
         <TabsTrigger value="custom">Custom Input</TabsTrigger>
+        <TabsTrigger value="visualize" className="gap-1">
+          <Sparkles className="size-3.5" /> Visualize
+        </TabsTrigger>
       </TabsList>
       <TabsContent value="results" className="min-h-0 flex-1">
         <TestResults
@@ -363,6 +368,15 @@ export function Workspace({
             <Play className="size-4" /> Run with custom input
           </Button>
         </div>
+      </TabsContent>
+      <TabsContent value="visualize" className="min-h-0 flex-1">
+        <RunVisualizer
+          slug={question.slug}
+          code={code}
+          language={language}
+          results={resultsState.results}
+          signedIn={signedIn}
+        />
       </TabsContent>
     </Tabs>
   );
