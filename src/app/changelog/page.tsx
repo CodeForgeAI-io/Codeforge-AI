@@ -10,10 +10,25 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "2.4.0",
-    date: "July 11, 2026",
+    version: "2.5.0",
+    date: "July 12, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Watch your code run — a new Visualize tab on every problem animates your solution step by step after you run it. If your code is correct, you see how it works; if it's wrong, it highlights exactly where it breaks and explains why",
+      ],
+      improved: [
+        "The landing page now showcases the visualizer in the workflow stack and features grid",
+      ],
+      fixed: [],
+    },
+  },
+  {
+    version: "2.4.0",
+    date: "July 11, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Newsletter broadcasts from the admin panel — compose a rich email with formatting, an image and a call-to-action button, let AI write the first draft from a one-line prompt, then send it to every subscriber or a single address. One-click unsubscribe is built into every email",
