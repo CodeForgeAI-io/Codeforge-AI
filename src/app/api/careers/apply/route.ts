@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { connectDB } from "@/lib/mongodb";
 import { enforceRateLimit } from "@/lib/rate-limit";
-import { JobApplication } from "@/models";
+import { createApplication } from "@/services/job-application-store";
 import { getCareer } from "@/content/careers";
 import { sendEmail } from "@/lib/mailer";
 import { APP_NAME } from "@/lib/constants";
@@ -65,8 +64,7 @@ export async function POST(req: NextRequest) {
   const d = parsed.data;
 
   try {
-    await connectDB();
-    await JobApplication.create({
+    await createApplication({
       role: role.slug,
       roleTitle: role.title,
       name: d.name,
