@@ -73,7 +73,10 @@ export async function middleware(req: NextRequest) {
 
   // ── Payload-size guard ─────────────────────────────────────────────────────
   if (isMutatingApi) {
-    const cap = pathname === "/api/careers/upload" ? 4_500_000 : MAX_BODY_BYTES;
+    const cap =
+      pathname === "/api/careers/upload" || pathname === "/api/profile/media"
+        ? 4_500_000
+        : MAX_BODY_BYTES;
     const len = Number(req.headers.get("content-length") ?? "0");
     if (Number.isFinite(len) && len > cap) {
       return NextResponse.json({ error: "Payload too large" }, { status: 413 });

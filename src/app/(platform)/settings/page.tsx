@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { User, Mail, ShieldCheck, Palette, Code2, Bell, CreditCard } from "@/components/icons";
 import { getSession } from "@/lib/session";
 import { getUserSettings } from "@/services/user-store";
 import {
   EditorSettingsForm,
   ProfileSettingsForm,
 } from "@/features/settings/settings-forms";
-import { SettingsView } from "@/features/settings/settings-view";
+import { SettingsView, type SettingsSection } from "@/features/settings/settings-view";
 import { ProfileMedia } from "@/features/settings/profile-media";
+import { AccountSettings } from "@/features/settings/account-settings";
+import { AppearanceSettings } from "@/features/settings/appearance-settings";
 import { EmailNotifications } from "@/features/settings/email-notifications";
 import { PasskeyManager } from "@/features/settings/passkey-manager";
 import { DeleteAccount } from "@/features/settings/delete-account";
@@ -25,56 +28,105 @@ export default async function SettingsPage() {
   if (!user) redirect("/login");
 
   const plan = user.plan;
+  const paymentsEnabled = !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
+
+  const sections: SettingsSection[] = [
+    {
+      id: "profile",
+      label: "Profile",
+      icon: User,
+      desc: "Your public profile, photos and links.",
+      node: (
+        <>
+          <ProfileMedia name={user.name} image={user.image} coverImage={user.coverImage} />
+          <ProfileSettingsForm
+            defaults={{
+              name: user.name,
+              username: user.username,
+              bio: user.bio ?? "",
+              location: user.location ?? "",
+              website: user.website ?? "",
+              githubUrl: user.githubUrl ?? "",
+              linkedinUrl: user.linkedinUrl ?? "",
+            }}
+          />
+        </>
+      ),
+    },
+    {
+      id: "account",
+      label: "Account",
+      icon: Mail,
+      desc: "Email, sign-in methods and password.",
+      node: <AccountSettings email={user.email} providers={user.providers} />,
+    },
+    {
+      id: "security",
+      label: "Security",
+      icon: ShieldCheck,
+      desc: "Passkeys and account deletion.",
+      node: (
+        <>
+          <PasskeyManager />
+          <DeleteAccount />
+        </>
+      ),
+    },
+    {
+      id: "appearance",
+      label: "Appearance",
+      icon: Palette,
+      desc: "Theme and how the app looks.",
+      node: <AppearanceSettings />,
+    },
+    {
+      id: "editor",
+      label: "Editor",
+      icon: Code2,
+      desc: "Defaults for the coding workspace.",
+      node: (
+        <EditorSettingsForm
+          defaults={{
+            editorFontSize: user.preferences.editorFontSize,
+            editorTheme: user.preferences.editorTheme as "vs-dark" | "light",
+            vimMode: user.preferences.vimMode,
+            defaultLanguage: user.preferences.defaultLanguage,
+          }}
+        />
+      ),
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: Bell,
+      desc: "Choose what lands in your inbox.",
+      node: <EmailNotifications optOut={user.emailOptOut} />,
+    },
+    {
+      id: "billing",
+      label: "Billing & Usage",
+      icon: CreditCard,
+      desc: "Plan, AI credits and invoices.",
+      node: (
+        <>
+          <UsagePanel plan={plan} />
+          <BillingPanel
+            paymentsEnabled={paymentsEnabled}
+            billing={{
+              plan,
+              planExpiresAt: user.planExpiresAt?.toISOString() ?? null,
+              trialEndsAt: user.trialEndsAt?.toISOString() ?? null,
+              billingCycle: user.billingCycle ?? null,
+            }}
+          />
+        </>
+      ),
+    },
+  ];
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
-      <SettingsView
-        profile={
-          <>
-            <ProfileMedia name={user.name} image={user.image} coverImage={user.coverImage} />
-            <ProfileSettingsForm
-              defaults={{
-                name: user.name,
-                username: user.username,
-                bio: user.bio ?? "",
-                location: user.location ?? "",
-                website: user.website ?? "",
-                githubUrl: user.githubUrl ?? "",
-                linkedinUrl: user.linkedinUrl ?? "",
-              }}
-            />
-            <PasskeyManager />
-            <DeleteAccount />
-          </>
-        }
-        preferences={
-          <>
-            <EditorSettingsForm
-              defaults={{
-                editorFontSize: user.preferences.editorFontSize,
-                editorTheme: user.preferences.editorTheme as "vs-dark" | "light",
-                vimMode: user.preferences.vimMode,
-                defaultLanguage: user.preferences.defaultLanguage,
-              }}
-            />
-            <EmailNotifications optOut={user.emailOptOut} />
-          </>
-        }
-        billing={
-          <>
-            <UsagePanel plan={plan} />
-            <BillingPanel
-              paymentsEnabled={!!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)}
-              billing={{
-                plan,
-                planExpiresAt: user.planExpiresAt?.toISOString() ?? null,
-                trialEndsAt: user.trialEndsAt?.toISOString() ?? null,
-                billingCycle: user.billingCycle ?? null,
-              }}
-            />
-          </>
-        }
-      />
+      <SettingsView sections={sections} />
     </div>
   );
 }

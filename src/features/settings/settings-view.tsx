@@ -1,29 +1,20 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import { User, Settings2, CreditCard, Settings } from "@/components/icons";
+import { useState, type ComponentType, type ReactNode } from "react";
+import { Settings } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
-const SECTIONS = [
-  { id: "profile", label: "Profile", icon: User, desc: "Your public profile and links" },
-  { id: "preferences", label: "Preferences", icon: Settings2, desc: "Editor and workspace defaults" },
-  { id: "billing", label: "Billing & Usage", icon: CreditCard, desc: "Plan, AI credits and invoices" },
-] as const;
+export interface SettingsSection {
+  id: string;
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+  desc: string;
+  node: ReactNode;
+}
 
-type SectionId = (typeof SECTIONS)[number]["id"];
-
-export function SettingsView({
-  profile,
-  preferences,
-  billing,
-}: {
-  profile: ReactNode;
-  preferences: ReactNode;
-  billing: ReactNode;
-}) {
-  const [active, setActive] = useState<SectionId>("profile");
-  const nodes: Record<SectionId, ReactNode> = { profile, preferences, billing };
-  const current = SECTIONS.find((s) => s.id === active)!;
+export function SettingsView({ sections }: { sections: SettingsSection[] }) {
+  const [active, setActive] = useState<string>(sections[0]?.id ?? "");
+  const current = sections.find((s) => s.id === active) ?? sections[0];
 
   return (
     <div className="grid gap-6 md:grid-cols-[224px_1fr] md:gap-10">
@@ -34,7 +25,7 @@ export function SettingsView({
           <h1 className="text-lg font-semibold tracking-tight">Settings</h1>
         </div>
         <nav className="flex gap-1 overflow-x-auto pb-1 md:flex-col md:gap-0.5 md:overflow-visible md:pb-0">
-          {SECTIONS.map((s) => {
+          {sections.map((s) => {
             const on = active === s.id;
             return (
               <button
@@ -59,12 +50,12 @@ export function SettingsView({
       {/* Content */}
       <div className="min-w-0">
         <div className="mb-5 hidden md:block">
-          <h2 className="text-xl font-semibold tracking-tight">{current.label}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{current.desc}</p>
+          <h2 className="text-xl font-semibold tracking-tight">{current?.label}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{current?.desc}</p>
         </div>
-        {(Object.keys(nodes) as SectionId[]).map((id) => (
-          <div key={id} className={cn("space-y-4", id !== active && "hidden")}>
-            {nodes[id]}
+        {sections.map((s) => (
+          <div key={s.id} className={cn("space-y-4", s.id !== active && "hidden")}>
+            {s.node}
           </div>
         ))}
       </div>

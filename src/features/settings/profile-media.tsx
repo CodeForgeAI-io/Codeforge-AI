@@ -86,13 +86,19 @@ export function ProfileMedia({
       </CardHeader>
       <CardContent>
         <div className="overflow-hidden rounded-xl border">
-          {/* cover */}
-          <div className="relative h-32 bg-linear-to-br from-[#006bff]/25 via-[#006bff]/10 to-transparent">
+          {/* cover — shown at the same crop as your public profile */}
+          <div className="relative h-28 bg-linear-to-br from-[#006bff]/25 via-[#006bff]/10 to-transparent sm:h-36">
             {cover && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={cover} alt="Cover" className="absolute inset-0 size-full object-cover" />
             )}
-            <div className="absolute right-3 top-3 flex gap-2">
+            {/* safe-zone guide: content inside the dashed box always stays visible */}
+            <div className="pointer-events-none absolute inset-y-3 inset-x-[10%] rounded-md border border-dashed border-white/75 shadow-[0_0_0_9999px_rgba(0,0,0,0.12)]">
+              <span className="absolute left-1/2 top-1.5 -translate-x-1/2 whitespace-nowrap rounded bg-black/50 px-1.5 py-0.5 text-[10px] font-medium text-white/90">
+                Safe zone
+              </span>
+            </div>
+            <div className="absolute right-3 top-3 z-10 flex gap-2">
               <Button
                 size="sm"
                 variant="secondary"
@@ -130,7 +136,7 @@ export function ProfileMedia({
               </button>
             </div>
             <div className="text-sm text-muted-foreground">
-              <p>PNG, JPG, WebP or GIF · up to 5 MB.</p>
+              <p>PNG, JPG, WebP or GIF · up to 4 MB.</p>
               {avatar && (
                 <button
                   type="button"
@@ -143,6 +149,10 @@ export function ProfileMedia({
             </div>
           </div>
         </div>
+        <p className="mt-2.5 text-xs text-muted-foreground">
+          Keep logos and text inside the <span className="font-medium text-foreground">safe zone</span> — the
+          area outside it can be cropped on smaller screens.
+        </p>
 
         <input
           ref={avatarInput}

@@ -52,6 +52,7 @@ import {
   faCrown,
   faDatabase,
   faDesktop,
+  faBell,
   faDownload,
   faEllipsis,
   faEnvelope,
@@ -244,6 +245,7 @@ export const Menu = make(faBars);
 export const MessageSquare = make(faComment);
 export const Minimize2 = make(faCompress);
 export const MonitorPlay = make(faDesktop);
+export const Bell = make(faBell);
 export const Moon = make(faMoon);
 export const NotebookPen = make(faPenToSquare);
 export const OctagonXIcon = make(faCircleXmark);

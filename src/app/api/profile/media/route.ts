@@ -4,7 +4,8 @@ import { uploadPublicFile, storageEnabled, type StorageBucket } from "@/lib/stor
 
 export const runtime = "nodejs";
 
-const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+// Vercel serverless caps request bodies at ~4.5 MB, so keep images under it.
+const MAX_BYTES = 4 * 1024 * 1024; // 4 MB
 const ALLOWED = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 const BUCKETS: Record<string, StorageBucket> = { avatar: "avatars", cover: "covers" };
 

@@ -72,6 +72,8 @@ const DEFAULT_PREFS: EditorPreferences = {
 export interface SettingsProfile {
   name: string;
   username: string;
+  email: string | null;
+  providers: string[];
   bio: string;
   location: string;
   website: string;
@@ -92,19 +94,21 @@ export async function getUserSettings(userId: string): Promise<SettingsProfile |
   if (be() === "supabase") {
     const { data } = await supabaseAdmin()
       .from("users")
-      .select("name,username,bio,location,website,github_url,linkedin_url,image,cover_image,email_opt_out,preferences,plan,plan_expires_at,trial_ends_at,billing_cycle")
+      .select("name,username,email,providers,bio,location,website,github_url,linkedin_url,image,cover_image,email_opt_out,preferences,plan,plan_expires_at,trial_ends_at,billing_cycle")
       .eq("id", userId)
       .maybeSingle();
     if (!data) return null;
     const u = data as {
-      name: string; username: string; bio: string | null; location: string | null;
+      name: string; username: string; email: string | null; providers: string[] | null;
+      bio: string | null; location: string | null;
       website: string | null; github_url: string | null; linkedin_url: string | null;
       image: string | null; cover_image: string | null; email_opt_out: boolean | null;
       preferences: Partial<EditorPreferences> | null; plan: string;
       plan_expires_at: string | null; trial_ends_at: string | null; billing_cycle: string | null;
     };
     return {
-      name: u.name, username: u.username, bio: u.bio ?? "", location: u.location ?? "",
+      name: u.name, username: u.username, email: u.email, providers: u.providers ?? [],
+      bio: u.bio ?? "", location: u.location ?? "",
       website: u.website ?? "", githubUrl: u.github_url ?? "", linkedinUrl: u.linkedin_url ?? "",
       image: u.image, coverImage: u.cover_image, emailOptOut: Boolean(u.email_opt_out),
       preferences: { ...DEFAULT_PREFS, ...(u.preferences ?? {}) },
@@ -118,7 +122,8 @@ export async function getUserSettings(userId: string): Promise<SettingsProfile |
   const u = await User.findById(userId).lean();
   if (!u) return null;
   return {
-    name: u.name, username: u.username, bio: u.bio ?? "", location: u.location ?? "",
+    name: u.name, username: u.username, email: u.email ?? null, providers: u.providers ?? [],
+    bio: u.bio ?? "", location: u.location ?? "",
     website: u.website ?? "", githubUrl: u.githubUrl ?? "", linkedinUrl: u.linkedinUrl ?? "",
     image: u.image ?? null, coverImage: (u as { coverImage?: string }).coverImage ?? null,
     emailOptOut: Boolean(u.emailOptOut),
