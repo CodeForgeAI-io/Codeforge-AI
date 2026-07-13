@@ -173,6 +173,74 @@ export async function incrementQuestionStats(
   );
 }
 
+/** Whether the user has an accepted submission for this challenge already. */
+export async function hasPriorAcceptedChallenge(
+  userId: string,
+  challengeId: string,
+): Promise<boolean> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("submissions")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("challenge_id", challengeId)
+      .eq("status", "Accepted")
+      .limit(1)
+      .maybeSingle();
+    return Boolean(data);
+  }
+  await connectDB();
+  return Boolean(
+    await Submission.exists({
+      user: new Types.ObjectId(userId),
+      challenge: new Types.ObjectId(challengeId),
+      status: "Accepted",
+    }),
+  );
+}
+
+export interface CreateFrontendSubmission {
+  userId: string;
+  challengeId: string;
+  files: { path: string; code: string }[];
+  status: string;
+  passedCount: number;
+  totalCount: number;
+  aiReview: { score: number; feedback: string };
+}
+
+/** Persist a frontend-challenge submission. */
+export async function createFrontendSubmission(
+  input: CreateFrontendSubmission,
+): Promise<void> {
+  if (be() === "supabase") {
+    const { error } = await supabaseAdmin().from("submissions").insert({
+      user_id: input.userId,
+      kind: "frontend",
+      challenge_id: input.challengeId,
+      files: input.files,
+      status: input.status,
+      passed_count: input.passedCount,
+      total_count: input.totalCount,
+      ai_review: input.aiReview,
+    });
+    if (error) throw new Error(error.message);
+    return;
+  }
+  await connectDB();
+  const doc = new Submission({
+    user: new Types.ObjectId(input.userId),
+    kind: "frontend",
+    challenge: new Types.ObjectId(input.challengeId),
+    files: input.files,
+    status: input.status,
+    passedCount: input.passedCount,
+    totalCount: input.totalCount,
+    aiReview: input.aiReview,
+  });
+  await doc.save();
+}
+
 export interface UserSubmissionItem {
   id: string;
   status: string;
