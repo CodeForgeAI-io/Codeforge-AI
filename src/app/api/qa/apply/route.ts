@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
-import { QaContributor, User } from "@/models";
 import { sendEmail } from "@/lib/mailer";
 import { APP_NAME } from "@/lib/constants";
+import { getContributor, createContributor } from "@/services/qa-store";
+import { getUserBillingFields } from "@/services/billing-store";
 
 export const runtime = "nodejs";
 
@@ -38,10 +38,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  await connectDB();
-
   // One application per user — don't let them reapply if one already exists.
-  const existing = await QaContributor.findOne({ user: session.user.id }).lean();
+  const existing = await getContributor(session.user.id);
   if (existing) {
     return NextResponse.json(
       { error: "You already have a QA application on file.", status: existing.status },
@@ -49,13 +47,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const u = await User.findById(session.user.id).select("name email").lean<{ name?: string; email?: string }>();
+  const u = await getUserBillingFields(session.user.id);
   const name = u?.name || session.user.name || "Member";
   const email = u?.email || session.user.email || "";
 
   const d = parsed.data;
-  await QaContributor.create({
-    user: session.user.id,
+  await createContributor({
+    userId: session.user.id,
     name,
     email,
     motivation: d.motivation,

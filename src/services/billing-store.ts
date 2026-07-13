@@ -16,6 +16,7 @@ export interface UserPlanPatch {
   cancelAtPeriodEnd?: boolean;
   trialEndsAt?: Date | null;
   billing?: object;
+  betaUser?: boolean;
 }
 
 const USER_FIELD_MAP: Record<keyof UserPlanPatch, string> = {
@@ -27,6 +28,7 @@ const USER_FIELD_MAP: Record<keyof UserPlanPatch, string> = {
   cancelAtPeriodEnd: "cancel_at_period_end",
   trialEndsAt: "trial_ends_at",
   billing: "billing",
+  betaUser: "beta_user",
 };
 
 function toSb(value: unknown): unknown {
@@ -230,6 +232,139 @@ const SUB_FIELD_MAP: Record<keyof SubscriptionPatch, string> = {
   periodStart: "period_start",
   periodEnd: "period_end",
 };
+
+export interface PaidInvoice {
+  id: string;
+  plan: string;
+  billingCycle: string;
+  amount: number;
+  currency: string;
+  periodStart: Date | null;
+  periodEnd: Date | null;
+  paymentId: string | null;
+  createdAt: Date;
+}
+
+/** List a user's paid subscriptions (invoice history). */
+export async function listPaidSubscriptions(userId: string, limit: number): Promise<PaidInvoice[]> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("subscriptions")
+      .select("id,plan,billing_cycle,amount,currency,period_start,period_end,razorpay_payment_id,created_at")
+      .eq("user_id", userId)
+      .eq("status", "paid")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    return ((data ?? []) as {
+      id: string; plan: string; billing_cycle: string; amount: number; currency: string;
+      period_start: string | null; period_end: string | null; razorpay_payment_id: string | null; created_at: string;
+    }[]).map((s) => ({
+      id: s.id, plan: s.plan, billingCycle: s.billing_cycle, amount: s.amount, currency: s.currency,
+      periodStart: s.period_start ? new Date(s.period_start) : null,
+      periodEnd: s.period_end ? new Date(s.period_end) : null,
+      paymentId: s.razorpay_payment_id, createdAt: new Date(s.created_at),
+    }));
+  }
+  await connectDB();
+  const subs = await Subscription.find({ user: new Types.ObjectId(userId), status: "paid" })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .select("plan billingCycle amount currency periodStart periodEnd razorpayPaymentId createdAt")
+    .lean();
+  return subs.map((s) => ({
+    id: s._id.toString(), plan: s.plan, billingCycle: s.billingCycle, amount: s.amount, currency: s.currency ?? "INR",
+    periodStart: s.periodStart ?? null, periodEnd: s.periodEnd ?? null, paymentId: s.razorpayPaymentId ?? null, createdAt: s.createdAt,
+  }));
+}
+
+export interface InvoiceDetail {
+  id: string;
+  plan: string;
+  billingCycle: string;
+  amount: number;
+  currency: string;
+  discount: number;
+  couponCode: string | null;
+  periodStart: Date | null;
+  periodEnd: Date | null;
+  paymentId: string | null;
+  createdAt: Date;
+}
+
+/** Fetch a single paid subscription owned by the user (for an invoice PDF/HTML). */
+export async function getPaidSubscriptionById(userId: string, id: string): Promise<InvoiceDetail | null> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("subscriptions")
+      .select("id,plan,billing_cycle,amount,currency,discount,coupon_code,period_start,period_end,razorpay_payment_id,created_at")
+      .eq("id", id)
+      .eq("user_id", userId)
+      .eq("status", "paid")
+      .maybeSingle();
+    if (!data) return null;
+    const s = data as {
+      id: string; plan: string; billing_cycle: string; amount: number; currency: string; discount: number | null;
+      coupon_code: string | null; period_start: string | null; period_end: string | null; razorpay_payment_id: string | null; created_at: string;
+    };
+    return {
+      id: s.id, plan: s.plan, billingCycle: s.billing_cycle, amount: s.amount, currency: s.currency,
+      discount: s.discount ?? 0, couponCode: s.coupon_code,
+      periodStart: s.period_start ? new Date(s.period_start) : null,
+      periodEnd: s.period_end ? new Date(s.period_end) : null,
+      paymentId: s.razorpay_payment_id, createdAt: new Date(s.created_at),
+    };
+  }
+  await connectDB();
+  if (!Types.ObjectId.isValid(id)) return null;
+  const s = await Subscription.findOne({
+    _id: new Types.ObjectId(id),
+    user: new Types.ObjectId(userId),
+    status: "paid",
+  }).lean();
+  if (!s) return null;
+  return {
+    id: s._id.toString(), plan: s.plan, billingCycle: s.billingCycle, amount: s.amount, currency: s.currency ?? "INR",
+    discount: s.discount ?? 0, couponCode: s.couponCode ?? null,
+    periodStart: s.periodStart ?? null, periodEnd: s.periodEnd ?? null, paymentId: s.razorpayPaymentId ?? null, createdAt: s.createdAt,
+  };
+}
+
+export interface InvoiceUserProfile {
+  name: string | null;
+  email: string | null;
+  billing: Record<string, string> | null;
+}
+
+/** Read a user's name/email/billing for invoice rendering. */
+export async function getInvoiceUserProfile(userId: string): Promise<InvoiceUserProfile | null> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("users")
+      .select("name,email,billing")
+      .eq("id", userId)
+      .maybeSingle();
+    if (!data) return null;
+    const u = data as { name: string | null; email: string | null; billing: Record<string, string> | null };
+    return { name: u.name, email: u.email, billing: u.billing };
+  }
+  await connectDB();
+  const u = await User.findById(userId).select("name email billing").lean();
+  if (!u) return null;
+  return { name: u.name ?? null, email: u.email ?? null, billing: (u.billing as Record<string, string>) ?? null };
+}
+
+/** Count beta users, and flip the current user to a beta plan. */
+export async function betaUserCount(): Promise<number> {
+  if (be() === "supabase") {
+    const { count } = await supabaseAdmin()
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .eq("beta_user", true);
+    return count ?? 0;
+  }
+  await connectDB();
+  return User.countDocuments({ betaUser: true });
+}
 
 /** Update a subscription record by its native id. */
 export async function updateSubscriptionRecord(id: string, patch: SubscriptionPatch): Promise<void> {
