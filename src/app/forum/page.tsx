@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MessageSquare, Plus, TrendingUp, Users } from "@/components/icons";
 import { auth } from "@/lib/auth";
-import { connectDB } from "@/lib/mongodb";
-import { Discussion } from "@/models";
+import { countDiscussions } from "@/services/discussions-store";
 import { PublicHeader } from "@/components/layout/public-header";
 import { Button } from "@/components/ui/button";
 import { ForumList } from "@/features/discussions/forum-list";
@@ -15,12 +14,9 @@ export default async function ForumPage() {
   const session = await auth();
   const signedIn = !!session?.user;
 
-  await connectDB();
   const [total, todayCount] = await Promise.all([
-    Discussion.countDocuments({}),
-    Discussion.countDocuments({
-      createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) },
-    }),
+    countDiscussions(),
+    countDiscussions({ sinceToday: true }),
   ]);
 
   return (

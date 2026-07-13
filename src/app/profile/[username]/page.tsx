@@ -3,9 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "@/components/icons";
 import { auth } from "@/lib/auth";
-import { connectDB } from "@/lib/mongodb";
 import { getPublicProfile } from "@/services/stats";
-import { Follow, User } from "@/models";
+import { resolveUserIdByUsername, isFollowing as checkFollowing } from "@/services/user-store";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { PublicProfile } from "@/features/profile/public-profile";
@@ -36,14 +35,10 @@ export default async function PublicProfilePage({ params }: PageProps) {
   let isFollowing = false;
 
   if (signedIn && !isOwner) {
-    await connectDB();
-    const targetUser = await User.findOne({ username: data.username }).select("_id").lean();
-    if (targetUser) {
-      targetUserId = targetUser._id.toString();
-      isFollowing = !!(await Follow.exists({
-        follower: session!.user.id,
-        following: targetUserId,
-      }));
+    const resolvedId = await resolveUserIdByUsername(data.username);
+    if (resolvedId) {
+      targetUserId = resolvedId;
+      isFollowing = await checkFollowing(session!.user.id, targetUserId);
     }
   }
 

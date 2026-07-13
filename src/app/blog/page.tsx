@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { format } from "date-fns";
 import { auth } from "@/lib/auth";
-import { connectDB } from "@/lib/mongodb";
-import { BlogPost } from "@/models";
+import { listPublishedPosts } from "@/services/blog-store";
 import { PublicHeader } from "@/components/layout/public-header";
 import { APP_NAME } from "@/lib/constants";
 
@@ -16,12 +15,7 @@ export const dynamic = "force-dynamic";
 
 export default async function BlogIndexPage() {
   const session = await auth();
-  await connectDB();
-  const posts = await BlogPost.find({ status: "published" })
-    .select("-coverData")
-    .sort({ publishedAt: -1, createdAt: -1 })
-    .limit(60)
-    .lean();
+  const posts = await listPublishedPosts(60);
 
   return (
     <div className="min-h-svh bg-background">
