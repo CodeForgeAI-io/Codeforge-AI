@@ -527,3 +527,121 @@ export async function getDailyChallenge(): Promise<{
     };
   });
 }
+
+// ── Admin ────────────────────────────────────────────────────────────────
+import { uniqueSlug } from "@/lib/slug";
+import { toUuidOrNull } from "@/lib/data-backend";
+
+export interface AdminContestListItem {
+  id: string; slug: string; title: string; type: string; startsAt: Date;
+  durationMinutes: number; isPublished: boolean; participantCount: number; questionCount: number;
+}
+
+/** Admin: list all contests (drafts included). */
+export async function adminListContests(): Promise<AdminContestListItem[]> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("contests")
+      .select("id,slug,title,type,starts_at,duration_minutes,is_published,participants,questions")
+      .order("starts_at", { ascending: false }).limit(100);
+    return ((data ?? []) as {
+      id: string; slug: string; title: string; type: string; starts_at: string; duration_minutes: number;
+      is_published: boolean; participants: unknown[] | null; questions: unknown[] | null;
+    }[]).map((c) => ({
+      id: c.id, slug: c.slug, title: c.title, type: c.type, startsAt: new Date(c.starts_at),
+      durationMinutes: c.duration_minutes, isPublished: c.is_published,
+      participantCount: (c.participants ?? []).length, questionCount: (c.questions ?? []).length,
+    }));
+  }
+  await connectDB();
+  const contests = await Contest.find().sort({ startsAt: -1 }).limit(100)
+    .select("slug title type startsAt durationMinutes isPublished participants questions").lean();
+  return contests.map((c) => ({
+    id: c._id.toString(), slug: c.slug, title: c.title, type: c.type, startsAt: c.startsAt,
+    durationMinutes: c.durationMinutes, isPublished: c.isPublished,
+    participantCount: c.participants.length, questionCount: c.questions.length,
+  }));
+}
+
+/** Count published questions among the given ids (contest validation). */
+export async function countPublishedQuestions(ids: string[]): Promise<number> {
+  if (be() === "supabase") {
+    const { count } = await supabaseAdmin()
+      .from("questions").select("id", { count: "exact", head: true })
+      .in("id", ids).eq("is_published", true);
+    return count ?? 0;
+  }
+  await connectDB();
+  return Question.countDocuments({ _id: { $in: ids.map((i) => new Types.ObjectId(i)) }, isPublished: true });
+}
+
+export interface CreateContestInput {
+  title: string; description: string; type: string; startsAt: Date; durationMinutes: number;
+  questions: { questionId: string; points: number }[]; isPublished: boolean; createdBy: string;
+}
+
+/** Admin: create a contest. Returns id + slug. */
+export async function createContest(input: CreateContestInput): Promise<{ id: string; slug: string }> {
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    const slug = await uniqueSlug(input.title, async (s) => {
+      const { data } = await sb.from("contests").select("id").eq("slug", s).maybeSingle();
+      return Boolean(data);
+    });
+    const { data, error } = await sb.from("contests").insert({
+      slug, title: input.title, description: input.description, type: input.type,
+      starts_at: input.startsAt.toISOString(), duration_minutes: input.durationMinutes,
+      questions: input.questions.map((q) => ({ question: q.questionId, points: q.points })),
+      participants: [], is_published: input.isPublished, created_by: toUuidOrNull(input.createdBy),
+    }).select("id").single();
+    if (error) throw new Error(error.message);
+    return { id: (data as { id: string }).id, slug };
+  }
+  await connectDB();
+  const slug = await uniqueSlug(input.title, async (s) => Boolean(await Contest.exists({ slug: s })));
+  const doc = new Contest({
+    title: input.title, description: input.description, type: input.type, startsAt: input.startsAt,
+    durationMinutes: input.durationMinutes,
+    questions: input.questions.map((q) => ({ question: new Types.ObjectId(q.questionId), points: q.points })),
+    isPublished: input.isPublished, slug, createdBy: input.createdBy,
+  });
+  await doc.save();
+  return { id: doc._id.toString(), slug };
+}
+
+export interface ContestPatch {
+  isPublished?: boolean; title?: string; startsAt?: Date; durationMinutes?: number;
+}
+const CONTEST_FIELD_MAP: Record<keyof ContestPatch, string> = {
+  isPublished: "is_published", title: "title", startsAt: "starts_at", durationMinutes: "duration_minutes",
+};
+
+/** Admin: update a contest. Returns false if not found. */
+export async function updateContest(id: string, patch: ContestPatch): Promise<boolean> {
+  if (be() === "supabase") {
+    const row: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(patch)) {
+      if (v === undefined) continue;
+      row[CONTEST_FIELD_MAP[k as keyof ContestPatch]] = v instanceof Date ? v.toISOString() : v;
+    }
+    if (!Object.keys(row).length) return true;
+    const { data, error } = await supabaseAdmin().from("contests").update(row).eq("id", id).select("id").maybeSingle();
+    if (error) throw new Error(error.message);
+    return Boolean(data);
+  }
+  if (!Types.ObjectId.isValid(id)) return false;
+  await connectDB();
+  const updated = await Contest.findByIdAndUpdate(id, { $set: patch }, { returnDocument: "after" });
+  return Boolean(updated);
+}
+
+/** Admin: delete a contest. Returns false if not found. */
+export async function deleteContest(id: string): Promise<boolean> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin().from("contests").delete().eq("id", id).select("id").maybeSingle();
+    return Boolean(data);
+  }
+  if (!Types.ObjectId.isValid(id)) return false;
+  await connectDB();
+  return Boolean(await Contest.findByIdAndDelete(id));
+}

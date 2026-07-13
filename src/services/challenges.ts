@@ -2,7 +2,8 @@ import { Types } from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { FrontendChallenge, Submission } from "@/models";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { backendFor } from "@/lib/data-backend";
+import { backendFor, toUuidOrNull } from "@/lib/data-backend";
+import { uniqueSlug } from "@/lib/slug";
 
 const be = () => backendFor("challenges");
 
@@ -237,4 +238,146 @@ export async function incrementChallengeStats(
     { _id: new Types.ObjectId(challengeId) },
     { $inc: { "stats.attempts": 1, "stats.completed": accepted ? 1 : 0 } },
   );
+}
+
+// ── Admin ────────────────────────────────────────────────────────────────
+
+export interface AdminChallengeListItem {
+  id: string; slug: string; title: string; difficulty: string; tech: string;
+  isPublished: boolean; attempts: number; createdAt: Date;
+}
+
+/** Admin: list all challenges (drafts included). */
+export async function adminListChallenges(): Promise<AdminChallengeListItem[]> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("frontend_challenges")
+      .select("id,slug,title,difficulty,tech,is_published,stats,created_at")
+      .order("created_at", { ascending: false }).limit(200);
+    return ((data ?? []) as {
+      id: string; slug: string; title: string; difficulty: string; tech: string;
+      is_published: boolean; stats: { attempts?: number } | null; created_at: string;
+    }[]).map((c) => ({
+      id: c.id, slug: c.slug, title: c.title, difficulty: c.difficulty, tech: c.tech,
+      isPublished: c.is_published, attempts: c.stats?.attempts ?? 0, createdAt: new Date(c.created_at),
+    }));
+  }
+  await connectDB();
+  const challenges = await FrontendChallenge.find().sort({ createdAt: -1 }).limit(200)
+    .select("slug title difficulty tech isPublished stats createdAt").lean();
+  return challenges.map((c) => ({
+    id: c._id.toString(), slug: c.slug, title: c.title, difficulty: c.difficulty, tech: c.tech,
+    isPublished: c.isPublished, attempts: c.stats.attempts, createdAt: c.createdAt,
+  }));
+}
+
+export interface CreateChallengeInput {
+  title: string; difficulty: string; tech: string; tags: string[]; brief: string;
+  description: string; designSpec: string; starterFiles: { path: string; code: string }[];
+  checklist: string[]; isPublished: boolean; createdBy: string;
+}
+
+/** Admin: create a challenge. Returns id + slug. */
+export async function createChallenge(input: CreateChallengeInput): Promise<{ id: string; slug: string }> {
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    const slug = await uniqueSlug(input.title, async (s) => {
+      const { data } = await sb.from("frontend_challenges").select("id").eq("slug", s).maybeSingle();
+      return Boolean(data);
+    });
+    const { data, error } = await sb.from("frontend_challenges").insert({
+      slug, title: input.title, difficulty: input.difficulty, tech: input.tech, tags: input.tags,
+      brief: input.brief, description: input.description, design_spec: input.designSpec,
+      starter_files: input.starterFiles, checklist: input.checklist, is_published: input.isPublished,
+      created_by: toUuidOrNull(input.createdBy),
+    }).select("id").single();
+    if (error) throw new Error(error.message);
+    return { id: (data as { id: string }).id, slug };
+  }
+  await connectDB();
+  const slug = await uniqueSlug(input.title, async (s) => Boolean(await FrontendChallenge.exists({ slug: s })));
+  const doc = new FrontendChallenge({
+    slug, title: input.title, difficulty: input.difficulty, tech: input.tech, tags: input.tags,
+    brief: input.brief, description: input.description, designSpec: input.designSpec,
+    starterFiles: input.starterFiles, checklist: input.checklist, isPublished: input.isPublished,
+    createdBy: input.createdBy,
+  });
+  await doc.save();
+  return { id: doc._id.toString(), slug };
+}
+
+/** Admin: full challenge detail for the edit dialog. */
+export async function getAdminChallenge(id: string) {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("frontend_challenges")
+      .select("id,title,difficulty,tech,tags,brief,description,design_spec,starter_files,checklist,is_published")
+      .eq("id", id).maybeSingle();
+    if (!data) return null;
+    const c = data as {
+      id: string; title: string; difficulty: string; tech: string; tags: string[] | null; brief: string;
+      description: string; design_spec: string | null; starter_files: { path: string; code: string }[] | null;
+      checklist: string[] | null; is_published: boolean;
+    };
+    return {
+      id: c.id, title: c.title, difficulty: c.difficulty, tech: c.tech, tags: c.tags ?? [], brief: c.brief,
+      description: c.description, designSpec: c.design_spec ?? "", starterFiles: filesToRecord(c.starter_files ?? []),
+      checklist: c.checklist ?? [], isPublished: c.is_published,
+    };
+  }
+  if (!Types.ObjectId.isValid(id)) return null;
+  await connectDB();
+  const c = await FrontendChallenge.findById(id).lean();
+  if (!c) return null;
+  return {
+    id: c._id.toString(), title: c.title, difficulty: c.difficulty, tech: c.tech, tags: c.tags, brief: c.brief,
+    description: c.description, designSpec: c.designSpec, starterFiles: filesToRecord(c.starterFiles),
+    checklist: c.checklist, isPublished: c.isPublished,
+  };
+}
+
+const C_FIELD_MAP: Record<string, string> = {
+  title: "title", difficulty: "difficulty", tech: "tech", tags: "tags", brief: "brief",
+  description: "description", designSpec: "design_spec", starterFiles: "starter_files",
+  checklist: "checklist", isPublished: "is_published",
+};
+
+/** Admin: update a challenge. `starterFiles` is a path→code record. Returns slug. */
+export async function updateChallenge(id: string, patch: Record<string, unknown>): Promise<string | null> {
+  const mapped: Record<string, unknown> = { ...patch };
+  if ("starterFiles" in mapped && mapped.starterFiles) {
+    mapped.starterFiles = recordToFiles(mapped.starterFiles as Record<string, string>);
+  }
+  if (be() === "supabase") {
+    const row: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(mapped)) if (C_FIELD_MAP[k]) row[C_FIELD_MAP[k]] = v;
+    if (!Object.keys(row).length) {
+      const { data } = await supabaseAdmin().from("frontend_challenges").select("slug").eq("id", id).maybeSingle();
+      return (data as { slug: string } | null)?.slug ?? null;
+    }
+    const { data, error } = await supabaseAdmin().from("frontend_challenges").update(row).eq("id", id).select("slug").maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data as { slug: string } | null)?.slug ?? null;
+  }
+  if (!Types.ObjectId.isValid(id)) return null;
+  await connectDB();
+  const updated = await FrontendChallenge.findByIdAndUpdate(id, { $set: mapped }, { returnDocument: "after" });
+  return updated?.slug ?? null;
+}
+
+/** Admin: delete a challenge and its submissions. Returns false if not found. */
+export async function deleteChallengeCascade(id: string): Promise<boolean> {
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    const { data } = await sb.from("frontend_challenges").delete().eq("id", id).select("id").maybeSingle();
+    if (!data) return false;
+    await sb.from("submissions").delete().eq("challenge_id", id);
+    return true;
+  }
+  if (!Types.ObjectId.isValid(id)) return false;
+  await connectDB();
+  const deleted = await FrontendChallenge.findByIdAndDelete(id);
+  if (!deleted) return false;
+  await Submission.deleteMany({ challenge: deleted._id });
+  return true;
 }
