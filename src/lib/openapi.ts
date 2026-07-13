@@ -17,7 +17,7 @@ const errorSchema = {
 const userRefSchema = {
   type: "object",
   properties: {
-    _id: { type: "string" },
+    _id: { type: "string", format: "uuid", description: "Supabase uuid (or legacy Mongo ObjectId during transition)" },
     username: { type: "string" },
     name: { type: "string" },
     image: { type: "string", nullable: true },
@@ -72,7 +72,7 @@ export const openApiSpec: Record<string, any> = {
       Question: {
         type: "object",
         properties: {
-          _id: { type: "string" },
+          _id: { type: "string", format: "uuid", description: "Supabase uuid (or legacy Mongo ObjectId during transition)" },
           slug: { type: "string" },
           title: { type: "string" },
           difficulty: { type: "string", enum: ["Easy", "Medium", "Hard"] },
@@ -85,7 +85,7 @@ export const openApiSpec: Record<string, any> = {
       Discussion: {
         type: "object",
         properties: {
-          _id: { type: "string" },
+          _id: { type: "string", format: "uuid", description: "Supabase uuid (or legacy Mongo ObjectId during transition)" },
           title: { type: "string" },
           content: { type: "string" },
           kind: { type: "string", enum: ["discussion", "solution", "question", "editorial"] },
@@ -103,7 +103,7 @@ export const openApiSpec: Record<string, any> = {
       Bookmark: {
         type: "object",
         properties: {
-          _id: { type: "string" },
+          _id: { type: "string", format: "uuid", description: "Supabase uuid (or legacy Mongo ObjectId during transition)" },
           kind: { type: "string", enum: ["question", "challenge"] },
           list: { type: "string" },
           question: { $ref: "#/components/schemas/Question", nullable: true },
@@ -113,7 +113,7 @@ export const openApiSpec: Record<string, any> = {
       Note: {
         type: "object",
         properties: {
-          _id: { type: "string" },
+          _id: { type: "string", format: "uuid", description: "Supabase uuid (or legacy Mongo ObjectId during transition)" },
           content: { type: "string" },
           isPrivate: { type: "boolean" },
           tags: { type: "array", items: { type: "string" } },
@@ -125,7 +125,7 @@ export const openApiSpec: Record<string, any> = {
       SpacedRepetitionCard: {
         type: "object",
         properties: {
-          _id: { type: "string" },
+          _id: { type: "string", format: "uuid", description: "Supabase uuid (or legacy Mongo ObjectId during transition)" },
           question: { $ref: "#/components/schemas/Question" },
           interval: { type: "integer", description: "Days until next review" },
           repetitions: { type: "integer" },
@@ -137,7 +137,7 @@ export const openApiSpec: Record<string, any> = {
       Submission: {
         type: "object",
         properties: {
-          _id: { type: "string" },
+          _id: { type: "string", format: "uuid", description: "Supabase uuid (or legacy Mongo ObjectId during transition)" },
           status: { type: "string", enum: ["Accepted", "Wrong Answer", "Time Limit Exceeded", "Runtime Error", "Compilation Error"] },
           language: { type: "string" },
           runtime: { type: "number", nullable: true },
@@ -481,7 +481,7 @@ export const openApiSpec: Record<string, any> = {
                 type: "object",
                 required: ["challengeId", "code"],
                 properties: {
-                  challengeId: { type: "string" },
+                  challengeId: { type: "string", format: "uuid", example: "4569ca41-dcdd-4869-9803-5772e1647f45" },
                   code: { type: "object", description: "Map of filename → file content" },
                 },
               },
@@ -508,7 +508,7 @@ export const openApiSpec: Record<string, any> = {
                 type: "object",
                 required: ["questionId", "language", "code"],
                 properties: {
-                  questionId: { type: "string" },
+                  questionId: { type: "string", format: "uuid", example: "4569ca41-dcdd-4869-9803-5772e1647f45" },
                   language: { type: "string", example: "javascript" },
                   code: { type: "string" },
                 },
@@ -564,7 +564,7 @@ export const openApiSpec: Record<string, any> = {
                 type: "object",
                 required: ["questionId", "language", "code"],
                 properties: {
-                  questionId: { type: "string" },
+                  questionId: { type: "string", format: "uuid", example: "4569ca41-dcdd-4869-9803-5772e1647f45" },
                   language: { type: "string", example: "python" },
                   code: { type: "string" },
                   contestId: { type: "string", nullable: true, description: "Attach to a contest if present" },
@@ -674,7 +674,7 @@ export const openApiSpec: Record<string, any> = {
                 properties: {
                   title: { type: "string" },
                   content: { type: "string" },
-                  questionId: { type: "string", nullable: true },
+                  questionId: { type: "string", format: "uuid", nullable: true, example: "4569ca41-dcdd-4869-9803-5772e1647f45" },
                   kind: { type: "string", enum: ["discussion", "solution", "question", "editorial"], default: "discussion" },
                   tags: { type: "array", items: { type: "string" } },
                   language: { type: "string", nullable: true },
@@ -876,7 +876,7 @@ export const openApiSpec: Record<string, any> = {
                 required: ["content"],
                 properties: {
                   content: { type: "string" },
-                  questionId: { type: "string", nullable: true },
+                  questionId: { type: "string", format: "uuid", nullable: true, example: "4569ca41-dcdd-4869-9803-5772e1647f45" },
                   isPrivate: { type: "boolean", default: true },
                   tags: { type: "array", items: { type: "string" } },
                 },
@@ -1111,7 +1111,7 @@ export const openApiSpec: Record<string, any> = {
               schema: {
                 type: "object",
                 required: ["questionId"],
-                properties: { questionId: { type: "string" } },
+                properties: { questionId: { type: "string", format: "uuid", example: "4569ca41-dcdd-4869-9803-5772e1647f45" } },
               },
             },
           },
@@ -1169,7 +1169,7 @@ export const openApiSpec: Record<string, any> = {
                 type: "object",
                 required: ["questionId", "message"],
                 properties: {
-                  questionId: { type: "string" },
+                  questionId: { type: "string", format: "uuid", example: "4569ca41-dcdd-4869-9803-5772e1647f45" },
                   message: { type: "string" },
                   code: { type: "string", nullable: true, description: "Current editor code for context" },
                 },
@@ -1599,7 +1599,7 @@ export const openApiSpec: Record<string, any> = {
                 type: "object",
                 required: ["questionId", "code", "language", "timeTakenSeconds"],
                 properties: {
-                  questionId: { type: "string" },
+                  questionId: { type: "string", format: "uuid", example: "4569ca41-dcdd-4869-9803-5772e1647f45" },
                   code: { type: "string" },
                   language: { type: "string" },
                   timeTakenSeconds: { type: "integer" },
@@ -1623,7 +1623,7 @@ export const openApiSpec: Record<string, any> = {
           { name: "tool", in: "query", schema: { type: "string" }, description: "Filter by tool key (e.g. resume, roadmap, code-review)" },
         ],
         responses: {
-          "200": { description: "Saved runs", content: { "application/json": { schema: { type: "object", properties: { runs: { type: "array", items: { type: "object", properties: { _id: { type: "string" }, tool: { type: "string" }, title: { type: "string" }, input: {}, result: {}, createdAt: { type: "string", format: "date-time" } } } } } } } } },
+          "200": { description: "Saved runs", content: { "application/json": { schema: { type: "object", properties: { runs: { type: "array", items: { type: "object", properties: { _id: { type: "string", format: "uuid", description: "Supabase uuid (or legacy Mongo ObjectId during transition)" }, tool: { type: "string" }, title: { type: "string" }, input: {}, result: {}, createdAt: { type: "string", format: "date-time" } } } } } } } } },
           "401": { description: "Unauthenticated" },
         },
       },
