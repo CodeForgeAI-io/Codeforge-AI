@@ -10,10 +10,32 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "3.0.0",
+    version: "3.1.0",
     date: "July 13, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Make your profile yours — upload a custom avatar and cover photo, with a live safe-zone guide so nothing important gets cropped, both shown on your public profile",
+      ],
+      improved: [
+        "A completely reorganized Settings with seven focused tabs — Profile, Account, Security, Appearance, Editor, Notifications and Billing",
+        "New Account controls — see your linked sign-in methods and change or set your password",
+        "Pick your theme — Light, Dark or System — from Settings → Appearance",
+        "Manage email preferences — opt in or out of product updates and the newsletter (account and billing emails always send)",
+        "Refreshed dashboard and public profile with consistent brand accents and subtle hover polish",
+      ],
+      fixed: [
+        "Profile edits now save reliably — a leftover write from the Supabase migration was persisting to the old database",
+        "Cover and avatar uploads no longer fail on larger images",
+      ],
+    },
+  },
+  {
+    version: "3.0.0",
+    date: "July 13, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Passwordless sign-in with passkeys — add a passkey in Settings, then sign in with Face ID, Touch ID, Windows Hello or a security key. Nothing to type or remember, and it's phishing-resistant by design",

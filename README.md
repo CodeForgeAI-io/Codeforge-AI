@@ -10,11 +10,13 @@ LeetCode-style DSA problems · An **instant online compiler** · Frontend sandbo
 
 <br/>
 
+[![Version](https://img.shields.io/badge/version-3.1.0-006bff?style=flat-square)](https://codeforgeai.io/changelog)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-000000?style=flat-square&logo=nextdotjs)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-149ECA?style=flat-square&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=flat-square&logo=mongodb)](https://www.mongodb.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Postgres_·_Auth_·_Storage-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com/)
+[![Passkeys](https://img.shields.io/badge/Auth-Passkeys_·_OAuth-006bff?style=flat-square&logo=webauthn)](https://webauthn.io/)
 [![Redis](https://img.shields.io/badge/Redis-Upstash-DC382D?style=flat-square&logo=redis)](https://upstash.com/)
 [![Groq](https://img.shields.io/badge/AI-Groq_Llama_3-F55036?style=flat-square&logo=meta)](https://groq.com/)
 <br/>
@@ -61,7 +63,7 @@ graph TD
     Client -->|Server Actions / fetch| Edge
     Edge --> Routes["Route Handlers (/api/*)"]
 
-    Routes --> Auth["NextAuth v5<br/>Credentials • Google • GitHub"]
+    Routes --> Auth["Supabase Auth<br/>Email/Password • Google • GitHub • Passkeys"]
     Routes --> Services["Service Layer"]
 
     subgraph Services2 ["Service Layer (src/services)"]
@@ -73,7 +75,8 @@ graph TD
     end
     Services --> Services2
 
-    Services2 --> DB[("MongoDB + Mongoose<br/>22 models")]
+    Services2 --> DB[("Supabase Postgres<br/>33 tables · RLS")]
+    Services2 --> Storage[("Supabase Storage<br/>résumés • covers • avatars")]
     Services2 --> Redis[("Upstash Redis<br/>rate-limit • leaderboard cache")]
 
     Exec --> Paiza["Paiza.io (default)"]
@@ -88,21 +91,21 @@ graph TD
 
 ### Request Lifecycle
 
-1. **Edge middleware** ([src/middleware.ts](src/middleware.ts)) runs first on every request. It checks the NextAuth session against a public-route allowlist, enforces same-origin/CORS on mutating requests, and attaches security headers (CSP, HSTS, `X-Frame-Options: DENY`).
+1. **Edge middleware** ([src/middleware.ts](src/middleware.ts)) runs first on every request. It validates the **Supabase Auth** session (`getClaims`) against a public-route allowlist, enforces same-origin/CORS on mutating requests, and attaches security headers (CSP, HSTS, `X-Frame-Options: DENY`).
 2. **Route handlers** under `src/app/api/*` validate input with **Zod**, resolve the session, and apply **rate limiting** (Upstash sliding window, with an in-memory fallback) before doing work.
-3. **Service layer** (`src/services/*`) holds the business logic — question/contest queries, the execution-provider router, AI prompt orchestration, gamification, and stats — keeping handlers thin.
-4. **Data & integrations** — Mongoose models persist state; Redis caches hot reads (leaderboards) and rate-limit counters; external providers (Groq, Razorpay, SMTP, GitHub, code runners) are called through small adapter modules in `src/lib` and `src/services`.
+3. **Service layer** (`src/services/*`) holds the business logic — question/contest queries, the execution-provider router, AI prompt orchestration, gamification, and stats — keeping handlers thin. Each data module reads/writes through a `backendFor()` flag, a legacy of the MongoDB→Supabase migration that still allows an instant rollback.
+4. **Data & integrations** — **Supabase Postgres** persists state (33 tables, row-level security, service-role backend) and **Supabase Storage** holds uploads; Redis caches hot reads (leaderboards) and rate-limit counters; external providers (Groq, Razorpay, SMTP, GitHub, code runners) are called through small adapter modules in `src/lib` and `src/services`.
 
 ### Layer Responsibilities
 
 | Layer            | Location                                               | Responsibility                                                                                      |
 | :--------------- | :----------------------------------------------------- | :-------------------------------------------------------------------------------------------------- |
 | **Client**       | `src/app/(platform)`, `src/features`, `src/components` | React 19 UI, Monaco/Sandpack workspaces, Zustand workspace store, React Query server-state cache    |
-| **Edge**         | `src/middleware.ts`, `src/lib/auth.config.ts`          | Auth gating, CORS/origin guard, security headers, cookie policy                                     |
+| **Edge**         | `src/middleware.ts`, `src/lib/supabase/middleware.ts`  | Supabase-Auth gating, CORS/origin guard, security headers, cookie policy                             |
 | **API**          | `src/app/api/*`                                        | Route handlers: validation (Zod), authz (`lib/api-auth`), rate-limit, response shaping              |
-| **Services**     | `src/services/*`                                       | Domain logic: questions, contests, execution, AI, gamification, stats, roadmaps                     |
-| **Integrations** | `src/lib/*`                                            | `mongodb`, `redis`, `mailer`, `github`, `site-config`, `rate-limit`, `sanitize`, `openapi`          |
-| **Data**         | `src/models/*` (22 Mongoose models)                    | Users, Questions, Submissions, Contests, Discussions, Subscriptions, SpacedRepetition, Badges, etc. |
+| **Services**     | `src/services/*`                                       | Domain logic: questions, contests, execution, AI, gamification, stats, roadmaps + dual-backend stores |
+| **Integrations** | `src/lib/*`                                            | `supabase/*`, `storage`, `webauthn`, `redis`, `mailer`, `github`, `site-config`, `rate-limit`, `openapi` |
+| **Data**         | `supabase/migrations/*` (33 Postgres tables, RLS)      | Users, Questions, Submissions, Contests, Discussions, Subscriptions, SpacedRepetition, Badges, WebAuthn credentials, etc. |
 
 ### Code Execution Pipeline
 
@@ -112,7 +115,7 @@ sequenceDiagram
     participant API as /api/execute
     participant R as Execution Router
     participant P as Provider (Paiza / Judge0 / Piston)
-    participant DB as MongoDB
+    participant DB as Supabase Postgres
 
     U->>API: source + language + stdin (test cases)
     API->>API: Zod validate • auth • rate-limit
@@ -145,7 +148,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 
 ### Hybrid Coding Workspaces
 
-- **DSA Workspace** — Monaco editor with themes, font controls, **Vim** keybindings, Emmet, fullscreen, split-pane output, and auto-save (local + MongoDB).
+- **DSA Workspace** — Monaco editor with themes, font controls, **Vim** keybindings, Emmet, fullscreen, split-pane output, and auto-save (local + Supabase).
 - **Online Compiler** (`/compiler`) — a blank-canvas editor that runs code in any of 12 languages with custom **stdin**, real stdout/stderr, and runtime + memory stats. No problem or test cases required.
 - **Frontend Sandbox** — In-browser Sandpack for HTML/CSS, Vanilla JS, React & Tailwind with live hot-reload and a console emulator.
 - **12 Languages** — JS, TS, Python, Java, C, C++, C#, Go, PHP, Rust, Kotlin, Swift.
@@ -221,7 +224,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 ### Contests & Leaderboards
 
 - **Time-Penalty Scoring** on completion time & wrong attempts.
-- **Real-time Standings** via MongoDB aggregation, cached in Redis.
+- **Real-time Standings** via Postgres aggregation, cached in Redis.
 - **Daily Challenge** with double-XP rewards.
 
 </td>
@@ -242,7 +245,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 
 - **Community Hub** (`/community`) — forum, discussions, leaderboard, recent threads & top members in one place.
 - **Discussion Forum** (`/discuss`) — threaded solutions & doubts.
-- **Follow System** & **Public Profiles** with badges, stats & heatmaps.
+- **Follow System** & **Public Profiles** with a **custom avatar + cover photo**, badges, stats & heatmaps.
 - **Feedback Channel** routed to admins.
 
 </td>
@@ -270,7 +273,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 </tr>
 </table>
 
-> **Onboarding & Accounts** — Guided onboarding flow, **NextAuth.js v5** with email/password plus optional Google & GitHub OAuth, and forgot/reset-password flows.
+> **Accounts, Auth & Settings** — **Supabase Auth** with email/password, Google & GitHub OAuth, and **passwordless passkeys** (Face ID / Touch ID / security keys). A guided onboarding flow, a working forgot/reset-password flow, and a comprehensive **7-tab Settings** hub: Profile (avatar + cover photo with a safe-zone guide), Account (linked methods + change password), Security (passkeys), Appearance (light/dark/system), Editor, Notifications, and Billing.
 >
 > **Docs & Transparency** — Browsable **OpenAPI/Swagger** docs at `/docs`, plus first-class Changelog, Pricing, Privacy & Terms pages.
 
@@ -284,9 +287,10 @@ Every external dependency is optional and isolated, so a missing key degrades on
 | **Language** | TypeScript 5 (Strict) | Compile-time type safety across client and server |
 | **State Management** | Zustand 5 & React Query 5 | Client-side store & server-state caching/fetching |
 | **Styling** | Tailwind CSS v4 & Framer Motion 12 | Zero-runtime styling, custom themes, and smooth micro-animations |
-| **Database** | MongoDB + Mongoose 9 | NoSQL database and schema modeling for users, questions, submissions, etc. |
+| **Database** | Supabase (Postgres) + `postgres.js` | Relational store — 33 tables with row-level security; a `backendFor()` flag keeps a Mongoose/MongoDB path for instant rollback |
+| **File Storage** | Supabase Storage | Résumés, profile avatars and cover photos (served from public buckets) |
 | **Cache & Rate-Limits** | Upstash Redis & Upstash Ratelimit 2 | Leaderboards caching, rate-limiting middleware |
-| **Authentication** | NextAuth.js v5 (Beta 31) + bcryptjs | Secure credentials & OAuth (Google/GitHub) sessions |
+| **Authentication** | Supabase Auth + `@supabase/ssr` · **Passkeys** (`@simplewebauthn`) · bcryptjs | Cookie sessions, email/password + Google/GitHub OAuth, passwordless passkey (WebAuthn) sign-in |
 | **AI Mentoring** | Groq SDK (Llama 3) & LangSmith | Real-time streaming AI advice, model prompts, and evaluation/tracing |
 | **Payments** | Razorpay SDK | Subscriptions, billing checkout, and order verification |
 | **Editor / Sandbox** | Monaco Editor, Monaco Vim & Sandpack | DSA code editor (with Vim keys/Emmet) and client-side web sandbox |
@@ -305,7 +309,7 @@ Every external dependency is optional and isolated, so a missing key degrades on
 ### Prerequisites
 
 - **Node.js** ≥ 18.x
-- **MongoDB** (local or Atlas)
+- A **Supabase** project (the free tier is plenty)
 - **Redis** _(optional — falls back to in-memory store)_
 - **Groq API Key** _(optional — enables AI mentor & tools)_
 
@@ -355,8 +359,12 @@ Open **http://localhost:3000** to preview the app.
 
 | Variable                            | Scope     | Status       | Purpose / Fallback                                                         |
 | :---------------------------------- | :-------- | :----------- | :------------------------------------------------------------------------- |
-| `MONGODB_URI`                       | Core      | **Required** | Users, questions, contests, submissions.                                   |
-| `AUTH_SECRET`                       | Core      | **Required** | Signs & verifies NextAuth cookies.                                         |
+| `NEXT_PUBLIC_SUPABASE_URL`          | Core      | **Required** | Supabase project URL (client + server).                                    |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Core   | **Required** | Supabase publishable (anon) key for the browser/SSR client.                |
+| `SUPABASE_SERVICE_ROLE_KEY`         | Core      | **Required** | Server-only service-role key — the data + storage backend (bypasses RLS).  |
+| `SUPABASE_DB_URL`                    | Core      | _Optional_   | Direct Postgres connection for migrations & scripts.                       |
+| `DATA_BACKEND`                       | Core      | _Optional_   | `supabase` (default in prod) or `mongo` (rollback). Per-module: `DATA_BACKEND_<MODULE>`. |
+| `MONGODB_URI`                       | Rollback  | _Optional_   | Legacy MongoDB, kept for the dual-backend rollback path.                   |
 | `GROQ_API_KEY`                      | AI        | _Optional_   | Streams hints, explanations & AI tools. Panels show setup help if omitted. |
 | `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Cache     | _Optional_   | Rate-limiting & leaderboards. Falls back to in-memory.                     |
 | `GOOGLE_CLIENT_ID` / `_SECRET`      | Auth      | _Optional_   | Google one-click sign-in.                                                  |
@@ -381,7 +389,7 @@ A single `ExecutionProvider` interface wraps multiple backends — switch instan
 ### Graceful Degradation
 
 - **No Groq** → AI panels show inline setup help; editor, runs & metrics still work.
-- **No Redis** → in-process cache; rankings computed from MongoDB on demand.
+- **No Redis** → in-process cache; rankings computed from Postgres on demand.
 - **No Razorpay** → payments disabled gracefully; free/beta flows still work.
 - **No OAuth** → provider buttons hidden; email/password remains.
 
@@ -400,11 +408,11 @@ npm run typecheck # Type-check without emitting
 
 ## Changelog
 
-The complete, always-current release history lives in-app:
+The complete, always-current release history lives in-app — currently **v3.1.0**:
 
 **[View the Changelog](https://codeforgeai.io/changelog)** (or `/changelog` on your deployment)
 
-Every release — new features, improvements and fixes — is documented there with version, date and tags.
+Every release — new features, improvements and fixes — is documented there with version, date and tags. Recent highlights: the full **MongoDB → Supabase** migration (Postgres, Auth, Storage), **passwordless passkeys**, a redesigned auth experience, profile avatar + cover photos, and a 7-tab Settings hub.
 
 ---
 
