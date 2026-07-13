@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { BlogPost } from "@/models";
-import { uniqueSlug } from "@/lib/slug";
+import { adminListPosts, createBlogPost } from "@/services/blog-store";
 
 export const runtime = "nodejs";
 
@@ -10,17 +8,10 @@ export async function GET() {
   const { error } = await requireAdmin();
   if (error) return error;
 
-  await connectDB();
-  // Exclude the heavy cover blob from the list.
-  const posts = await BlogPost.find()
-    .select("-coverData")
-    .sort({ createdAt: -1 })
-    .limit(300)
-    .lean();
-
+  const posts = await adminListPosts(300);
   return NextResponse.json({
     posts: posts.map((p) => ({
-      id: p._id.toString(),
+      id: p.id,
       slug: p.slug,
       title: p.title,
       description: p.description,
@@ -28,7 +19,7 @@ export async function GET() {
       status: p.status,
       views: p.views,
       coverMime: p.coverMime,
-      publishedAt: p.publishedAt ?? null,
+      publishedAt: p.publishedAt,
       createdAt: p.createdAt,
     })),
   });
@@ -58,16 +49,12 @@ export async function POST(req: NextRequest) {
   const cover = parseDataUrl(String(body.coverImage ?? ""));
   if (!cover) return NextResponse.json({ error: "A cover image is required" }, { status: 400 });
 
-  await connectDB();
-  const slug = await uniqueSlug(title, async (s) => !!(await BlogPost.exists({ slug: s })));
-
   const status = body.status === "published" ? "published" : "draft";
   const tags = Array.isArray(body.tags)
     ? body.tags.map((t) => String(t).trim().toLowerCase()).filter(Boolean).slice(0, 8)
     : [];
 
-  const post = await BlogPost.create({
-    slug,
+  const { id, slug } = await createBlogPost({
     title: title.slice(0, 160),
     description: String(body.description ?? "").slice(0, 300),
     content: String(body.content ?? ""),
@@ -77,10 +64,9 @@ export async function POST(req: NextRequest) {
     seoKeywords: String(body.seoKeywords ?? "").slice(0, 300),
     coverData: cover.data,
     coverMime: cover.mime,
-    author: session.user.id,
+    authorId: session.user.id,
     status,
-    publishedAt: status === "published" ? new Date() : null,
   });
 
-  return NextResponse.json({ ok: true, id: post._id.toString(), slug }, { status: 201 });
+  return NextResponse.json({ ok: true, id, slug }, { status: 201 });
 }
