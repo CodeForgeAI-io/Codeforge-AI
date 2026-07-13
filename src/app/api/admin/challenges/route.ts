@@ -1,34 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { FrontendChallenge } from "@/models";
 import { challengeInputSchema } from "@/schemas/challenge";
-import { recordToFiles } from "@/services/challenges";
-import { uniqueSlug } from "@/lib/slug";
+import { adminListChallenges, createChallenge } from "@/services/challenges";
 
 export async function GET() {
   const { error } = await requireAdmin();
   if (error) return error;
 
-  await connectDB();
-  const challenges = await FrontendChallenge.find()
-    .sort({ createdAt: -1 })
-    .limit(200)
-    .select("slug title difficulty tech isPublished stats createdAt")
-    .lean();
-
-  return NextResponse.json({
-    challenges: challenges.map((challenge) => ({
-      id: challenge._id.toString(),
-      slug: challenge.slug,
-      title: challenge.title,
-      difficulty: challenge.difficulty,
-      tech: challenge.tech,
-      isPublished: challenge.isPublished,
-      attempts: challenge.stats.attempts,
-      createdAt: challenge.createdAt,
-    })),
-  });
+  const challenges = await adminListChallenges();
+  return NextResponse.json({ challenges });
 }
 
 export async function POST(req: NextRequest) {
@@ -53,28 +33,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  await connectDB();
   try {
-    const slug = await uniqueSlug(parsed.data.title, async (candidate) =>
-      Boolean(await FrontendChallenge.exists({ slug: candidate })),
-    );
-    const challenge = await FrontendChallenge.create({
-      ...parsed.data,
-      starterFiles: recordToFiles(parsed.data.starterFiles),
-      slug,
+    const { id, slug } = await createChallenge({
+      title: parsed.data.title,
+      difficulty: parsed.data.difficulty,
+      tech: parsed.data.tech,
+      tags: parsed.data.tags,
+      brief: parsed.data.brief,
+      description: parsed.data.description,
+      designSpec: parsed.data.designSpec,
+      starterFiles: Object.entries(parsed.data.starterFiles).map(([path, code]) => ({ path, code })),
+      checklist: parsed.data.checklist,
+      isPublished: parsed.data.isPublished,
       createdBy: session.user.id,
     });
-
-    return NextResponse.json(
-      { id: challenge._id.toString(), slug: challenge.slug },
-      { status: 201 },
-    );
+    return NextResponse.json({ id, slug }, { status: 201 });
   } catch (saveError) {
     return NextResponse.json(
-      {
-        error:
-          saveError instanceof Error ? saveError.message : "Failed to save",
-      },
+      { error: saveError instanceof Error ? saveError.message : "Failed to save" },
       { status: 500 },
     );
   }
