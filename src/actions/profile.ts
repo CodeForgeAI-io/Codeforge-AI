@@ -2,8 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { connectDB } from "@/lib/mongodb";
-import { User } from "@/models";
+import {
+  isUsernameTaken,
+  updateUserProfile,
+  updateUserPreferences,
+  updateUserMedia,
+  setEmailOptOut,
+} from "@/services/user-store";
 import {
   profileUpdateSchema,
   preferencesUpdateSchema,
@@ -24,39 +29,28 @@ export async function updateProfile(
 
   const parsed = profileUpdateSchema.safeParse(input);
   if (!parsed.success) {
-    return {
-      ok: false,
-      error: parsed.error.issues[0]?.message ?? "Invalid input",
-    };
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  await connectDB();
-
-  const usernameTaken = await User.exists({
-    username: parsed.data.username.toLowerCase(),
-    _id: { $ne: session.user.id },
-  });
-  if (usernameTaken) {
+  if (await isUsernameTaken(parsed.data.username, session.user.id)) {
     return { ok: false, error: "This username is already taken" };
   }
 
-  await User.updateOne(
-    { _id: session.user.id },
-    {
-      $set: {
-        name: parsed.data.name,
-        username: parsed.data.username.toLowerCase(),
-        bio: parsed.data.bio ?? "",
-        location: parsed.data.location ?? "",
-        website: parsed.data.website ?? "",
-        githubUrl: parsed.data.githubUrl ?? "",
-        linkedinUrl: parsed.data.linkedinUrl ?? "",
-      },
-    },
-  );
+  await updateUserProfile(session.user.id, {
+    name: parsed.data.name,
+    username: parsed.data.username,
+    bio: parsed.data.bio ?? "",
+    location: parsed.data.location ?? "",
+    website: parsed.data.website ?? "",
+    githubUrl: parsed.data.githubUrl ?? "",
+    linkedinUrl: parsed.data.linkedinUrl ?? "",
+    image: parsed.data.image === undefined ? undefined : parsed.data.image || null,
+    coverImage: parsed.data.coverImage === undefined ? undefined : parsed.data.coverImage || null,
+  });
 
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+  revalidatePath(`/profile/${parsed.data.username.toLowerCase()}`);
   return { ok: true };
 }
 
@@ -68,18 +62,45 @@ export async function updatePreferences(
 
   const parsed = preferencesUpdateSchema.safeParse(input);
   if (!parsed.success) {
-    return {
-      ok: false,
-      error: parsed.error.issues[0]?.message ?? "Invalid input",
-    };
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  await connectDB();
-  await User.updateOne(
-    { _id: session.user.id },
-    { $set: { preferences: parsed.data } },
-  );
+  await updateUserPreferences(session.user.id, parsed.data);
+  revalidatePath("/settings");
+  return { ok: true };
+}
 
+function validImageUrl(v: string | null): boolean {
+  return v === null || (v.length <= 600 && /^https?:\/\/.+/.test(v));
+}
+
+/** Immediately persist a new avatar and/or cover photo (auto-save on upload). */
+export async function updateProfileMedia(patch: {
+  image?: string | null;
+  coverImage?: string | null;
+}): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user?.id) return { ok: false, error: "Not authenticated" };
+
+  if (patch.image !== undefined && !validImageUrl(patch.image)) {
+    return { ok: false, error: "Invalid image URL" };
+  }
+  if (patch.coverImage !== undefined && !validImageUrl(patch.coverImage)) {
+    return { ok: false, error: "Invalid image URL" };
+  }
+
+  await updateUserMedia(session.user.id, patch);
+  revalidatePath("/settings");
+  revalidatePath("/dashboard");
+  if (session.user.username) revalidatePath(`/profile/${session.user.username}`);
+  return { ok: true };
+}
+
+export async function updateEmailOptOut(optOut: boolean): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user?.id) return { ok: false, error: "Not authenticated" };
+
+  await setEmailOptOut(session.user.id, optOut);
   revalidatePath("/settings");
   return { ok: true };
 }

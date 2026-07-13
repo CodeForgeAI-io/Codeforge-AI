@@ -7,6 +7,8 @@ import {
   ProfileSettingsForm,
 } from "@/features/settings/settings-forms";
 import { SettingsView } from "@/features/settings/settings-view";
+import { ProfileMedia } from "@/features/settings/profile-media";
+import { EmailNotifications } from "@/features/settings/email-notifications";
 import { PasskeyManager } from "@/features/settings/passkey-manager";
 import { DeleteAccount } from "@/features/settings/delete-account";
 import { BillingPanel } from "@/features/subscription/billing-panel";
@@ -29,6 +31,7 @@ export default async function SettingsPage() {
       <SettingsView
         profile={
           <>
+            <ProfileMedia name={user.name} image={user.image} coverImage={user.coverImage} />
             <ProfileSettingsForm
               defaults={{
                 name: user.name,
@@ -45,14 +48,17 @@ export default async function SettingsPage() {
           </>
         }
         preferences={
-          <EditorSettingsForm
-            defaults={{
-              editorFontSize: user.preferences.editorFontSize,
-              editorTheme: user.preferences.editorTheme as "vs-dark" | "light",
-              vimMode: user.preferences.vimMode,
-              defaultLanguage: user.preferences.defaultLanguage,
-            }}
-          />
+          <>
+            <EditorSettingsForm
+              defaults={{
+                editorFontSize: user.preferences.editorFontSize,
+                editorTheme: user.preferences.editorTheme as "vs-dark" | "light",
+                vimMode: user.preferences.vimMode,
+                defaultLanguage: user.preferences.defaultLanguage,
+              }}
+            />
+            <EmailNotifications optOut={user.emailOptOut} />
+          </>
         }
         billing={
           <>

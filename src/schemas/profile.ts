@@ -11,6 +11,12 @@ const optionalUrl = z
   )
   .optional();
 
+const optionalImageUrl = z
+  .string()
+  .max(600)
+  .refine((v) => v === "" || /^https?:\/\/.+/.test(v), "Must be a valid image URL")
+  .optional();
+
 export const profileUpdateSchema = z.object({
   name: z.string().min(2).max(80),
   username: usernameSchema,
@@ -19,6 +25,8 @@ export const profileUpdateSchema = z.object({
   website: optionalUrl,
   githubUrl: optionalUrl,
   linkedinUrl: optionalUrl,
+  image: optionalImageUrl,
+  coverImage: optionalImageUrl,
 });
 
 export const preferencesUpdateSchema = z.object({

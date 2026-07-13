@@ -25,6 +25,7 @@ export interface DashboardData {
   name: string;
   username: string;
   image: string | null;
+  coverImage: string | null;
   joinedAt: string;
   bio: string | null;
   location: string | null;
@@ -61,6 +62,7 @@ interface StatsUser {
   name: string;
   username: string;
   image: string | null;
+  coverImage: string | null;
   createdAt: Date;
   bio: string | null;
   location: string | null;
@@ -82,6 +84,7 @@ function fromUserDoc(user: UserDoc): StatsUser {
     name: user.name,
     username: user.username,
     image: user.image ?? null,
+    coverImage: (user as { coverImage?: string }).coverImage ?? null,
     createdAt: user.createdAt,
     bio: user.bio ?? null,
     location: user.location ?? null,
@@ -106,6 +109,7 @@ interface SbUserRow {
   name: string;
   username: string;
   image: string | null;
+  cover_image: string | null;
   created_at: string;
   bio: string | null;
   location: string | null;
@@ -129,6 +133,7 @@ function fromSbRow(row: SbUserRow): StatsUser {
     name: row.name,
     username: row.username,
     image: row.image ?? null,
+    coverImage: row.cover_image ?? null,
     createdAt: new Date(row.created_at),
     bio: row.bio ?? null,
     location: row.location ?? null,
@@ -140,7 +145,7 @@ function fromSbRow(row: SbUserRow): StatsUser {
 }
 
 const SB_USER_COLS =
-  "id,name,username,image,created_at,bio,location,website,github_url,linkedin_url,stats";
+  "id,name,username,image,cover_image,created_at,bio,location,website,github_url,linkedin_url,stats";
 
 async function buildStats(user: StatsUser): Promise<DashboardData> {
   const oneYearAgo = new Date();
@@ -351,6 +356,7 @@ async function buildStats(user: StatsUser): Promise<DashboardData> {
     name: user.name,
     username: user.username,
     image: user.image,
+    coverImage: user.coverImage,
     joinedAt: user.createdAt.toISOString(),
     bio: user.bio,
     location: user.location,

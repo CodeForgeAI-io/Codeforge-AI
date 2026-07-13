@@ -11,7 +11,7 @@ import { backendFor } from "@/lib/data-backend";
  * backend-agnostic.
  */
 
-export type StorageBucket = "resumes" | "newsletter";
+export type StorageBucket = "resumes" | "newsletter" | "avatars" | "covers";
 
 /** True when the active storage backend is configured/usable. */
 export function storageEnabled(): boolean {

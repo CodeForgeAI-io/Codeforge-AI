@@ -104,9 +104,14 @@ export function PublicProfile({ data, isOwner, signedIn, isFollowing = false, ta
     <div className="space-y-5">
       {/* ── hero ── */}
       <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-        {/* cover */}
+        {/* cover — custom photo if set, else a branded gradient */}
         <div className="relative h-28 bg-linear-to-br from-[#006bff]/30 via-[#006bff]/10 to-transparent sm:h-36">
-          <div className="absolute -right-10 -top-10 size-40 rounded-full bg-[#006bff]/20 blur-3xl" />
+          {data.coverImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={data.coverImage} alt="" className="absolute inset-0 size-full object-cover" />
+          ) : (
+            <div className="absolute -right-10 -top-10 size-40 rounded-full bg-[#006bff]/20 blur-3xl" />
+          )}
         </div>
 
         <div className="relative px-5 pb-5">

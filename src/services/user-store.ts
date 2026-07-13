@@ -77,6 +77,9 @@ export interface SettingsProfile {
   website: string;
   githubUrl: string;
   linkedinUrl: string;
+  image: string | null;
+  coverImage: string | null;
+  emailOptOut: boolean;
   preferences: EditorPreferences;
   plan: string;
   planExpiresAt: Date | null;
@@ -89,19 +92,21 @@ export async function getUserSettings(userId: string): Promise<SettingsProfile |
   if (be() === "supabase") {
     const { data } = await supabaseAdmin()
       .from("users")
-      .select("name,username,bio,location,website,github_url,linkedin_url,preferences,plan,plan_expires_at,trial_ends_at,billing_cycle")
+      .select("name,username,bio,location,website,github_url,linkedin_url,image,cover_image,email_opt_out,preferences,plan,plan_expires_at,trial_ends_at,billing_cycle")
       .eq("id", userId)
       .maybeSingle();
     if (!data) return null;
     const u = data as {
       name: string; username: string; bio: string | null; location: string | null;
       website: string | null; github_url: string | null; linkedin_url: string | null;
+      image: string | null; cover_image: string | null; email_opt_out: boolean | null;
       preferences: Partial<EditorPreferences> | null; plan: string;
       plan_expires_at: string | null; trial_ends_at: string | null; billing_cycle: string | null;
     };
     return {
       name: u.name, username: u.username, bio: u.bio ?? "", location: u.location ?? "",
       website: u.website ?? "", githubUrl: u.github_url ?? "", linkedinUrl: u.linkedin_url ?? "",
+      image: u.image, coverImage: u.cover_image, emailOptOut: Boolean(u.email_opt_out),
       preferences: { ...DEFAULT_PREFS, ...(u.preferences ?? {}) },
       plan: u.plan ?? "free",
       planExpiresAt: u.plan_expires_at ? new Date(u.plan_expires_at) : null,
@@ -115,12 +120,96 @@ export async function getUserSettings(userId: string): Promise<SettingsProfile |
   return {
     name: u.name, username: u.username, bio: u.bio ?? "", location: u.location ?? "",
     website: u.website ?? "", githubUrl: u.githubUrl ?? "", linkedinUrl: u.linkedinUrl ?? "",
+    image: u.image ?? null, coverImage: (u as { coverImage?: string }).coverImage ?? null,
+    emailOptOut: Boolean(u.emailOptOut),
     preferences: { ...DEFAULT_PREFS, ...(u.preferences ?? {}) },
     plan: u.plan ?? "free",
     planExpiresAt: u.planExpiresAt ?? null,
     trialEndsAt: u.trialEndsAt ?? null,
     billingCycle: u.billingCycle ?? null,
   };
+}
+
+export interface ProfilePatch {
+  name: string;
+  username: string;
+  bio: string;
+  location: string;
+  website: string;
+  githubUrl: string;
+  linkedinUrl: string;
+  image?: string | null;
+  coverImage?: string | null;
+}
+
+/** Whether a username is taken by someone other than `excludeUserId`. */
+export async function isUsernameTaken(username: string, excludeUserId: string): Promise<boolean> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("users")
+      .select("id")
+      .eq("username", username.toLowerCase())
+      .neq("id", excludeUserId)
+      .maybeSingle();
+    return Boolean(data);
+  }
+  await connectDB();
+  return Boolean(await User.exists({ username: username.toLowerCase(), _id: { $ne: excludeUserId } }));
+}
+
+/** Save the editable public-profile fields. */
+export async function updateUserProfile(userId: string, patch: ProfilePatch): Promise<void> {
+  if (be() === "supabase") {
+    const row: Record<string, unknown> = {
+      name: patch.name,
+      username: patch.username.toLowerCase(),
+      bio: patch.bio,
+      location: patch.location,
+      website: patch.website,
+      github_url: patch.githubUrl,
+      linkedin_url: patch.linkedinUrl,
+    };
+    if (patch.image !== undefined) row.image = patch.image;
+    if (patch.coverImage !== undefined) row.cover_image = patch.coverImage;
+    const { error } = await supabaseAdmin().from("users").update(row).eq("id", userId);
+    if (error) throw new Error(error.message);
+    return;
+  }
+  await connectDB();
+  const set: Record<string, unknown> = {
+    name: patch.name,
+    username: patch.username.toLowerCase(),
+    bio: patch.bio,
+    location: patch.location,
+    website: patch.website,
+    githubUrl: patch.githubUrl,
+    linkedinUrl: patch.linkedinUrl,
+  };
+  if (patch.image !== undefined) set.image = patch.image;
+  if (patch.coverImage !== undefined) set.coverImage = patch.coverImage;
+  await User.updateOne({ _id: userId }, { $set: set });
+}
+
+/** Save the editor/workspace preferences jsonb. */
+export async function updateUserPreferences(userId: string, prefs: EditorPreferences): Promise<void> {
+  if (be() === "supabase") {
+    const { error } = await supabaseAdmin().from("users").update({ preferences: prefs }).eq("id", userId);
+    if (error) throw new Error(error.message);
+    return;
+  }
+  await connectDB();
+  await User.updateOne({ _id: userId }, { $set: { preferences: prefs } });
+}
+
+/** Toggle marketing/newsletter email opt-out. */
+export async function setEmailOptOut(userId: string, optOut: boolean): Promise<void> {
+  if (be() === "supabase") {
+    const { error } = await supabaseAdmin().from("users").update({ email_opt_out: optOut }).eq("id", userId);
+    if (error) throw new Error(error.message);
+    return;
+  }
+  await connectDB();
+  await User.updateOne({ _id: userId }, { $set: { emailOptOut: optOut } });
 }
 
 export interface CheckoutProfile {
@@ -357,4 +446,26 @@ export async function listNewsletterRecipients(): Promise<{ email: string; name?
   await connectDB();
   const users = await User.find({ emailOptOut: { $ne: true }, banned: { $ne: true } }).select("email name").lean();
   return users.filter((u) => u.email).map((u) => ({ email: u.email as string, name: u.name }));
+}
+
+
+/** Update only the avatar/cover image fields (immediate save on upload). */
+export async function updateUserMedia(
+  userId: string,
+  patch: { image?: string | null; coverImage?: string | null },
+): Promise<void> {
+  if (be() === "supabase") {
+    const row: Record<string, unknown> = {};
+    if (patch.image !== undefined) row.image = patch.image;
+    if (patch.coverImage !== undefined) row.cover_image = patch.coverImage;
+    if (!Object.keys(row).length) return;
+    const { error } = await supabaseAdmin().from("users").update(row).eq("id", userId);
+    if (error) throw new Error(error.message);
+    return;
+  }
+  await connectDB();
+  const set: Record<string, unknown> = {};
+  if (patch.image !== undefined) set.image = patch.image;
+  if (patch.coverImage !== undefined) set.coverImage = patch.coverImage;
+  if (Object.keys(set).length) await User.updateOne({ _id: userId }, { $set: set });
 }
