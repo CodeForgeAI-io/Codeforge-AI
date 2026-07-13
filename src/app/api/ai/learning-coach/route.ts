@@ -3,7 +3,17 @@ import { requireUser } from "@/lib/api-auth";
 import { enforceAiCredit } from "@/services/ai-credits";
 import { complete } from "@/services/ai/groq";
 import { connectDB } from "@/lib/mongodb";
-import { Submission, User } from "@/models";
+import { User } from "@/models";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor } from "@/lib/data-backend";
+import { getRecentDsaCategoryRows } from "@/services/submissions";
+
+interface UserStats {
+  level?: number;
+  xp?: number;
+  solved?: { total?: number; easy?: number; medium?: number; hard?: number };
+  streak?: { current?: number };
+}
 
 export async function GET() {
   const { session, error } = await requireUser();
@@ -12,24 +22,26 @@ export async function GET() {
   const credit = await enforceAiCredit(session.user.id, session.user.plan);
   if (credit) return credit;
 
-  await connectDB();
-  const [user, recentSubs] = await Promise.all([
-    User.findById(session.user.id).lean(),
-    Submission.find({ user: session.user.id, kind: "dsa" })
-      .sort({ createdAt: -1 })
-      .limit(30)
-      .populate("question", "category difficulty")
-      .lean(),
-  ]);
+  let stats: UserStats | undefined;
+  if (backendFor("account") === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("users")
+      .select("stats")
+      .eq("id", session.user.id)
+      .maybeSingle();
+    stats = (data as { stats?: UserStats } | null)?.stats;
+  } else {
+    await connectDB();
+    const user = await User.findById(session.user.id).select("stats").lean();
+    stats = user?.stats as UserStats | undefined;
+  }
+  const recentSubs = await getRecentDsaCategoryRows(session.user.id, 30);
 
-  const stats = user?.stats;
   const categoryMap: Record<string, { attempted: number; accepted: number }> = {};
   for (const sub of recentSubs) {
-    const q = sub.question as { category?: string } | null;
-    if (!q?.category) continue;
-    if (!categoryMap[q.category]) categoryMap[q.category] = { attempted: 0, accepted: 0 };
-    categoryMap[q.category].attempted++;
-    if (sub.status === "Accepted") categoryMap[q.category].accepted++;
+    if (!categoryMap[sub.category]) categoryMap[sub.category] = { attempted: 0, accepted: 0 };
+    categoryMap[sub.category].attempted++;
+    if (sub.status === "Accepted") categoryMap[sub.category].accepted++;
   }
 
   const weakCategories = Object.entries(categoryMap)
