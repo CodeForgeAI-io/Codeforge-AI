@@ -48,7 +48,7 @@ export function ForgotPasswordForm() {
 
   if (sent) {
     return (
-      <Card className="glass">
+      <Card className="border-0 bg-transparent shadow-none">
         <CardContent className="pt-8 pb-8">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="flex size-14 items-center justify-center rounded-full bg-primary/10">
@@ -82,14 +82,14 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <Card className="glass">
-      <CardHeader>
-        <CardTitle className="text-xl">Forgot your password?</CardTitle>
+    <Card className="border-0 bg-transparent shadow-none">
+      <CardHeader className="space-y-2 px-0 pt-0">
+        <CardTitle className="text-[26px] font-bold tracking-tight">Forgot your password?</CardTitle>
         <CardDescription>
           Enter your email and we&apos;ll send you a reset link.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-0">
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
           <div className="grid gap-1.5">
             <Label htmlFor="email">Email address</Label>

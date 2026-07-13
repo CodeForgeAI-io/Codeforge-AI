@@ -61,14 +61,14 @@ export function RegisterForm({
   const errors = form.formState.errors;
 
   return (
-    <Card className="glass">
-      <CardHeader>
-        <CardTitle className="text-xl">Create your account</CardTitle>
+    <Card className="border-0 bg-transparent shadow-none">
+      <CardHeader className="space-y-2 px-0 pt-0">
+        <CardTitle className="text-[26px] font-bold tracking-tight">Create your account</CardTitle>
         <CardDescription>
           Start solving problems and tracking your progress
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-0">
         <OAuthButtons google={google} github={github} callbackUrl="/dashboard" />
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
           <div className="grid grid-cols-2 gap-3">

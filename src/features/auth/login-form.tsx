@@ -79,14 +79,14 @@ export function LoginForm({
   }
 
   return (
-    <Card className="glass">
-      <CardHeader>
-        <CardTitle className="text-xl">Welcome back</CardTitle>
+    <Card className="border-0 bg-transparent shadow-none">
+      <CardHeader className="space-y-2 px-0 pt-0">
+        <CardTitle className="text-[26px] font-bold tracking-tight">Welcome back</CardTitle>
         <CardDescription>
           Sign in to continue your interview prep
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-0">
         <OAuthButtons google={google} github={github} callbackUrl={callbackUrl} />
         {passkeysSupported() && (
           <Button

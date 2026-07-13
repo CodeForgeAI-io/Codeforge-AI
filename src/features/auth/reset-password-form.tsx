@@ -14,8 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-// The recovery session is established by /auth/callback before we get here, so
-// there's no token in the URL — we just set the new password on the session.
+// The recovery session is established on mount (verifyOtp with the emailed
+// token_hash), after which updateUser sets the new password.
 const schema = z
   .object({
     password: z.string().min(8, "At least 8 characters"),
@@ -87,7 +87,7 @@ export function ResetPasswordForm() {
 
   if (done) {
     return (
-      <Card className="glass">
+      <Card className="border-0 bg-transparent shadow-none">
         <CardContent className="pt-8 pb-8">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="flex size-14 items-center justify-center rounded-full bg-primary/10">
@@ -110,7 +110,7 @@ export function ResetPasswordForm() {
 
   if (linkState === "checking") {
     return (
-      <Card className="glass">
+      <Card className="border-0 bg-transparent shadow-none">
         <CardContent className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" /> Verifying your reset link…
         </CardContent>
@@ -120,7 +120,7 @@ export function ResetPasswordForm() {
 
   if (linkState === "invalid") {
     return (
-      <Card className="glass">
+      <Card className="border-0 bg-transparent shadow-none">
         <CardContent className="py-10 text-center">
           <h2 className="text-lg font-bold">Link expired</h2>
           <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground">
@@ -138,12 +138,12 @@ export function ResetPasswordForm() {
   const errors = form.formState.errors;
 
   return (
-    <Card className="glass">
-      <CardHeader>
-        <CardTitle className="text-xl">Set a new password</CardTitle>
+    <Card className="border-0 bg-transparent shadow-none">
+      <CardHeader className="space-y-2 px-0 pt-0">
+        <CardTitle className="text-[26px] font-bold tracking-tight">Set a new password</CardTitle>
         <CardDescription>Choose a strong password for your CodeForge AI account.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-0">
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
           <div className="grid gap-1.5">
             <Label htmlFor="password">New password</Label>
