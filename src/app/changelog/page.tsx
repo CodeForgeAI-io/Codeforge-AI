@@ -24,8 +24,11 @@ const RELEASES: Release[] = [
         "Pick your theme — Light, Dark or System — from Settings → Appearance",
         "Manage email preferences — opt in or out of product updates and the newsletter (account and billing emails always send)",
         "Refreshed dashboard and public profile with consistent brand accents and subtle hover polish",
+        "Settings is now fully mobile-friendly — the section tabs stick to the top and scroll smoothly so you can switch tabs from anywhere on the page",
+        "Redesigned the offline screen to match the app, with a live connection status that reloads automatically the moment you're back online",
       ],
       fixed: [
+        "Fixed a crash that showed “Something went wrong” when opening Settings",
         "Profile edits now save reliably — a leftover write from the Supabase migration was persisting to the old database",
         "Cover and avatar uploads no longer fail on larger images",
       ],

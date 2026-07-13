@@ -19,14 +19,21 @@ export function SettingsView({ sections }: { sections: SettingsSection[] }) {
   const current = sections.find((s) => s.id === active) ?? sections[0];
 
   return (
-    <div className="grid gap-6 md:grid-cols-[224px_1fr] md:gap-10">
-      {/* Sidebar menu */}
-      <aside className="md:sticky md:top-20 md:self-start">
-        <div className="mb-4 flex items-center gap-2 px-1">
+    <div className="grid gap-5 md:grid-cols-[224px_1fr] md:gap-10">
+      {/* Sidebar on desktop; sticky, edge-to-edge scrolling tab bar on mobile */}
+      <aside
+        className={cn(
+          // mobile: pinned under the top bar so sections stay reachable while scrolling
+          "sticky top-14 z-20 -mx-4 border-b bg-background/90 px-4 pb-2 backdrop-blur-sm",
+          // desktop: plain sticky sidebar, no chrome
+          "md:top-20 md:mx-0 md:self-start md:border-0 md:bg-transparent md:px-0 md:pb-0 md:backdrop-blur-none",
+        )}
+      >
+        <div className="mb-3 flex items-center gap-2 px-1 pt-1 md:mb-4">
           <Settings className="size-4 text-muted-foreground" />
-          <h1 className="text-lg font-semibold tracking-tight">Settings</h1>
+          <h1 className="text-base font-semibold tracking-tight md:text-lg">Settings</h1>
         </div>
-        <nav className="flex gap-1 overflow-x-auto pb-1 md:flex-col md:gap-0.5 md:overflow-visible md:pb-0">
+        <nav className="flex snap-x gap-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] md:flex-col md:gap-0.5 md:overflow-visible md:pb-0 [&::-webkit-scrollbar]:hidden">
           {sections.map((s) => {
             const on = active === s.id;
             return (
@@ -35,7 +42,7 @@ export function SettingsView({ sections }: { sections: SettingsSection[] }) {
                 type="button"
                 onClick={() => setActive(s.id)}
                 className={cn(
-                  "flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors md:w-full",
+                  "flex shrink-0 snap-start items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm transition-colors md:w-full",
                   on
                     ? "bg-[#006bff]/8 font-medium text-foreground ring-1 ring-inset ring-[#006bff]/15"
                     : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
@@ -51,9 +58,9 @@ export function SettingsView({ sections }: { sections: SettingsSection[] }) {
 
       {/* Content */}
       <div className="min-w-0">
-        <div className="mb-5 hidden md:block">
-          <h2 className="text-xl font-semibold tracking-tight">{current?.label}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{current?.desc}</p>
+        <div className="mb-4 md:mb-5">
+          <h2 className="text-lg font-semibold tracking-tight md:text-xl">{current?.label}</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">{current?.desc}</p>
         </div>
         {sections.map((s) => (
           <div key={s.id} className={cn("space-y-4", s.id !== active && "hidden")}>
