@@ -4,6 +4,10 @@ import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
 import { PromptTemplate } from "@/models";
 import { DEFAULT_PROMPTS } from "@/services/ai/prompts";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor, toUuidOrNull } from "@/lib/data-backend";
+
+const be = () => backendFor("ai");
 
 const upsertSchema = z.object({
   key: z.string().min(1).max(60),
@@ -17,9 +21,17 @@ export async function GET() {
   const { error } = await requireAdmin();
   if (error) return error;
 
-  await connectDB();
-  const overrides = await PromptTemplate.find().lean();
-  const overrideMap = new Map(overrides.map((entry) => [entry.key, entry]));
+  const overrideMap = new Map<string, { template: string; temperature: number; maxTokens: number }>();
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin().from("prompt_templates").select("key,template,temperature,max_tokens");
+    for (const o of (data ?? []) as { key: string; template: string; temperature: number; max_tokens: number }[]) {
+      overrideMap.set(o.key, { template: o.template, temperature: o.temperature, maxTokens: o.max_tokens });
+    }
+  } else {
+    await connectDB();
+    const overrides = await PromptTemplate.find().lean();
+    for (const o of overrides) overrideMap.set(o.key, { template: o.template, temperature: o.temperature, maxTokens: o.maxTokens });
+  }
 
   const prompts = Object.entries(DEFAULT_PROMPTS).map(([key, fallback]) => {
     const override = overrideMap.get(key);
@@ -62,6 +74,23 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Unknown prompt key" }, { status: 404 });
   }
 
+  if (be() === "supabase") {
+    const { error: upErr } = await supabaseAdmin().from("prompt_templates").upsert(
+      {
+        key: parsed.data.key,
+        template: parsed.data.template,
+        temperature: parsed.data.temperature,
+        max_tokens: parsed.data.maxTokens,
+        name: fallback.name,
+        description: fallback.description,
+        updated_by: toUuidOrNull(session.user.id),
+      },
+      { onConflict: "key" },
+    );
+    if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
   await connectDB();
   await PromptTemplate.updateOne(
     { key: parsed.data.key },
@@ -91,6 +120,10 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "key is required" }, { status: 400 });
   }
 
+  if (be() === "supabase") {
+    await supabaseAdmin().from("prompt_templates").delete().eq("key", key);
+    return NextResponse.json({ ok: true });
+  }
   await connectDB();
   await PromptTemplate.deleteOne({ key });
   return NextResponse.json({ ok: true });
