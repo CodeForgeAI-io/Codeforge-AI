@@ -10,10 +10,11 @@ export const runtime = "nodejs";
 const EXPIRY_MINUTES = 60;
 
 /**
- * Send a password-reset email. Uses Supabase Auth's recovery link
- * (admin.generateLink) delivered in our own branded email. The link routes
- * through /auth/callback, which establishes a recovery session and lands the
- * user on /reset-password.
+ * Send a password-reset email. Uses Supabase Auth's recovery token
+ * (admin.generateLink) delivered in our own branded email. The link carries the
+ * `token_hash` to /reset-password, which calls verifyOtp to establish a recovery
+ * session client-side (the implicit-hash + /auth/callback route can't, since a
+ * server route never sees the URL fragment).
  */
 export async function POST(req: NextRequest) {
   const limited = await enforceRateLimit("auth", req);
@@ -38,13 +39,19 @@ export async function POST(req: NextRequest) {
   const { data, error } = await admin.auth.admin.generateLink({
     type: "recovery",
     email,
-    options: { redirectTo: `${appUrl}/auth/callback?next=/reset-password` },
+    options: { redirectTo: `${appUrl}/reset-password` },
   });
 
   // Always report success so we never reveal whether the account exists.
-  if (error || !data?.properties?.action_link) {
+  if (error || !data?.properties?.hashed_token) {
     return NextResponse.json({ ok: true });
   }
+
+  // Link straight to our reset page with the recovery token_hash — the page
+  // verifies it (verifyOtp) to establish the session, then updates the password.
+  const resetUrl = `${appUrl}/reset-password?token_hash=${encodeURIComponent(
+    data.properties.hashed_token,
+  )}&type=recovery`;
 
   const { data: profile } = await admin.from("users").select("name").eq("email", email).maybeSingle();
   const name = (profile as { name?: string } | null)?.name || "there";
@@ -53,7 +60,7 @@ export async function POST(req: NextRequest) {
     await sendEmail({
       to: email,
       subject: resetPasswordEmailSubject,
-      html: resetPasswordEmailHtml({ name, resetUrl: data.properties.action_link, expiryMinutes: EXPIRY_MINUTES }),
+      html: resetPasswordEmailHtml({ name, resetUrl, expiryMinutes: EXPIRY_MINUTES }),
     });
   } catch (err) {
     console.error("[forgot-password] Failed to send reset email:", err);

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -28,15 +29,42 @@ type ResetInput = z.infer<typeof schema>;
 
 export function ResetPasswordForm() {
   const router = useRouter();
+  const params = useSearchParams();
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  // "checking" while we redeem the recovery token; then ok | invalid.
+  const [linkState, setLinkState] = useState<"checking" | "ok" | "invalid">("checking");
 
   const form = useForm<ResetInput>({
     resolver: zodResolver(schema),
     defaultValues: { password: "", confirmPassword: "" },
   });
+
+  // Establish the recovery session from the emailed token_hash (or an existing
+  // session), so the subsequent updateUser is authorised.
+  useEffect(() => {
+    const supabase = createClient();
+    const tokenHash = params.get("token_hash");
+    const type = params.get("type");
+    let cancelled = false;
+
+    (async () => {
+      if (tokenHash && type === "recovery") {
+        const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" });
+        if (!cancelled) setLinkState(error ? "invalid" : "ok");
+        return;
+      }
+      // No token in the URL — maybe the session is already set (hash flow).
+      const { data } = await supabase.auth.getSession();
+      if (!cancelled) setLinkState(data.session ? "ok" : "invalid");
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [params]);
 
   async function onSubmit(values: ResetInput) {
     setSubmitting(true);
@@ -75,6 +103,33 @@ export function ResetPasswordForm() {
               Go to sign in
             </Button>
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (linkState === "checking") {
+    return (
+      <Card className="glass">
+        <CardContent className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" /> Verifying your reset link…
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (linkState === "invalid") {
+    return (
+      <Card className="glass">
+        <CardContent className="py-10 text-center">
+          <h2 className="text-lg font-bold">Link expired</h2>
+          <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground">
+            This password-reset link is invalid or has expired. Request a new one and
+            we&apos;ll email you a fresh link.
+          </p>
+          <Button asChild className="mt-5">
+            <Link href="/forgot-password">Request a new link</Link>
+          </Button>
         </CardContent>
       </Card>
     );
