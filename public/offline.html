@@ -5,25 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Offline — CodeForge AI</title>
     <style>
+      /* Mirrors the app's design tokens (src/app/globals.css). */
       :root {
         color-scheme: light dark;
-        --brand: #006bff;
-        --brand-2: #0b3ea8;
-        --bg: #f6f8fc;
+        --background: #ffffff;
+        --foreground: #171717;
         --card: #ffffff;
-        --fg: #0b1226;
-        --muted: #5b6478;
-        --border: rgba(11, 18, 38, 0.08);
-        --ring: rgba(0, 107, 255, 0.14);
+        --muted: #f7f7f7;
+        --muted-foreground: #666666;
+        --border: #ebebeb;
+        --primary: #171717;
+        --primary-foreground: #ffffff;
+        --accent: #006bff; /* blue-700 — focus ring / brand accent */
+        --radius-xl: 0.75rem;
+        --logo-light: block;
+        --logo-dark: none;
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --bg: #05070d;
-          --card: #0b1020;
-          --fg: #eef2fb;
-          --muted: #94a0b8;
-          --border: rgba(255, 255, 255, 0.08);
-          --ring: rgba(0, 107, 255, 0.22);
+          --background: #0a0a0a;
+          --foreground: #ededed;
+          --card: #18181b;
+          --muted: #1d1d20;
+          --muted-foreground: #a1a1a1;
+          --border: rgba(255, 255, 255, 0.14);
+          --primary: #ededed;
+          --primary-foreground: #0a0a0a;
+          --accent: #3b82f6;
+          --logo-light: none;
+          --logo-dark: block;
         }
       }
       * { box-sizing: border-box; }
@@ -35,97 +45,92 @@
         align-items: center;
         justify-content: center;
         padding: 1.5rem;
-        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        color: var(--fg);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: var(--foreground);
         background:
-          radial-gradient(1100px 520px at 50% -10%, rgba(0, 107, 255, 0.16), transparent 60%),
-          radial-gradient(760px 420px at 100% 110%, rgba(11, 62, 168, 0.14), transparent 55%),
-          var(--bg);
+          radial-gradient(900px 460px at 50% -20%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%),
+          var(--background);
         -webkit-font-smoothing: antialiased;
       }
       .card {
-        position: relative;
         width: 100%;
-        max-width: 30rem;
+        max-width: 27rem;
         background: var(--card);
         border: 1px solid var(--border);
-        border-radius: 1.25rem;
-        padding: 2.5rem 2rem 2rem;
+        border-radius: var(--radius-xl);
+        padding: 2.25rem 1.75rem 1.75rem;
         text-align: center;
-        box-shadow: 0 24px 60px -28px rgba(0, 107, 255, 0.35), 0 8px 24px -16px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px -18px rgba(0, 0, 0, 0.25);
       }
-      .card::before {
-        content: "";
-        position: absolute;
-        inset-inline: 0;
-        top: 0;
-        height: 3px;
-        border-radius: 1.25rem 1.25rem 0 0;
-        background: linear-gradient(90deg, var(--brand), var(--brand-2));
-      }
+      .logo { height: 30px; width: auto; margin: 0 auto 1.5rem; }
+      .logo.light { display: var(--logo-light); }
+      .logo.dark { display: var(--logo-dark); }
       .badge {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 72px;
-        height: 72px;
+        width: 60px;
+        height: 60px;
         margin: 0 auto 1.25rem;
-        border-radius: 1rem;
-        background: linear-gradient(150deg, rgba(0, 107, 255, 0.16), rgba(11, 62, 168, 0.1));
-        border: 1px solid var(--ring);
-        color: var(--brand);
+        border-radius: var(--radius-xl);
+        background: var(--muted);
+        border: 1px solid var(--border);
+        color: var(--muted-foreground);
       }
-      .badge svg { width: 34px; height: 34px; }
-      h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.5rem; }
-      p { max-width: 24rem; margin: 0 auto; color: var(--muted); line-height: 1.6; font-size: 0.975rem; }
+      .badge svg { width: 28px; height: 28px; }
+      h1 { font-size: 1.375rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 0.5rem; }
+      p { max-width: 22rem; margin: 0 auto; color: var(--muted-foreground); line-height: 1.6; font-size: 0.925rem; }
       .status {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
         margin: 1.25rem auto 0;
-        padding: 0.35rem 0.8rem;
+        padding: 0.3rem 0.75rem;
         border-radius: 999px;
         border: 1px solid var(--border);
-        font-size: 0.8rem;
+        background: var(--muted);
+        font-size: 0.78rem;
         font-weight: 600;
-        color: var(--muted);
+        color: var(--muted-foreground);
       }
       .dot {
-        width: 8px; height: 8px; border-radius: 50%;
+        width: 7px; height: 7px; border-radius: 50%;
         background: #ef4444;
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
         animation: pulse 1.8s infinite;
       }
       .status.online { color: #16a34a; }
       .status.online .dot { background: #16a34a; animation: none; }
       @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
-        70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45); }
+        70% { box-shadow: 0 0 0 7px rgba(239, 68, 68, 0); }
         100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
       }
       button {
         margin-top: 1.5rem;
         width: 100%;
         border: 0;
-        border-radius: 0.7rem;
-        background: linear-gradient(180deg, var(--brand), #005ce0);
-        color: #fff;
-        font-weight: 700;
-        padding: 0.8rem 1.25rem;
-        font-size: 0.975rem;
+        border-radius: calc(var(--radius-xl) - 0.25rem);
+        background: var(--primary);
+        color: var(--primary-foreground);
+        font-weight: 600;
+        padding: 0.72rem 1.25rem;
+        font-size: 0.925rem;
         cursor: pointer;
-        transition: transform 0.06s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-        box-shadow: 0 10px 24px -12px rgba(0, 107, 255, 0.7);
+        transition: opacity 0.15s ease, transform 0.06s ease;
       }
-      button:hover { box-shadow: 0 14px 30px -12px rgba(0, 107, 255, 0.8); }
+      button:hover { opacity: 0.9; }
       button:active { transform: translateY(1px); }
-      button:disabled { opacity: 0.7; cursor: default; }
-      .hint { margin-top: 1rem; font-size: 0.8rem; color: var(--muted); }
-      .hint b { color: var(--fg); font-weight: 700; }
+      button:disabled { opacity: 0.6; cursor: default; }
+      .hint { margin-top: 0.9rem; font-size: 0.78rem; color: var(--muted-foreground); }
+      .hint a { color: var(--accent); text-decoration: none; font-weight: 600; }
+      .hint a:hover { text-decoration: underline; }
     </style>
   </head>
   <body>
     <main class="card">
+      <img class="logo light" src="/logo.png" alt="CodeForge AI" />
+      <img class="logo dark" src="/logo-dark.png" alt="CodeForge AI" />
+
       <div class="badge" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 20h.01" />
@@ -137,6 +142,7 @@
           <line x1="2" y1="2" x2="22" y2="22" />
         </svg>
       </div>
+
       <h1>You're offline</h1>
       <p>
         CodeForge AI needs an internet connection for this page. Pages you've
@@ -149,7 +155,7 @@
       </div>
 
       <button id="retry" onclick="location.reload()">Try again</button>
-      <p class="hint">We'll reload automatically the moment you're back online.</p>
+      <p class="hint">Back online? <a href="/dashboard">Go to dashboard</a></p>
     </main>
 
     <script>
@@ -161,13 +167,8 @@
       // this page is only shown because a fetch already failed, and
       // navigator.onLine can still report `true` on a flaky/captive network.
       function render() {
-        if (navigator.onLine) {
-          statusEl.classList.remove("online");
-          textEl.textContent = "Reconnecting…";
-        } else {
-          statusEl.classList.remove("online");
-          textEl.textContent = "No connection";
-        }
+        statusEl.classList.remove("online");
+        textEl.textContent = navigator.onLine ? "Reconnecting…" : "No connection";
       }
       // Only a genuine offline→online transition triggers the reload.
       window.addEventListener("online", function () {
