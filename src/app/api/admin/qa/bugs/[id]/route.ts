@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Types } from "mongoose";
-import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { BugReport } from "@/models";
+import { updateBug, deleteBug } from "@/services/qa-store";
 
 export const runtime = "nodejs";
 
@@ -13,9 +11,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
 
   let body: { status?: string; adminNote?: string };
   try {
@@ -24,23 +19,22 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const update: Record<string, unknown> = {};
+  const patch: { status?: string; adminNote?: string } = {};
   if (body.status !== undefined) {
     if (!STATUSES.includes(String(body.status))) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
-    update.status = body.status;
+    patch.status = body.status;
   }
   if (body.adminNote !== undefined) {
-    update.adminNote = String(body.adminNote).slice(0, 2000);
+    patch.adminNote = String(body.adminNote).slice(0, 2000);
   }
-  if (Object.keys(update).length === 0) {
+  if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
-  await connectDB();
-  const res = await BugReport.updateOne({ _id: id }, { $set: update });
-  if (res.matchedCount === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const ok = await updateBug(id, patch);
+  if (!ok) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
 
@@ -49,11 +43,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
-
-  await connectDB();
-  await BugReport.deleteOne({ _id: id });
+  await deleteBug(id);
   return NextResponse.json({ ok: true });
 }

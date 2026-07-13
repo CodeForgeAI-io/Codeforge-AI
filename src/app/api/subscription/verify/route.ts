@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { enforceRateLimit } from "@/lib/rate-limit";
-import { User, Subscription } from "@/models";
 import { verifyCheckoutSignature } from "@/lib/razorpay";
 import { redeemCoupon } from "@/lib/coupons";
+import {
+  findUserSubscription,
+  updateSubscriptionRecord,
+  updateUserPlan,
+} from "@/services/billing-store";
 import { getPostHogServer } from "@/lib/posthog-server";
-import { PLANS } from "@/lib/plans";
+import { PLANS, type PlanId } from "@/lib/plans";
 import { sendEmail } from "@/lib/mailer";
 import {
   trialStartedEmailHtml,
@@ -61,13 +64,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid payment signature" }, { status: 400 });
   }
 
-  await connectDB();
-
   // Locate the tracking record and confirm it belongs to this user.
-  const query = razorpaySubscriptionId
-    ? { razorpaySubscriptionId, user: session.user.id }
-    : { razorpayOrderId, user: session.user.id };
-  const sub = await Subscription.findOne(query);
+  const sub = await findUserSubscription({
+    userId: session.user.id,
+    razorpaySubscriptionId,
+    razorpayOrderId,
+  });
   if (!sub) {
     return NextResponse.json({ error: "Subscription not found" }, { status: 404 });
   }
@@ -82,20 +84,15 @@ export async function POST(req: NextRequest) {
     const isTrial = Boolean(sub.trialEndsAt && sub.trialEndsAt.getTime() > now.getTime());
     const accessUntil = isTrial ? sub.trialEndsAt! : periodEnd;
 
-    await Subscription.updateOne(
-      { _id: sub._id },
-      {
-        $set: {
-          // Trial isn't paid until the first real charge; mark it authenticated.
-          status: isTrial ? "created" : "paid",
-          razorpayPaymentId,
-          razorpaySignature,
-          periodStart: now,
-          periodEnd: accessUntil,
-        },
-      },
-    );
-    await User.findByIdAndUpdate(session.user.id, {
+    await updateSubscriptionRecord(sub.id, {
+      // Trial isn't paid until the first real charge; mark it authenticated.
+      status: isTrial ? "created" : "paid",
+      razorpayPaymentId,
+      razorpaySignature,
+      periodStart: now,
+      periodEnd: accessUntil,
+    });
+    await updateUserPlan(session.user.id, {
       plan: sub.plan,
       billingCycle: sub.billingCycle,
       planExpiresAt: accessUntil,
@@ -113,16 +110,16 @@ export async function POST(req: NextRequest) {
     const to = session.user.email;
     if (to) {
       const name = session.user.name ?? to.split("@")[0];
-      const planName = PLANS[sub.plan].name;
+      const planName = PLANS[sub.plan as PlanId].name;
       const manageUrl = `${APP_URL}/settings?tool=billing`;
       if (isTrial) {
         sendEmail({
           to,
-          subject: trialStartedEmailSubject(planName, PLANS[sub.plan].trialDays),
+          subject: trialStartedEmailSubject(planName, PLANS[sub.plan as PlanId].trialDays),
           html: trialStartedEmailHtml({
             name,
             planName,
-            trialDays: PLANS[sub.plan].trialDays,
+            trialDays: PLANS[sub.plan as PlanId].trialDays,
             firstChargeDate: fmtDate(accessUntil),
             amountLabel: `₹${sub.amount}`,
             manageUrl,
@@ -145,14 +142,14 @@ export async function POST(req: NextRequest) {
     }
   } else {
     // One-time order.
-    await Subscription.findByIdAndUpdate(sub._id, {
+    await updateSubscriptionRecord(sub.id, {
       razorpayPaymentId,
       razorpaySignature,
       status: "paid",
       periodStart: now,
       periodEnd,
     });
-    await User.findByIdAndUpdate(session.user.id, {
+    await updateUserPlan(session.user.id, {
       plan: sub.plan,
       billingCycle: sub.billingCycle,
       planExpiresAt: periodEnd,

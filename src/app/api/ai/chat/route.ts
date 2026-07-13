@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Types } from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { enforceAiCredit } from "@/services/ai-credits";
 import { enforceRateLimit } from "@/lib/rate-limit";
-import { AiChat, FrontendChallenge, Question } from "@/models";
+import { FrontendChallenge, Question } from "@/models";
 import { aiChatRequestSchema } from "@/schemas/ai";
 import {
   isAiConfigured,
@@ -14,6 +13,14 @@ import {
 import { getPrompt } from "@/services/ai/prompts";
 import { isOnTopic, OFF_TOPIC_REPLY } from "@/services/ai/topic-guard";
 import { getPostHogServer } from "@/lib/posthog-server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor } from "@/lib/data-backend";
+import {
+  findOrCreateAiChat,
+  saveAiChatMessages,
+  getAiChatMessages,
+  type StoredChatMessage,
+} from "@/services/ai-store";
 
 export const maxDuration = 60;
 
@@ -55,22 +62,48 @@ export async function POST(req: NextRequest) {
   }
   const input = parsed.data;
 
-  await connectDB();
+  const sbData = backendFor("questions") === "supabase";
 
   // Build problem context for the system prompt
   let contextBlock = "";
   if (input.questionId) {
-    const question = await Question.findById(input.questionId)
-      .select("title difficulty category description constraints")
-      .lean();
+    let question: { title: string; difficulty: string; category: string; description: string; constraints: string[] } | null = null;
+    if (sbData) {
+      const { data } = await supabaseAdmin()
+        .from("questions")
+        .select("title,difficulty,category,description,constraints")
+        .eq("id", input.questionId)
+        .maybeSingle();
+      question = data as typeof question;
+    } else {
+      await connectDB();
+      const q = await Question.findById(input.questionId)
+        .select("title difficulty category description constraints")
+        .lean();
+      question = q
+        ? { title: q.title, difficulty: q.difficulty, category: q.category, description: q.description, constraints: q.constraints }
+        : null;
+    }
     if (question) {
-      contextBlock += `Current problem: "${question.title}" (${question.difficulty}, ${question.category})\n\nProblem statement:\n${question.description.slice(0, 4000)}\n\nConstraints: ${question.constraints.join("; ")}\n`;
+      contextBlock += `Current problem: "${question.title}" (${question.difficulty}, ${question.category})\n\nProblem statement:\n${question.description.slice(0, 4000)}\n\nConstraints: ${(question.constraints ?? []).join("; ")}\n`;
     }
   }
   if (input.challengeId) {
-    const challenge = await FrontendChallenge.findById(input.challengeId)
-      .select("title difficulty tech description designSpec")
-      .lean();
+    let challenge: { title: string; difficulty: string; tech: string; description: string } | null = null;
+    if (sbData) {
+      const { data } = await supabaseAdmin()
+        .from("frontend_challenges")
+        .select("title,difficulty,tech,description")
+        .eq("id", input.challengeId)
+        .maybeSingle();
+      challenge = data as typeof challenge;
+    } else {
+      await connectDB();
+      const c = await FrontendChallenge.findById(input.challengeId)
+        .select("title difficulty tech description designSpec")
+        .lean();
+      challenge = c ? { title: c.title, difficulty: c.difficulty, tech: c.tech, description: c.description } : null;
+    }
     if (challenge) {
       contextBlock += `Current frontend challenge: "${challenge.title}" (${challenge.difficulty}, ${challenge.tech})\n\nBrief:\n${challenge.description.slice(0, 3000)}\n`;
     }
@@ -94,16 +127,12 @@ export async function POST(req: NextRequest) {
   }
 
   // Load conversation history for this context
-  const chatQuery: Record<string, unknown> = {
-    user: new Types.ObjectId(session.user.id),
+  const chat = await findOrCreateAiChat({
+    userId: session.user.id,
     context: input.context,
-  };
-  if (input.questionId) chatQuery.question = new Types.ObjectId(input.questionId);
-  if (input.challengeId) {
-    chatQuery.challenge = new Types.ObjectId(input.challengeId);
-  }
-  const chat =
-    (await AiChat.findOne(chatQuery)) ?? (await AiChat.create(chatQuery));
+    questionId: input.questionId,
+    challengeId: input.challengeId,
+  });
 
   const history: ChatMessage[] = chat.messages
     .slice(-HISTORY_LIMIT)
@@ -165,18 +194,16 @@ export async function POST(req: NextRequest) {
 
       // Persist the exchange after the stream completes
       try {
-        chat.messages.push(
-          { role: "user", content: userMessage, createdAt: new Date() },
+        const next: StoredChatMessage[] = [
+          ...chat.messages,
+          { role: "user", content: userMessage, createdAt: new Date().toISOString() },
           {
             role: "assistant",
             content: assistantReply || "(no response)",
-            createdAt: new Date(),
+            createdAt: new Date().toISOString(),
           },
-        );
-        if (chat.messages.length > 60) {
-          chat.messages = chat.messages.slice(-60);
-        }
-        await chat.save();
+        ];
+        await saveAiChatMessages(chat.id, next.slice(-60));
       } catch (persistError) {
         console.error("Failed to persist AI chat:", persistError);
       }
@@ -196,29 +223,16 @@ export async function GET(req: NextRequest) {
   const { session, error } = await requireUser();
   if (error) return error;
 
-  await connectDB();
   const questionId = req.nextUrl.searchParams.get("questionId");
   const challengeId = req.nextUrl.searchParams.get("challengeId");
   const context = req.nextUrl.searchParams.get("context") ?? "general";
 
-  const query: Record<string, unknown> = {
-    user: new Types.ObjectId(session.user.id),
+  const messages = await getAiChatMessages({
+    userId: session.user.id,
     context,
-  };
-  if (questionId && Types.ObjectId.isValid(questionId)) {
-    query.question = new Types.ObjectId(questionId);
-  }
-  if (challengeId && Types.ObjectId.isValid(challengeId)) {
-    query.challenge = new Types.ObjectId(challengeId);
-  }
-
-  const chat = await AiChat.findOne(query).lean();
-
-  return NextResponse.json({
-    messages:
-      chat?.messages.map((message) => ({
-        role: message.role,
-        content: message.content,
-      })) ?? [],
+    questionId,
+    challengeId,
   });
+
+  return NextResponse.json({ messages });
 }

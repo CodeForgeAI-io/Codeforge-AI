@@ -3,14 +3,33 @@ import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { Note } from "@/models";
 import { sanitizeUserContent, cap } from "@/lib/sanitize";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor } from "@/lib/data-backend";
+import { attachQuestions, type SbNoteRow } from "@/services/notes-store";
+
+const be = () => backendFor("notes");
 
 export async function GET(req: NextRequest) {
   const { session, error } = await requireUser();
   if (error) return error;
 
-  await connectDB();
   const questionId = req.nextUrl.searchParams.get("question") ?? undefined;
 
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    let q = sb
+      .from("notes")
+      .select("id,question_id,challenge_id,title,content,is_private,tags,created_at,updated_at")
+      .eq("user_id", session.user.id)
+      .order("updated_at", { ascending: false });
+    if (questionId) q = q.eq("question_id", questionId);
+    const { data, error: qErr } = await q;
+    if (qErr) return NextResponse.json({ error: qErr.message }, { status: 500 });
+    const notes = await attachQuestions((data ?? []) as SbNoteRow[]);
+    return NextResponse.json({ notes });
+  }
+
+  await connectDB();
   const filter: Record<string, unknown> = { user: session.user.id };
   if (questionId) filter.question = questionId;
 
@@ -35,6 +54,28 @@ export async function POST(req: NextRequest) {
     : [];
   const questionId = body.questionId ? String(body.questionId) : undefined;
   const challengeId = body.challengeId ? String(body.challengeId) : undefined;
+  const cleanTitle = sanitizeUserContent(title) || "Untitled Note";
+  const cleanContent = sanitizeUserContent(content);
+  const cleanTags = tags.map(sanitizeUserContent);
+
+  if (be() === "supabase") {
+    const { data, error: insErr } = await supabaseAdmin()
+      .from("notes")
+      .insert({
+        user_id: session.user.id,
+        question_id: questionId ?? null,
+        challenge_id: challengeId ?? null,
+        title: cleanTitle,
+        content: cleanContent,
+        is_private: isPrivate,
+        tags: cleanTags,
+      })
+      .select("id,question_id,challenge_id,title,content,is_private,tags,created_at,updated_at")
+      .single();
+    if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 });
+    const [note] = await attachQuestions([data as SbNoteRow]);
+    return NextResponse.json({ note }, { status: 201 });
+  }
 
   await connectDB();
 
@@ -42,10 +83,10 @@ export async function POST(req: NextRequest) {
     user: session.user.id,
     question: questionId,
     challenge: challengeId,
-    title: sanitizeUserContent(title) || "Untitled Note",
-    content: sanitizeUserContent(content),
+    title: cleanTitle,
+    content: cleanContent,
     isPrivate,
-    tags: tags.map(sanitizeUserContent),
+    tags: cleanTags,
   });
 
   return NextResponse.json({ note }, { status: 201 });

@@ -3,8 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import { auth } from "@/lib/auth";
-import { connectDB } from "@/lib/mongodb";
-import { BlogPost } from "@/models";
+import { getPublishedPost, incrementBlogViews } from "@/services/blog-store";
 import { PublicHeader } from "@/components/layout/public-header";
 import { Markdown } from "@/components/shared/markdown";
 import { ArrowLeft } from "@/components/icons";
@@ -19,10 +18,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  await connectDB();
-  const post = await BlogPost.findOne({ slug, status: "published" })
-    .select("title description seoTitle seoDescription seoKeywords")
-    .lean();
+  const post = await getPublishedPost(slug);
   if (!post) return { title: `Blog — ${APP_NAME}` };
 
   const title = post.seoTitle || post.title;
@@ -43,12 +39,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  await connectDB();
-  const post = await BlogPost.findOne({ slug, status: "published" }).select("-coverData").lean();
+  const post = await getPublishedPost(slug);
   if (!post) notFound();
 
   // Count a view (fire and forget).
-  BlogPost.updateOne({ slug }, { $inc: { views: 1 } }).catch(() => {});
+  incrementBlogViews(slug).catch(() => {});
 
   const session = await auth();
 

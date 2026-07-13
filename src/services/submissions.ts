@@ -173,6 +173,119 @@ export async function incrementQuestionStats(
   );
 }
 
+/** Recent DSA submissions with the question's category — for coaching/analytics. */
+export async function getRecentDsaCategoryRows(
+  userId: string,
+  limit: number,
+  opts: { acceptedOnly?: boolean } = {},
+): Promise<{ category: string; status: string }[]> {
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    let q = sb
+      .from("submissions")
+      .select("question_id,status")
+      .eq("user_id", userId)
+      .eq("kind", "dsa")
+      .not("question_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (opts.acceptedOnly) q = q.eq("status", "Accepted");
+    const { data } = await q;
+    const rows = (data ?? []) as { question_id: string; status: string }[];
+    const ids = [...new Set(rows.map((r) => r.question_id))];
+    const catMap = new Map<string, string>();
+    if (ids.length) {
+      const { data: qs } = await sb.from("questions").select("id,category").in("id", ids);
+      for (const x of (qs ?? []) as { id: string; category: string }[]) catMap.set(x.id, x.category);
+    }
+    return rows
+      .map((r) => ({ category: catMap.get(r.question_id) ?? "", status: r.status }))
+      .filter((r) => r.category);
+  }
+  await connectDB();
+  const query: Record<string, unknown> = { user: new Types.ObjectId(userId), kind: "dsa" };
+  if (opts.acceptedOnly) query.status = "Accepted";
+  const subs = await Submission.find(query)
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .populate("question", "category")
+    .lean();
+  return subs
+    .map((s) => ({
+      category: (s.question as { category?: string } | null)?.category ?? "",
+      status: s.status,
+    }))
+    .filter((r) => r.category);
+}
+
+/** Whether the user has an accepted submission for this challenge already. */
+export async function hasPriorAcceptedChallenge(
+  userId: string,
+  challengeId: string,
+): Promise<boolean> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("submissions")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("challenge_id", challengeId)
+      .eq("status", "Accepted")
+      .limit(1)
+      .maybeSingle();
+    return Boolean(data);
+  }
+  await connectDB();
+  return Boolean(
+    await Submission.exists({
+      user: new Types.ObjectId(userId),
+      challenge: new Types.ObjectId(challengeId),
+      status: "Accepted",
+    }),
+  );
+}
+
+export interface CreateFrontendSubmission {
+  userId: string;
+  challengeId: string;
+  files: { path: string; code: string }[];
+  status: string;
+  passedCount: number;
+  totalCount: number;
+  aiReview: { score: number; feedback: string };
+}
+
+/** Persist a frontend-challenge submission. */
+export async function createFrontendSubmission(
+  input: CreateFrontendSubmission,
+): Promise<void> {
+  if (be() === "supabase") {
+    const { error } = await supabaseAdmin().from("submissions").insert({
+      user_id: input.userId,
+      kind: "frontend",
+      challenge_id: input.challengeId,
+      files: input.files,
+      status: input.status,
+      passed_count: input.passedCount,
+      total_count: input.totalCount,
+      ai_review: input.aiReview,
+    });
+    if (error) throw new Error(error.message);
+    return;
+  }
+  await connectDB();
+  const doc = new Submission({
+    user: new Types.ObjectId(input.userId),
+    kind: "frontend",
+    challenge: new Types.ObjectId(input.challengeId),
+    files: input.files,
+    status: input.status,
+    passedCount: input.passedCount,
+    totalCount: input.totalCount,
+    aiReview: input.aiReview,
+  });
+  await doc.save();
+}
+
 export interface UserSubmissionItem {
   id: string;
   status: string;

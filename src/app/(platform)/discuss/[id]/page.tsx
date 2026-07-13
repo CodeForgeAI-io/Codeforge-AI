@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
-import { connectDB } from "@/lib/mongodb";
-import { Discussion } from "@/models";
+import { getDiscussionForView } from "@/services/discussions-store";
 import { getSession } from "@/lib/session";
 import { DiscussionDetail } from "@/features/discussions/discussion-detail";
 import { ArrowLeft } from "@/components/icons";
@@ -17,15 +16,7 @@ export default async function DiscussionPage({
 
   let discussion;
   try {
-    await connectDB();
-    discussion = await Discussion.findByIdAndUpdate(
-      id,
-      { $inc: { views: 1 } },
-      { returnDocument: "after" },
-    )
-      .populate("author", "username name image")
-      .populate("replies.author", "username name image")
-      .lean();
+    discussion = await getDiscussionForView(id);
   } catch {
     notFound();
   }

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Types } from "mongoose";
-import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { BlogPost } from "@/models";
+import {
+  updateBlogPost,
+  deleteBlogPost,
+  blogNeedsPublishedAt,
+  type BlogPatch,
+} from "@/services/blog-store";
 
 export const runtime = "nodejs";
 
@@ -17,9 +20,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
 
   let body: Record<string, unknown>;
   try {
@@ -28,7 +28,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const update: Record<string, unknown> = {};
+  const update: BlogPatch = {};
   if (typeof body.title === "string") update.title = body.title.slice(0, 160);
   if (typeof body.description === "string") update.description = body.description.slice(0, 300);
   if (typeof body.content === "string") update.content = body.content;
@@ -42,15 +42,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
   if (body.status === "draft" || body.status === "published") {
     update.status = body.status;
-    if (body.status === "published") {
-      const existing = await BlogPost.findById(id).select("publishedAt").lean();
-      if (existing && !existing.publishedAt) update.publishedAt = new Date();
+    if (body.status === "published" && (await blogNeedsPublishedAt(id))) {
+      update.publishedAt = new Date();
     }
   }
 
-  await connectDB();
-  const res = await BlogPost.updateOne({ _id: id }, { $set: update });
-  if (res.matchedCount === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const ok = await updateBlogPost(id, update);
+  if (!ok) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
 
@@ -59,11 +57,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
-
-  await connectDB();
-  await BlogPost.deleteOne({ _id: id });
+  await deleteBlogPost(id);
   return NextResponse.json({ ok: true });
 }

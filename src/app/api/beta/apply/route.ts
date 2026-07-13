@@ -5,30 +5,44 @@ import { User } from "@/models";
 import { sendEmail } from "@/lib/mailer";
 import { betaWelcomeEmailHtml, betaWelcomeEmailSubject } from "@/lib/email-templates";
 import { BETA_LIMIT } from "@/lib/constants";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor } from "@/lib/data-backend";
+import { betaUserCount, updateUserPlan } from "@/services/billing-store";
 
 // Called after Google OAuth on /beta/success to apply Go plan if slots available
 export async function POST() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
-  await connectDB();
-
-  const user = await User.findById(session.user.id).select("name email plan betaUser planExpiresAt");
+  let user: { name: string; email: string; betaUser: boolean } | null;
+  if (backendFor("account") === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("users")
+      .select("name,email,beta_user")
+      .eq("id", session.user.id)
+      .maybeSingle();
+    const u = data as { name: string; email: string; beta_user: boolean } | null;
+    user = u ? { name: u.name, email: u.email, betaUser: u.beta_user } : null;
+  } else {
+    await connectDB();
+    const u = await User.findById(session.user.id).select("name email betaUser").lean();
+    user = u ? { name: u.name, email: u.email ?? "", betaUser: Boolean(u.betaUser) } : null;
+  }
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   // Already a beta user — just confirm
   if (user.betaUser) {
-    const betaCount = await User.countDocuments({ betaUser: true });
+    const betaCount = await betaUserCount();
     return NextResponse.json({ ok: true, spotsLeft: Math.max(0, BETA_LIMIT - betaCount) });
   }
 
-  const betaCount = await User.countDocuments({ betaUser: true });
+  const betaCount = await betaUserCount();
   if (betaCount >= BETA_LIMIT) {
     return NextResponse.json({ ok: false, error: "All 50 beta spots have been claimed." });
   }
 
   const planExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  await User.findByIdAndUpdate(session.user.id, {
+  await updateUserPlan(session.user.id, {
     plan: "go",
     planExpiresAt,
     betaUser: true,

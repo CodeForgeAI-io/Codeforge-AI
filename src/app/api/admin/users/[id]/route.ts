@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Types } from "mongoose";
 import { z } from "zod";
-import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { User } from "@/models";
+import { adminUpdateUser, type AdminUserPatch } from "@/services/user-store";
 import { deleteUserAndData } from "@/services/account";
 
 const patchSchema = z.object({
@@ -23,9 +21,6 @@ export async function PATCH(
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
   if (id === session.user.id) {
     return NextResponse.json(
       { error: "You cannot change your own role or ban yourself" },
@@ -48,27 +43,18 @@ export async function PATCH(
     );
   }
 
-  const updateFields: Record<string, unknown> = {};
-  if (parsed.data.role !== undefined) updateFields.role = parsed.data.role;
-  if (parsed.data.banned !== undefined) updateFields.banned = parsed.data.banned;
-  if (parsed.data.plan !== undefined) updateFields.plan = parsed.data.plan;
-  if (parsed.data.billingCycle !== undefined) updateFields.billingCycle = parsed.data.billingCycle;
-  if (parsed.data.betaUser !== undefined) updateFields.betaUser = parsed.data.betaUser;
+  const patch: AdminUserPatch = {};
+  if (parsed.data.role !== undefined) patch.role = parsed.data.role;
+  if (parsed.data.banned !== undefined) patch.banned = parsed.data.banned;
+  if (parsed.data.plan !== undefined) patch.plan = parsed.data.plan;
+  if (parsed.data.billingCycle !== undefined) patch.billingCycle = parsed.data.billingCycle;
+  if (parsed.data.betaUser !== undefined) patch.betaUser = parsed.data.betaUser;
   if (parsed.data.planExpiresAt !== undefined) {
-    updateFields.planExpiresAt = parsed.data.planExpiresAt
-      ? new Date(parsed.data.planExpiresAt)
-      : null;
+    patch.planExpiresAt = parsed.data.planExpiresAt ? new Date(parsed.data.planExpiresAt) : null;
   }
 
-  await connectDB();
-  const updated = await User.findByIdAndUpdate(
-    id,
-    { $set: updateFields },
-    { returnDocument: "after" },
-  );
-  if (!updated) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const ok = await adminUpdateUser(id, patch);
+  if (!ok) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
 
@@ -81,9 +67,6 @@ export async function DELETE(
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
   if (id === session.user.id) {
     return NextResponse.json(
       { error: "You cannot delete your own admin account from here" },

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { connectDB } from "@/lib/mongodb";
-import { User } from "@/models";
+import { getUserPlan } from "@/services/user-store";
 import { PublicHeader } from "@/components/layout/public-header";
 import { PricingCards } from "@/features/subscription/pricing-cards";
 import { getFeatureAccess } from "@/services/feature-access";
@@ -23,9 +22,7 @@ export default async function PricingPage() {
 
   let currentPlan = "free";
   if (session?.user?.id) {
-    await connectDB();
-    const user = await User.findById(session.user.id).select("plan").lean();
-    currentPlan = user?.plan ?? "free";
+    currentPlan = await getUserPlan(session.user.id);
   }
 
   const featuresByPlan = buildPricingFeatures(await getFeatureAccess());

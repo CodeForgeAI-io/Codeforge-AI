@@ -3,8 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "@/components/icons";
 import { auth } from "@/lib/auth";
-import { connectDB } from "@/lib/mongodb";
-import { Discussion } from "@/models";
+import { getDiscussionForView, getDiscussionTitle } from "@/services/discussions-store";
 import { PublicHeader } from "@/components/layout/public-header";
 import { Button } from "@/components/ui/button";
 import { ForumDetail } from "@/features/discussions/forum-detail";
@@ -17,9 +16,8 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  await connectDB();
-  const d = await Discussion.findById(id).select("title").lean();
-  return { title: d ? `${d.title} — Forum` : "Thread" };
+  const title = await getDiscussionTitle(id);
+  return { title: title ? `${title} — Forum` : "Thread" };
 }
 
 export default async function ForumThreadPage({
@@ -30,16 +28,7 @@ export default async function ForumThreadPage({
   const { id } = await params;
   const session = await auth();
 
-  await connectDB();
-  const discussion = await Discussion.findByIdAndUpdate(
-    id,
-    { $inc: { views: 1 } },
-    { returnDocument: "after" },
-  )
-    .populate("author", "username name image")
-    .populate("replies.author", "username name image")
-    .lean();
-
+  const discussion = await getDiscussionForView(id);
   if (!discussion) notFound();
 
   return (

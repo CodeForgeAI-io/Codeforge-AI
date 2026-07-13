@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { connectDB } from "@/lib/mongodb";
-import { User } from "@/models";
+import { getUserSettings } from "@/services/user-store";
 import {
   EditorSettingsForm,
   ProfileSettingsForm,
@@ -19,11 +18,10 @@ export default async function SettingsPage() {
   const session = await getSession();
   if (!session?.user?.id) redirect("/login");
 
-  await connectDB();
-  const user = await User.findById(session.user.id).lean();
+  const user = await getUserSettings(session.user.id);
   if (!user) redirect("/login");
 
-  const plan = user.plan ?? "free";
+  const plan = user.plan;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
@@ -48,7 +46,7 @@ export default async function SettingsPage() {
           <EditorSettingsForm
             defaults={{
               editorFontSize: user.preferences.editorFontSize,
-              editorTheme: user.preferences.editorTheme,
+              editorTheme: user.preferences.editorTheme as "vs-dark" | "light",
               vimMode: user.preferences.vimMode,
               defaultLanguage: user.preferences.defaultLanguage,
             }}

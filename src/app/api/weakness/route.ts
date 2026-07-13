@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { requireFeature } from "@/services/feature-access";
 import { Submission } from "@/models";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor } from "@/lib/data-backend";
 
 const CATEGORIES = [
   "Array", "String", "Hash Table", "Linked List", "Stack", "Queue",
@@ -17,25 +19,47 @@ export async function GET() {
   const gate = await requireFeature(session.user.plan, "skillAnalytics");
   if (gate) return gate;
 
-  await connectDB();
-
-  const submissions = await Submission.find({
-    user: session.user.id,
-    kind: "dsa",
-    question: { $ne: null },
-  })
-    .populate("question", "category difficulty")
-    .lean();
-
   const categoryStats: Record<string, { attempted: number; accepted: number }> = {};
 
-  for (const sub of submissions) {
-    const q = sub.question as { category?: string } | null;
-    if (!q?.category) continue;
-    const cat = q.category;
-    if (!categoryStats[cat]) categoryStats[cat] = { attempted: 0, accepted: 0 };
-    categoryStats[cat].attempted++;
-    if (sub.status === "Accepted") categoryStats[cat].accepted++;
+  if (backendFor("submissions") === "supabase") {
+    const sb = supabaseAdmin();
+    const { data: subs } = await sb
+      .from("submissions")
+      .select("question_id,status")
+      .eq("user_id", session.user.id)
+      .eq("kind", "dsa")
+      .not("question_id", "is", null);
+    const rows = (subs ?? []) as { question_id: string; status: string }[];
+    const qIds = [...new Set(rows.map((r) => r.question_id))];
+    const catMap = new Map<string, string>();
+    if (qIds.length) {
+      const { data: qs } = await sb.from("questions").select("id,category").in("id", qIds);
+      for (const q of (qs ?? []) as { id: string; category: string }[]) catMap.set(q.id, q.category);
+    }
+    for (const sub of rows) {
+      const cat = catMap.get(sub.question_id);
+      if (!cat) continue;
+      if (!categoryStats[cat]) categoryStats[cat] = { attempted: 0, accepted: 0 };
+      categoryStats[cat].attempted++;
+      if (sub.status === "Accepted") categoryStats[cat].accepted++;
+    }
+  } else {
+    await connectDB();
+    const submissions = await Submission.find({
+      user: session.user.id,
+      kind: "dsa",
+      question: { $ne: null },
+    })
+      .populate("question", "category difficulty")
+      .lean();
+    for (const sub of submissions) {
+      const q = sub.question as { category?: string } | null;
+      if (!q?.category) continue;
+      const cat = q.category;
+      if (!categoryStats[cat]) categoryStats[cat] = { attempted: 0, accepted: 0 };
+      categoryStats[cat].attempted++;
+      if (sub.status === "Accepted") categoryStats[cat].accepted++;
+    }
   }
 
   const analysis = Object.entries(categoryStats).map(([category, stats]) => ({

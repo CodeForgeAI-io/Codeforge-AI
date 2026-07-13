@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { connectDB } from "@/lib/mongodb";
-import { User } from "@/models";
+import { getUserCheckout } from "@/services/user-store";
 import { PLANS } from "@/lib/plans";
 import { CheckoutForm } from "@/features/subscription/checkout-form";
 
@@ -26,10 +25,7 @@ export default async function CheckoutPage({
     redirect("/pricing");
   }
 
-  await connectDB();
-  const user = await User.findById(session.user.id)
-    .select("name email billing trialEndsAt")
-    .lean();
+  const user = await getUserCheckout(session.user.id);
   if (!user) redirect("/login");
 
   const def = PLANS[plan];
