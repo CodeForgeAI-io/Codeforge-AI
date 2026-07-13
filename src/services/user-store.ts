@@ -190,3 +190,140 @@ export async function isFollowing(followerId: string, followingId: string): Prom
   await connectDB();
   return Boolean(await Follow.exists({ follower: followerId, following: followingId }));
 }
+
+// ── Admin ────────────────────────────────────────────────────────────────
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  username: string;
+  email: string | null;
+  image: string | null;
+  role: string;
+  banned: boolean;
+  xp: number;
+  level: number;
+  solved: number;
+  solvedBreakdown: { easy: number; medium: number; hard: number };
+  streak: number;
+  longestStreak: number;
+  providers: string[];
+  plan: string;
+  planExpiresAt: Date | null;
+  trialEndsAt: Date | null;
+  billingCycle: string | null;
+  betaUser: boolean;
+  createdAt: Date;
+}
+
+interface AdminUserStats {
+  xp?: number; level?: number;
+  solved?: { total?: number; easy?: number; medium?: number; hard?: number };
+  streak?: { current?: number; longest?: number };
+}
+
+function shapeAdminUser(u: {
+  id: string; name: string; username: string; email: string | null; image: string | null;
+  role: string; banned: boolean; stats: AdminUserStats | null; providers: string[] | null;
+  plan: string | null; planExpiresAt: Date | null; trialEndsAt: Date | null;
+  billingCycle: string | null; betaUser: boolean | null; createdAt: Date;
+}): AdminUser {
+  const s = u.stats ?? {};
+  return {
+    id: u.id, name: u.name, username: u.username, email: u.email, image: u.image,
+    role: u.role, banned: u.banned,
+    xp: s.xp ?? 0, level: s.level ?? 1, solved: s.solved?.total ?? 0,
+    solvedBreakdown: { easy: s.solved?.easy ?? 0, medium: s.solved?.medium ?? 0, hard: s.solved?.hard ?? 0 },
+    streak: s.streak?.current ?? 0, longestStreak: s.streak?.longest ?? 0,
+    providers: u.providers ?? [], plan: u.plan ?? "free",
+    planExpiresAt: u.planExpiresAt, trialEndsAt: u.trialEndsAt, billingCycle: u.billingCycle,
+    betaUser: Boolean(u.betaUser), createdAt: u.createdAt,
+  };
+}
+
+/** Admin: search/filter users. */
+export async function adminListUsers(filter: { q?: string; plan?: string }): Promise<AdminUser[]> {
+  if (be() === "supabase") {
+    let query = supabaseAdmin()
+      .from("users")
+      .select("id,name,username,email,image,role,banned,stats,providers,plan,plan_expires_at,trial_ends_at,billing_cycle,beta_user,created_at")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (filter.q) {
+      const like = `%${filter.q}%`;
+      query = query.or(`name.ilike.${like},email.ilike.${like},username.ilike.${like}`);
+    }
+    if (filter.plan && filter.plan !== "all") {
+      if (filter.plan === "beta") query = query.eq("beta_user", true);
+      else query = query.eq("plan", filter.plan);
+    }
+    const { data } = await query;
+    return ((data ?? []) as Record<string, unknown>[]).map((u) => shapeAdminUser({
+      id: u.id as string, name: u.name as string, username: u.username as string, email: (u.email as string) ?? null,
+      image: (u.image as string) ?? null, role: u.role as string, banned: Boolean(u.banned),
+      stats: (u.stats as AdminUserStats) ?? null, providers: (u.providers as string[]) ?? null,
+      plan: (u.plan as string) ?? null, planExpiresAt: u.plan_expires_at ? new Date(u.plan_expires_at as string) : null,
+      trialEndsAt: u.trial_ends_at ? new Date(u.trial_ends_at as string) : null,
+      billingCycle: (u.billing_cycle as string) ?? null, betaUser: (u.beta_user as boolean) ?? null,
+      createdAt: new Date(u.created_at as string),
+    }));
+  }
+  await connectDB();
+  const query: Record<string, unknown> = {};
+  if (filter.q) {
+    const regex = { $regex: filter.q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" };
+    query.$or = [{ name: regex }, { email: regex }, { username: regex }];
+  }
+  if (filter.plan && filter.plan !== "all") {
+    if (filter.plan === "beta") query.betaUser = true;
+    else query.plan = filter.plan;
+  }
+  const users = await User.find(query)
+    .sort({ createdAt: -1 })
+    .limit(200)
+    .select("name username email image role banned stats createdAt providers plan planExpiresAt trialEndsAt billingCycle betaUser")
+    .lean();
+  return users.map((u) => shapeAdminUser({
+    id: u._id.toString(), name: u.name, username: u.username, email: u.email ?? null, image: u.image ?? null,
+    role: u.role, banned: Boolean(u.banned), stats: u.stats as AdminUserStats, providers: u.providers ?? null,
+    plan: u.plan ?? null, planExpiresAt: u.planExpiresAt ?? null, trialEndsAt: u.trialEndsAt ?? null,
+    billingCycle: u.billingCycle ?? null, betaUser: u.betaUser ?? null, createdAt: u.createdAt,
+  }));
+}
+
+export interface AdminUserPatch {
+  role?: string;
+  banned?: boolean;
+  plan?: string;
+  billingCycle?: string | null;
+  planExpiresAt?: Date | null;
+  betaUser?: boolean;
+}
+
+const ADMIN_USER_MAP: Record<keyof AdminUserPatch, string> = {
+  role: "role", banned: "banned", plan: "plan", billingCycle: "billing_cycle",
+  planExpiresAt: "plan_expires_at", betaUser: "beta_user",
+};
+
+/** Admin: update a user's role/ban/plan fields. Returns false if not found. */
+export async function adminUpdateUser(id: string, patch: AdminUserPatch): Promise<boolean> {
+  if (be() === "supabase") {
+    const row: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(patch)) {
+      if (v === undefined) continue;
+      row[ADMIN_USER_MAP[k as keyof AdminUserPatch]] = v instanceof Date ? v.toISOString() : v;
+    }
+    // Role changes must reach the JWT/claims via app_metadata too.
+    if (patch.role !== undefined) {
+      try { await supabaseAdmin().auth.admin.updateUserById(id, { app_metadata: { role: patch.role } }); } catch { /* best-effort */ }
+    }
+    if (!Object.keys(row).length) return true;
+    const { data, error } = await supabaseAdmin().from("users").update(row).eq("id", id).select("id").maybeSingle();
+    if (error) throw new Error(error.message);
+    return Boolean(data);
+  }
+  await connectDB();
+  if (!Types.ObjectId.isValid(id)) return false;
+  const updated = await User.findByIdAndUpdate(id, { $set: patch }, { returnDocument: "after" });
+  return Boolean(updated);
+}
