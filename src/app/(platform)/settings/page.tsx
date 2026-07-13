@@ -34,7 +34,7 @@ export default async function SettingsPage() {
     {
       id: "profile",
       label: "Profile",
-      icon: User,
+      icon: <User className="size-4 shrink-0" />,
       desc: "Your public profile, photos and links.",
       node: (
         <>
@@ -56,14 +56,14 @@ export default async function SettingsPage() {
     {
       id: "account",
       label: "Account",
-      icon: Mail,
+      icon: <Mail className="size-4 shrink-0" />,
       desc: "Email, sign-in methods and password.",
       node: <AccountSettings email={user.email} providers={user.providers} />,
     },
     {
       id: "security",
       label: "Security",
-      icon: ShieldCheck,
+      icon: <ShieldCheck className="size-4 shrink-0" />,
       desc: "Passkeys and account deletion.",
       node: (
         <>
@@ -75,14 +75,14 @@ export default async function SettingsPage() {
     {
       id: "appearance",
       label: "Appearance",
-      icon: Palette,
+      icon: <Palette className="size-4 shrink-0" />,
       desc: "Theme and how the app looks.",
       node: <AppearanceSettings />,
     },
     {
       id: "editor",
       label: "Editor",
-      icon: Code2,
+      icon: <Code2 className="size-4 shrink-0" />,
       desc: "Defaults for the coding workspace.",
       node: (
         <EditorSettingsForm
@@ -98,14 +98,14 @@ export default async function SettingsPage() {
     {
       id: "notifications",
       label: "Notifications",
-      icon: Bell,
+      icon: <Bell className="size-4 shrink-0" />,
       desc: "Choose what lands in your inbox.",
       node: <EmailNotifications optOut={user.emailOptOut} />,
     },
     {
       id: "billing",
       label: "Billing & Usage",
-      icon: CreditCard,
+      icon: <CreditCard className="size-4 shrink-0" />,
       desc: "Plan, AI credits and invoices.",
       node: (
         <>

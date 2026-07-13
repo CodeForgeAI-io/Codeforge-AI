@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, type ComponentType, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Settings } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 export interface SettingsSection {
   id: string;
   label: string;
-  icon: ComponentType<{ className?: string }>;
+  /** A pre-rendered icon element — passing a bare component function across the
+   *  server→client boundary is not allowed, so the page renders it first. */
+  icon: ReactNode;
   desc: string;
   node: ReactNode;
 }
@@ -39,7 +41,7 @@ export function SettingsView({ sections }: { sections: SettingsSection[] }) {
                     : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                 )}
               >
-                <s.icon className={cn("size-4 shrink-0", on && "text-[#006bff]")} />
+                <span className={cn("flex shrink-0", on && "text-[#006bff]")}>{s.icon}</span>
                 {s.label}
               </button>
             );

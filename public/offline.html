@@ -5,49 +5,173 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Offline — CodeForge AI</title>
     <style>
-      :root { color-scheme: light dark; }
+      :root {
+        color-scheme: light dark;
+        --brand: #006bff;
+        --brand-2: #0b3ea8;
+        --bg: #f6f8fc;
+        --card: #ffffff;
+        --fg: #0b1226;
+        --muted: #5b6478;
+        --border: rgba(11, 18, 38, 0.08);
+        --ring: rgba(0, 107, 255, 0.14);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #05070d;
+          --card: #0b1020;
+          --fg: #eef2fb;
+          --muted: #94a0b8;
+          --border: rgba(255, 255, 255, 0.08);
+          --ring: rgba(0, 107, 255, 0.22);
+        }
+      }
       * { box-sizing: border-box; }
+      html, body { height: 100%; }
       body {
         margin: 0;
         min-height: 100svh;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 1rem;
-        text-align: center;
-        padding: 2rem;
+        padding: 1.5rem;
         font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        background: #ffffff;
-        color: #111827;
+        color: var(--fg);
+        background:
+          radial-gradient(1100px 520px at 50% -10%, rgba(0, 107, 255, 0.16), transparent 60%),
+          radial-gradient(760px 420px at 100% 110%, rgba(11, 62, 168, 0.14), transparent 55%),
+          var(--bg);
+        -webkit-font-smoothing: antialiased;
       }
-      @media (prefers-color-scheme: dark) {
-        body { background: #0a0a0a; color: #f5f5f5; }
+      .card {
+        position: relative;
+        width: 100%;
+        max-width: 30rem;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 1.25rem;
+        padding: 2.5rem 2rem 2rem;
+        text-align: center;
+        box-shadow: 0 24px 60px -28px rgba(0, 107, 255, 0.35), 0 8px 24px -16px rgba(0, 0, 0, 0.25);
       }
-      img { width: 64px; height: 64px; }
-      h1 { font-size: 1.5rem; font-weight: 800; margin: 0; }
-      p { max-width: 28rem; color: #6b7280; margin: 0; line-height: 1.6; }
-      button {
-        margin-top: 0.5rem;
-        border: 0;
-        border-radius: 0.5rem;
-        background: #f97316;
-        color: #fff;
+      .card::before {
+        content: "";
+        position: absolute;
+        inset-inline: 0;
+        top: 0;
+        height: 3px;
+        border-radius: 1.25rem 1.25rem 0 0;
+        background: linear-gradient(90deg, var(--brand), var(--brand-2));
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 1.25rem;
+        border-radius: 1rem;
+        background: linear-gradient(150deg, rgba(0, 107, 255, 0.16), rgba(11, 62, 168, 0.1));
+        border: 1px solid var(--ring);
+        color: var(--brand);
+      }
+      .badge svg { width: 34px; height: 34px; }
+      h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.5rem; }
+      p { max-width: 24rem; margin: 0 auto; color: var(--muted); line-height: 1.6; font-size: 0.975rem; }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 1.25rem auto 0;
+        padding: 0.35rem 0.8rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        font-size: 0.8rem;
         font-weight: 600;
-        padding: 0.625rem 1.25rem;
-        font-size: 0.95rem;
-        cursor: pointer;
+        color: var(--muted);
       }
-      button:hover { background: #ea580c; }
+      .dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #ef4444;
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+        animation: pulse 1.8s infinite;
+      }
+      .status.online { color: #16a34a; }
+      .status.online .dot { background: #16a34a; animation: none; }
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+        70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+      }
+      button {
+        margin-top: 1.5rem;
+        width: 100%;
+        border: 0;
+        border-radius: 0.7rem;
+        background: linear-gradient(180deg, var(--brand), #005ce0);
+        color: #fff;
+        font-weight: 700;
+        padding: 0.8rem 1.25rem;
+        font-size: 0.975rem;
+        cursor: pointer;
+        transition: transform 0.06s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        box-shadow: 0 10px 24px -12px rgba(0, 107, 255, 0.7);
+      }
+      button:hover { box-shadow: 0 14px 30px -12px rgba(0, 107, 255, 0.8); }
+      button:active { transform: translateY(1px); }
+      button:disabled { opacity: 0.7; cursor: default; }
+      .hint { margin-top: 1rem; font-size: 0.8rem; color: var(--muted); }
+      .hint b { color: var(--fg); font-weight: 700; }
     </style>
   </head>
   <body>
-    <img src="/icon-192.png" alt="CodeForge AI" />
-    <h1>You're offline</h1>
-    <p>
-      CodeForge AI needs an internet connection for this page. Check your
-      connection and try again.
-    </p>
-    <button onclick="location.reload()">Retry</button>
+    <main class="card">
+      <div class="badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h.01" />
+          <path d="M8.5 16.5a5 5 0 0 1 7 0" />
+          <path d="M5 12.5a10 10 0 0 1 5-2.6" />
+          <path d="M14 9.9a10 10 0 0 1 5 2.6" />
+          <path d="M2 8.8a15 15 0 0 1 5.5-3.2" />
+          <path d="M16.5 5.6A15 15 0 0 1 22 8.8" />
+          <line x1="2" y1="2" x2="22" y2="22" />
+        </svg>
+      </div>
+      <h1>You're offline</h1>
+      <p>
+        CodeForge AI needs an internet connection for this page. Pages you've
+        already visited stay available — reconnect to pick up where you left off.
+      </p>
+
+      <div class="status" id="status">
+        <span class="dot"></span>
+        <span id="status-text">No connection</span>
+      </div>
+
+      <button id="retry" onclick="location.reload()">Try again</button>
+      <p class="hint">We'll reload automatically the moment you're back online.</p>
+    </main>
+
+    <script>
+      var statusEl = document.getElementById("status");
+      var textEl = document.getElementById("status-text");
+      var retryEl = document.getElementById("retry");
+
+      function render() {
+        if (navigator.onLine) {
+          statusEl.classList.add("online");
+          textEl.textContent = "Back online — reloading…";
+          retryEl.disabled = true;
+          retryEl.textContent = "Reloading…";
+          location.reload();
+        } else {
+          statusEl.classList.remove("online");
+          textEl.textContent = "No connection";
+        }
+      }
+      window.addEventListener("online", render);
+      window.addEventListener("offline", render);
+      render();
+    </script>
   </body>
 </html>
