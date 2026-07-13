@@ -2,6 +2,36 @@ import { Types } from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { cached, cache } from "@/lib/redis";
 import { Contest, Question, User } from "@/models";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor } from "@/lib/data-backend";
+import { awardContestBadge } from "@/services/gamification/badges";
+
+const be = () => backendFor("contests");
+
+/** Embedded participant shape stored in the contests.participants jsonb. */
+interface SbParticipant {
+  user: string;
+  joinedAt: string;
+  score: number;
+  penaltySeconds: number;
+  solvedQuestionIds: string[];
+  finished: boolean;
+}
+/** Embedded question entry stored in the contests.questions jsonb. */
+interface SbContestQuestion {
+  question: string;
+  points: number;
+}
+interface SbContestRow {
+  slug: string;
+  title: string;
+  description: string;
+  type: string;
+  starts_at: string;
+  duration_minutes: number;
+  participants: SbParticipant[] | null;
+  questions: SbContestQuestion[] | null;
+}
 
 export type ContestStatus = "upcoming" | "live" | "ended";
 
@@ -32,6 +62,30 @@ export interface ContestListItem {
 export async function listContests(
   userId?: string,
 ): Promise<ContestListItem[]> {
+  if (be() === "supabase") {
+    const { data, error } = await supabaseAdmin()
+      .from("contests")
+      .select("slug,title,type,starts_at,duration_minutes,participants,questions")
+      .eq("is_published", true)
+      .order("starts_at", { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as SbContestRow[]).map((contest) => {
+      const participants = contest.participants ?? [];
+      const startsAt = new Date(contest.starts_at);
+      return {
+        slug: contest.slug,
+        title: contest.title,
+        type: contest.type,
+        startsAt: startsAt.toISOString(),
+        durationMinutes: contest.duration_minutes,
+        status: contestStatus(startsAt, contest.duration_minutes),
+        participantCount: participants.length,
+        questionCount: (contest.questions ?? []).length,
+        joined: userId ? participants.some((p) => p.user === userId) : false,
+      };
+    });
+  }
   await connectDB();
   const contests = await Contest.find({ isPublished: true })
     .sort({ startsAt: -1 })
@@ -75,6 +129,7 @@ export async function getContestDetail(
   slug: string,
   userId?: string,
 ): Promise<ContestDetail | null> {
+  if (be() === "supabase") return getContestDetailSupabase(slug, userId);
   await connectDB();
   const contest = await Contest.findOne({ slug, isPublished: true })
     .populate<{
@@ -121,10 +176,120 @@ export async function getContestDetail(
   };
 }
 
+async function getContestDetailSupabase(
+  slug: string,
+  userId?: string,
+): Promise<ContestDetail | null> {
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("contests")
+    .select("slug,title,description,type,starts_at,duration_minutes,participants,questions")
+    .eq("slug", slug)
+    .eq("is_published", true)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  const contest = data as SbContestRow;
+
+  const startsAt = new Date(contest.starts_at);
+  const status = contestStatus(startsAt, contest.duration_minutes);
+  const participants = contest.participants ?? [];
+  const participant = userId
+    ? participants.find((p) => p.user === userId)
+    : undefined;
+  const joined = !!participant;
+  const revealQuestions =
+    status !== "upcoming" && (joined || status === "ended");
+
+  let questions: ContestDetail["questions"] = null;
+  if (revealQuestions) {
+    const entries = contest.questions ?? [];
+    const ids = entries.map((e) => e.question).filter(Boolean);
+    const { data: qs } = ids.length
+      ? await sb
+          .from("questions")
+          .select("id,slug,title,difficulty")
+          .in("id", ids)
+      : { data: [] };
+    const qMap = new Map(
+      ((qs ?? []) as { id: string; slug: string; title: string; difficulty: string }[]).map(
+        (q) => [q.id, q],
+      ),
+    );
+    questions = entries
+      .map((entry) => {
+        const q = qMap.get(entry.question);
+        if (!q) return null;
+        return {
+          slug: q.slug,
+          title: q.title,
+          difficulty: q.difficulty,
+          points: entry.points,
+          solved: participant?.solvedQuestionIds.includes(q.id) ?? false,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
+  }
+
+  return {
+    slug: contest.slug,
+    title: contest.title,
+    description: contest.description,
+    type: contest.type,
+    startsAt: startsAt.toISOString(),
+    endsAt: new Date(
+      startsAt.getTime() + contest.duration_minutes * 60_000,
+    ).toISOString(),
+    durationMinutes: contest.duration_minutes,
+    status,
+    participantCount: participants.length,
+    joined,
+    questions,
+  };
+}
+
 export async function joinContest(
   slug: string,
   userId: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    const { data } = await sb
+      .from("contests")
+      .select("id,starts_at,duration_minutes,participants")
+      .eq("slug", slug)
+      .eq("is_published", true)
+      .maybeSingle();
+    if (!data) return { ok: false, error: "Contest not found" };
+    const row = data as {
+      id: string;
+      starts_at: string;
+      duration_minutes: number;
+      participants: SbParticipant[] | null;
+    };
+    const startsAt = new Date(row.starts_at);
+    if (contestStatus(startsAt, row.duration_minutes) === "ended") {
+      return { ok: false, error: "This contest has already ended" };
+    }
+    const participants = row.participants ?? [];
+    if (participants.some((p) => p.user === userId)) return { ok: true };
+    participants.push({
+      user: userId,
+      joinedAt: new Date().toISOString(),
+      score: 0,
+      penaltySeconds: 0,
+      solvedQuestionIds: [],
+      finished: false,
+    });
+    const { error } = await sb
+      .from("contests")
+      .update({ participants })
+      .eq("id", row.id);
+    if (error) throw new Error(error.message);
+    await cache.del(`contest:lb:${slug}`);
+    return { ok: true };
+  }
+
   await connectDB();
   const contest = await Contest.findOne({ slug, isPublished: true });
   if (!contest) return { ok: false, error: "Contest not found" };
@@ -163,8 +328,44 @@ export interface ContestLeaderboardEntry {
 export async function getContestLeaderboard(
   slug: string,
 ): Promise<ContestLeaderboardEntry[] | null> {
-  await connectDB();
   return cached(`contest:lb:${slug}`, 30, async () => {
+    if (be() === "supabase") {
+      const sb = supabaseAdmin();
+      const { data } = await sb
+        .from("contests")
+        .select("participants")
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
+      if (!data) return null;
+      const participants =
+        (data as { participants: SbParticipant[] | null }).participants ?? [];
+      const userIds = participants.map((p) => p.user);
+      const { data: users } = userIds.length
+        ? await sb.from("users").select("id,name,username,image").in("id", userIds)
+        : { data: [] };
+      const userMap = new Map(
+        ((users ?? []) as { id: string; name: string; username: string; image: string | null }[]).map(
+          (u) => [u.id, u],
+        ),
+      );
+      return participants
+        .map((participant) => {
+          const user = userMap.get(participant.user);
+          return {
+            name: user?.name ?? "Unknown",
+            username: user?.username ?? "",
+            image: user?.image ?? null,
+            score: participant.score,
+            penaltySeconds: participant.penaltySeconds,
+            solvedCount: participant.solvedQuestionIds.length,
+          };
+        })
+        .sort((a, b) => b.score - a.score || a.penaltySeconds - b.penaltySeconds)
+        .map((entry, index) => ({ ...entry, rank: index + 1 }));
+    }
+
+    await connectDB();
     const contest = await Contest.findOne({ slug, isPublished: true })
       .select("participants")
       .lean();
@@ -195,6 +396,90 @@ export async function getContestLeaderboard(
   });
 }
 
+/**
+ * When a submission arrives from a live contest arena, link it to the contest
+ * and (on first accept of a scored question) award points + penalty. Returns
+ * the contest's native id to store on the submission, or null when the question
+ * isn't part of a currently-live contest.
+ */
+export async function scoreContestSolve(opts: {
+  slug: string;
+  userId: string;
+  questionId: string;
+  accepted: boolean;
+  now?: number;
+}): Promise<string | null> {
+  const now = opts.now ?? Date.now();
+
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    const { data } = await sb
+      .from("contests")
+      .select("id,starts_at,duration_minutes,questions,participants")
+      .eq("slug", opts.slug)
+      .eq("is_published", true)
+      .maybeSingle();
+    if (!data) return null;
+    const row = data as {
+      id: string;
+      starts_at: string;
+      duration_minutes: number;
+      questions: SbContestQuestion[] | null;
+      participants: SbParticipant[] | null;
+    };
+    const start = new Date(row.starts_at).getTime();
+    const entry = (row.questions ?? []).find((q) => q.question === opts.questionId);
+    if (!entry || now < start || now > start + row.duration_minutes * 60_000) {
+      return null;
+    }
+    const participants = row.participants ?? [];
+    const participant = participants.find((p) => p.user === opts.userId);
+    if (
+      participant &&
+      opts.accepted &&
+      !participant.solvedQuestionIds.includes(opts.questionId)
+    ) {
+      participant.solvedQuestionIds.push(opts.questionId);
+      participant.score += entry.points;
+      participant.penaltySeconds += Math.floor((now - start) / 1000);
+      await sb.from("contests").update({ participants }).eq("id", row.id);
+      await awardContestBadge(opts.userId);
+    }
+    return row.id;
+  }
+
+  await connectDB();
+  const contest = await Contest.findOne({ slug: opts.slug, isPublished: true });
+  const entry = contest?.questions.find(
+    (q) => q.question.toString() === opts.questionId,
+  );
+  if (
+    !contest ||
+    !entry ||
+    now < contest.startsAt.getTime() ||
+    now > contest.startsAt.getTime() + contest.durationMinutes * 60_000
+  ) {
+    return null;
+  }
+  const participant = contest.participants.find(
+    (p) => p.user.toString() === opts.userId,
+  );
+  if (
+    participant &&
+    opts.accepted &&
+    !participant.solvedQuestionIds.includes(opts.questionId)
+  ) {
+    participant.solvedQuestionIds.push(opts.questionId);
+    participant.score += entry.points;
+    participant.penaltySeconds += Math.floor(
+      (now - contest.startsAt.getTime()) / 1000,
+    );
+    await contest.save();
+    await awardContestBadge(new Types.ObjectId(opts.userId));
+  }
+  return contest._id.toString();
+}
+
 /** Deterministic daily challenge: rotates through published questions by date */
 export async function getDailyChallenge(): Promise<{
   id: string;
@@ -202,11 +487,32 @@ export async function getDailyChallenge(): Promise<{
   title: string;
   difficulty: string;
 } | null> {
-  await connectDB();
   return cached("daily-challenge", 600, async () => {
+    const dayNumber = Math.floor(Date.now() / 86_400_000);
+    if (be() === "supabase") {
+      const sb = supabaseAdmin();
+      const { count } = await sb
+        .from("questions")
+        .select("id", { count: "exact", head: true })
+        .eq("is_published", true);
+      if (!count) return null;
+      const offset = dayNumber % count;
+      const { data } = await sb
+        .from("questions")
+        .select("id,slug,title,difficulty")
+        .eq("is_published", true)
+        .order("created_at", { ascending: true })
+        .range(offset, offset);
+      const q = (data ?? [])[0] as
+        | { id: string; slug: string; title: string; difficulty: string }
+        | undefined;
+      if (!q) return null;
+      return { id: q.id, slug: q.slug, title: q.title, difficulty: q.difficulty };
+    }
+
+    await connectDB();
     const count = await Question.countDocuments({ isPublished: true });
     if (count === 0) return null;
-    const dayNumber = Math.floor(Date.now() / 86_400_000);
     const question = await Question.findOne({ isPublished: true })
       .sort({ createdAt: 1 })
       .skip(dayNumber % count)

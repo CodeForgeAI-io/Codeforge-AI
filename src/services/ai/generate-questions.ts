@@ -2,6 +2,8 @@ import { QUESTION_CATEGORIES } from "@/lib/constants";
 import { Question } from "@/models";
 import { questionInputSchema, type QuestionInput } from "@/schemas/question";
 import { uniqueSlug } from "@/lib/slug";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor, toUuidOrNull } from "@/lib/data-backend";
 import { traceable } from "langsmith/traceable";
 import { complete } from "./groq";
 import { getPrompt } from "./prompts";
@@ -106,6 +108,44 @@ export async function saveQuestionDraft(
   creatorId: string,
   source: "manual" | "json-import" | "ai-generated",
 ): Promise<{ slug: string; title: string; category: string; difficulty: string }> {
+  if (backendFor("questions") === "supabase") {
+    const sb = supabaseAdmin();
+    const slug = await uniqueSlug(input.title, async (candidate) => {
+      const { data } = await sb
+        .from("questions")
+        .select("id")
+        .eq("slug", candidate)
+        .maybeSingle();
+      return Boolean(data);
+    });
+    const { error } = await sb.from("questions").insert({
+      slug,
+      title: input.title,
+      difficulty: input.difficulty,
+      category: input.category,
+      tags: input.tags,
+      companies: input.companies,
+      description: input.description,
+      examples: input.examples,
+      constraints: input.constraints,
+      starter_code: input.starterCode,
+      test_cases: input.testCases,
+      solution: input.solution,
+      editorial: input.editorial,
+      hints: input.hints,
+      is_published: false,
+      source,
+      created_by: toUuidOrNull(creatorId),
+    });
+    if (error) throw new Error(error.message);
+    return {
+      slug,
+      title: input.title,
+      category: input.category,
+      difficulty: input.difficulty,
+    };
+  }
+
   const slug = await uniqueSlug(input.title, async (candidate) =>
     Boolean(await Question.exists({ slug: candidate })),
   );
