@@ -173,6 +173,51 @@ export async function incrementQuestionStats(
   );
 }
 
+/** Recent DSA submissions with the question's category — for coaching/analytics. */
+export async function getRecentDsaCategoryRows(
+  userId: string,
+  limit: number,
+  opts: { acceptedOnly?: boolean } = {},
+): Promise<{ category: string; status: string }[]> {
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    let q = sb
+      .from("submissions")
+      .select("question_id,status")
+      .eq("user_id", userId)
+      .eq("kind", "dsa")
+      .not("question_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (opts.acceptedOnly) q = q.eq("status", "Accepted");
+    const { data } = await q;
+    const rows = (data ?? []) as { question_id: string; status: string }[];
+    const ids = [...new Set(rows.map((r) => r.question_id))];
+    const catMap = new Map<string, string>();
+    if (ids.length) {
+      const { data: qs } = await sb.from("questions").select("id,category").in("id", ids);
+      for (const x of (qs ?? []) as { id: string; category: string }[]) catMap.set(x.id, x.category);
+    }
+    return rows
+      .map((r) => ({ category: catMap.get(r.question_id) ?? "", status: r.status }))
+      .filter((r) => r.category);
+  }
+  await connectDB();
+  const query: Record<string, unknown> = { user: new Types.ObjectId(userId), kind: "dsa" };
+  if (opts.acceptedOnly) query.status = "Accepted";
+  const subs = await Submission.find(query)
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .populate("question", "category")
+    .lean();
+  return subs
+    .map((s) => ({
+      category: (s.question as { category?: string } | null)?.category ?? "",
+      status: s.status,
+    }))
+    .filter((r) => r.category);
+}
+
 /** Whether the user has an accepted submission for this challenge already. */
 export async function hasPriorAcceptedChallenge(
   userId: string,

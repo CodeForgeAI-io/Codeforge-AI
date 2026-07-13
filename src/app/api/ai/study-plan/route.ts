@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/api-auth";
 import { enforceAiCredit } from "@/services/ai-credits";
 import { complete } from "@/services/ai/groq";
-import { connectDB } from "@/lib/mongodb";
-import { Submission } from "@/models";
+import { getRecentDsaCategoryRows } from "@/services/submissions";
 
 export async function POST(req: NextRequest) {
   const { session, error } = await requireUser();
@@ -14,18 +13,10 @@ export async function POST(req: NextRequest) {
 
   const { goal, weeks = 4, hoursPerDay = 2 } = await req.json();
 
-  await connectDB();
-  const recentSubs = await Submission.find({ user: session.user.id, kind: "dsa" })
-    .sort({ createdAt: -1 })
-    .limit(10)
-    .populate("question", "category difficulty")
-    .lean();
-
-  const solvedCategories = [...new Set(
-    recentSubs.filter((s) => s.status === "Accepted")
-      .map((s) => (s.question as { category?: string } | null)?.category)
-      .filter(Boolean)
-  )];
+  const recentSubs = await getRecentDsaCategoryRows(session.user.id, 10, {
+    acceptedOnly: true,
+  });
+  const solvedCategories = [...new Set(recentSubs.map((s) => s.category))];
 
   const result = await complete([
     {
