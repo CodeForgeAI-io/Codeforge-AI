@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
-import { QaContributor, BugReport, User } from "@/models";
 import { sendEmail } from "@/lib/mailer";
 import { APP_NAME } from "@/lib/constants";
+import { getContributorStatus, createBugReport } from "@/services/qa-store";
+import { getUserBillingFields } from "@/services/billing-store";
 
 export const runtime = "nodejs";
 
@@ -26,11 +26,9 @@ export async function POST(req: NextRequest) {
   const { session, error } = await requireUser();
   if (error) return error;
 
-  await connectDB();
-
   // Only approved QA contributors can file bugs.
-  const contributor = await QaContributor.findOne({ user: session.user.id }).select("status").lean();
-  if (!contributor || contributor.status !== "approved") {
+  const status = await getContributorStatus(session.user.id);
+  if (status !== "approved") {
     return NextResponse.json({ error: "You must be an approved QA contributor to report bugs." }, { status: 403 });
   }
 
@@ -53,11 +51,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  const u = await User.findById(session.user.id).select("name").lean<{ name?: string }>();
+  const u = await getUserBillingFields(session.user.id);
   const d = parsed.data;
 
-  const bug = await BugReport.create({
-    reporter: session.user.id,
+  const bugId = await createBugReport({
+    userId: session.user.id,
     reporterName: u?.name || session.user.name || "QA contributor",
     title: d.title,
     area: d.area,
@@ -86,5 +84,5 @@ export async function POST(req: NextRequest) {
     </div>`,
   }).catch(() => {});
 
-  return NextResponse.json({ ok: true, id: bug._id.toString() });
+  return NextResponse.json({ ok: true, id: bugId });
 }
