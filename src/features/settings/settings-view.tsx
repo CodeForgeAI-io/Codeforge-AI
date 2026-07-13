@@ -44,11 +44,11 @@ export function SettingsView({
                 className={cn(
                   "flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors md:w-full",
                   on
-                    ? "bg-accent font-medium text-accent-foreground"
+                    ? "bg-[#006bff]/8 font-medium text-foreground ring-1 ring-inset ring-[#006bff]/15"
                     : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                 )}
               >
-                <s.icon className="size-4 shrink-0" />
+                <s.icon className={cn("size-4 shrink-0", on && "text-[#006bff]")} />
                 {s.label}
               </button>
             );

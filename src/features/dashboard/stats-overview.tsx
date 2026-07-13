@@ -43,7 +43,7 @@ function LevelRing({ level, percent }: { level: number; percent: number }) {
         <circle cx="38" cy="38" r={radius} fill="none" strokeWidth="6" className="stroke-muted" />
         <circle
           cx="38" cy="38" r={radius} fill="none" strokeWidth="6" strokeLinecap="round"
-          className="stroke-[#f97ea7]"
+          className="stroke-[#006bff]"
           strokeDasharray={`${dash} ${circumference - dash}`}
         />
       </svg>
@@ -349,12 +349,12 @@ function StatCard({
   sub: string;
 }) {
   return (
-    <Card className="py-0">
+    <Card className="py-0 transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/15 hover:shadow-md">
       <CardContent className="p-4 sm:p-5">
         <div className={cn("mb-3 flex size-9 items-center justify-center rounded-lg", tone)}>
           <Icon className="size-4.5" />
         </div>
-        <p className="text-2xl font-bold tracking-tight">{value}</p>
+        <p className="text-2xl font-bold tracking-tight tabular-nums">{value}</p>
         <p className="mt-0.5 text-xs font-medium text-muted-foreground">
           {label} <span className="font-normal">· {sub}</span>
         </p>

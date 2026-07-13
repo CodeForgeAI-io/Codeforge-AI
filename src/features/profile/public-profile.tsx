@@ -62,7 +62,7 @@ function LevelRing({ level, percent }: { level: number; percent: number }) {
     <div className="relative size-16 shrink-0">
       <svg viewBox="0 0 64 64" className="size-full -rotate-90">
         <circle cx="32" cy="32" r={r} fill="none" strokeWidth="5" className="stroke-muted" />
-        <circle cx="32" cy="32" r={r} fill="none" strokeWidth="5" strokeLinecap="round" className="stroke-[#f97ea7]"
+        <circle cx="32" cy="32" r={r} fill="none" strokeWidth="5" strokeLinecap="round" className="stroke-[#006bff]"
           strokeDasharray={`${dash} ${circ - dash}`} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -103,9 +103,11 @@ export function PublicProfile({ data, isOwner, signedIn, isFollowing = false, ta
   return (
     <div className="space-y-5">
       {/* ── hero ── */}
-      <div className="overflow-hidden rounded-xl border-2 border-foreground/10 shadow-[6px_6px_0_0] shadow-foreground/5">
+      <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
         {/* cover */}
-        <div className="h-28 bg-linear-to-br from-primary/20 via-primary/10 to-background sm:h-36" />
+        <div className="relative h-28 bg-linear-to-br from-[#006bff]/30 via-[#006bff]/10 to-transparent sm:h-36">
+          <div className="absolute -right-10 -top-10 size-40 rounded-full bg-[#006bff]/20 blur-3xl" />
+        </div>
 
         <div className="relative px-5 pb-5">
           {/* avatar overlaps cover */}
@@ -184,7 +186,7 @@ export function PublicProfile({ data, isOwner, signedIn, isFollowing = false, ta
             <span className="text-xs text-muted-foreground">{data.xpIntoLevel} / {data.xpForNextLevel} XP</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-[#f97ea7] transition-all" style={{ width: `${levelPercent}%` }} />
+            <div className="h-full rounded-full bg-[#006bff] transition-all" style={{ width: `${levelPercent}%` }} />
           </div>
           <p className="mt-1.5 text-xs text-muted-foreground">{data.xp.toLocaleString()} total XP · {data.xpForNextLevel - data.xpIntoLevel} XP to level {data.level + 1}</p>
         </div>
@@ -363,12 +365,12 @@ export function PublicProfile({ data, isOwner, signedIn, isFollowing = false, ta
               { icon: Flame, label: "Current streak", value: `${data.streak.current}d`, color: "text-medium bg-medium/10" },
               { icon: Paintbrush, label: "Frontend done", value: String(data.frontendCompleted), color: "text-purple-500 bg-purple-500/10" },
             ].map((stat) => (
-              <Card key={stat.label} className="py-0">
+              <Card key={stat.label} className="py-0 transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/15 hover:shadow-md">
                 <CardContent className="p-4">
                   <div className={cn("mb-2.5 flex size-8 items-center justify-center rounded-lg", stat.color)}>
                     <stat.icon className="size-4" />
                   </div>
-                  <p className="text-xl font-bold">{stat.value}</p>
+                  <p className="text-xl font-bold tabular-nums">{stat.value}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
                 </CardContent>
               </Card>
