@@ -23,10 +23,13 @@ export function SettingsView({ sections }: { sections: SettingsSection[] }) {
       {/* Sidebar on desktop; sticky, edge-to-edge scrolling tab bar on mobile */}
       <aside
         className={cn(
+          // min-w-0 lets the nav's overflow-x scroll internally instead of
+          // widening the grid column (which caused horizontal page overflow)
+          "min-w-0",
           // mobile: pinned under the top bar so sections stay reachable while scrolling
-          "sticky top-14 z-20 -mx-4 border-b bg-background/90 px-4 pb-2 backdrop-blur-sm",
+          "sticky top-14 z-20 border-b bg-background/90 pb-2 backdrop-blur-sm",
           // desktop: plain sticky sidebar, no chrome
-          "md:top-20 md:mx-0 md:self-start md:border-0 md:bg-transparent md:px-0 md:pb-0 md:backdrop-blur-none",
+          "md:top-20 md:self-start md:border-0 md:bg-transparent md:pb-0 md:backdrop-blur-none",
         )}
       >
         <div className="mb-3 flex items-center gap-2 px-1 pt-1 md:mb-4">
