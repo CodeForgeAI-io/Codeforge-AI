@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Types } from "mongoose";
-import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { enforceRateLimit } from "@/lib/rate-limit";
-import { FrontendChallenge, Submission } from "@/models";
 import { challengeSubmitSchema } from "@/schemas/challenge";
-import { recordToFiles } from "@/services/challenges";
+import {
+  recordToFiles,
+  getSubmittableChallenge,
+  incrementChallengeStats,
+} from "@/services/challenges";
+import {
+  hasPriorAcceptedChallenge,
+  createFrontendSubmission,
+} from "@/services/submissions";
 import { complete, isAiConfigured } from "@/services/ai/groq";
 import { getPrompt } from "@/services/ai/prompts";
 import {
@@ -62,11 +67,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  await connectDB();
-  const challenge = await FrontendChallenge.findOne({
-    _id: parsed.data.challengeId,
-    isPublished: true,
-  }).lean();
+  const challenge = await getSubmittableChallenge(parsed.data.challengeId);
   if (!challenge) {
     return NextResponse.json({ error: "Challenge not found" }, { status: 404 });
   }
@@ -116,16 +117,11 @@ export async function POST(req: NextRequest) {
   }
 
   const accepted = review.verdict === "pass";
-  const priorAccepted = await Submission.exists({
-    user: new Types.ObjectId(session.user.id),
-    challenge: challenge._id,
-    status: "Accepted",
-  });
+  const priorAccepted = await hasPriorAcceptedChallenge(session.user.id, challenge.id);
 
-  await Submission.create({
-    user: new Types.ObjectId(session.user.id),
-    kind: "frontend",
-    challenge: challenge._id,
+  await createFrontendSubmission({
+    userId: session.user.id,
+    challengeId: challenge.id,
     files: recordToFiles(parsed.data.files),
     status: accepted ? "Accepted" : "Wrong Answer",
     passedCount: accepted ? 1 : 0,
@@ -133,15 +129,7 @@ export async function POST(req: NextRequest) {
     aiReview: { score: review.score, feedback: review.feedback },
   });
 
-  await FrontendChallenge.updateOne(
-    { _id: challenge._id },
-    {
-      $inc: {
-        "stats.attempts": 1,
-        "stats.completed": accepted ? 1 : 0,
-      },
-    },
-  );
+  await incrementChallengeStats(challenge.id, accepted);
 
   let rewards = null;
   await recordDailyActivity(session.user.id, accepted);

@@ -169,3 +169,72 @@ export async function getChallengeBySlug(slug: string) {
 export type ChallengeDetail = NonNullable<
   Awaited<ReturnType<typeof getChallengeBySlug>>
 >;
+
+export interface SubmittableChallenge {
+  id: string;
+  title: string;
+  difficulty: string;
+  tech: string;
+  designSpec: string;
+  checklist: string[];
+  tags: string[];
+}
+
+/** Fetch a published challenge's data needed to grade a submission. */
+export async function getSubmittableChallenge(
+  challengeId: string,
+): Promise<SubmittableChallenge | null> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("frontend_challenges")
+      .select("id,title,difficulty,tech,design_spec,checklist,tags")
+      .eq("id", challengeId)
+      .eq("is_published", true)
+      .maybeSingle();
+    if (!data) return null;
+    const c = data as {
+      id: string; title: string; difficulty: string; tech: string;
+      design_spec: string | null; checklist: string[] | null; tags: string[] | null;
+    };
+    return {
+      id: c.id, title: c.title, difficulty: c.difficulty, tech: c.tech,
+      designSpec: c.design_spec ?? "", checklist: c.checklist ?? [], tags: c.tags ?? [],
+    };
+  }
+  const { Types } = await import("mongoose");
+  if (!Types.ObjectId.isValid(challengeId)) return null;
+  await connectDB();
+  const doc = await FrontendChallenge.findOne({ _id: challengeId, isPublished: true }).lean();
+  if (!doc) return null;
+  return {
+    id: doc._id.toString(),
+    title: doc.title,
+    difficulty: doc.difficulty,
+    tech: doc.tech,
+    designSpec: doc.designSpec ?? "",
+    checklist: doc.checklist,
+    tags: doc.tags,
+  };
+}
+
+/** Atomically bump a challenge's attempt/completion counters. */
+export async function incrementChallengeStats(
+  challengeId: string,
+  accepted: boolean,
+): Promise<void> {
+  if (be() === "supabase") {
+    const { error } = await supabaseAdmin().rpc("increment_challenge_stats", {
+      p_challenge: challengeId,
+      p_attempts: 1,
+      p_completed: accepted ? 1 : 0,
+    });
+    if (error) throw new Error(error.message);
+    return;
+  }
+  const { Types } = await import("mongoose");
+  await connectDB();
+  await FrontendChallenge.updateOne(
+    { _id: new Types.ObjectId(challengeId) },
+    { $inc: { "stats.attempts": 1, "stats.completed": accepted ? 1 : 0 } },
+  );
+}
