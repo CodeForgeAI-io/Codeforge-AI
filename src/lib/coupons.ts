@@ -3,6 +3,40 @@ import { connectDB } from "@/lib/mongodb";
 import { Coupon, CouponRedemption, type CouponDoc } from "@/models";
 import { PLANS, type PlanId, type BillingCycle } from "@/lib/plans";
 import { computeDiscount, normalizeCode } from "@/lib/coupon-math";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor } from "@/lib/data-backend";
+
+const be = () => backendFor("coupons");
+
+/** Map a Supabase coupons row (snake_case) to the CouponDoc shape the math uses. */
+interface SbCouponRow {
+  id: string;
+  code: string;
+  type: "percent" | "flat";
+  value: number;
+  active: boolean;
+  expires_at: string | null;
+  max_redemptions: number;
+  used_count: number;
+  plans: string[] | null;
+  min_amount: number;
+  once_per_user: boolean;
+}
+function toCouponDoc(r: SbCouponRow): CouponDoc & { _id: string } {
+  return {
+    _id: r.id,
+    code: r.code,
+    type: r.type,
+    value: r.value,
+    active: r.active,
+    expiresAt: r.expires_at ? new Date(r.expires_at) : undefined,
+    maxRedemptions: r.max_redemptions,
+    usedCount: r.used_count,
+    plans: r.plans ?? [],
+    minAmount: r.min_amount,
+    oncePerUser: r.once_per_user,
+  } as unknown as CouponDoc & { _id: string };
+}
 
 // Re-exported so existing importers of `@/lib/coupons` keep working; the pure
 // implementations now live in the dependency-free `@/lib/coupon-math`.
@@ -37,8 +71,38 @@ export async function validateCoupon(opts: {
   const code = normalizeCode(opts.code);
   if (!code) return { ok: false, reason: "Enter a coupon code" };
 
-  await connectDB();
-  const coupon = await Coupon.findOne({ code }).lean<CouponDoc>();
+  let coupon: (CouponDoc & { _id: string | Types.ObjectId }) | null;
+  let alreadyRedeemed: () => Promise<boolean>;
+
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    const { data } = await sb.from("coupons").select("*").eq("code", code).maybeSingle();
+    coupon = data ? toCouponDoc(data as SbCouponRow) : null;
+    const couponId = data ? (data as SbCouponRow).id : null;
+    alreadyRedeemed = async () => {
+      if (!couponId) return false;
+      const { data: r } = await sb
+        .from("coupon_redemptions")
+        .select("id")
+        .eq("coupon_id", couponId)
+        .eq("user_id", opts.userId)
+        .maybeSingle();
+      return Boolean(r);
+    };
+  } else {
+    await connectDB();
+    const doc = await Coupon.findOne({ code }).lean<CouponDoc & { _id: Types.ObjectId }>();
+    coupon = doc ?? null;
+    alreadyRedeemed = async () => {
+      if (!doc) return false;
+      const already = await CouponRedemption.findOne({
+        coupon: doc._id,
+        user: new Types.ObjectId(opts.userId),
+      }).lean();
+      return Boolean(already);
+    };
+  }
+
   if (!coupon || !coupon.active) return { ok: false, reason: "Invalid or inactive coupon" };
 
   if (coupon.expiresAt && new Date(coupon.expiresAt).getTime() < Date.now()) {
@@ -56,12 +120,8 @@ export async function validateCoupon(opts: {
     return { ok: false, reason: `Valid on orders of ₹${coupon.minAmount} or more` };
   }
 
-  if (coupon.oncePerUser) {
-    const already = await CouponRedemption.findOne({
-      coupon: coupon._id,
-      user: new Types.ObjectId(opts.userId),
-    }).lean();
-    if (already) return { ok: false, reason: "You've already used this coupon" };
+  if (coupon.oncePerUser && (await alreadyRedeemed())) {
+    return { ok: false, reason: "You've already used this coupon" };
   }
 
   const discount = computeDiscount(coupon, amount);
@@ -88,8 +148,33 @@ export async function redeemCoupon(opts: {
 }): Promise<void> {
   const code = normalizeCode(opts.code);
   if (!code) return;
+
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    const { data } = await sb
+      .from("coupons")
+      .select("id,max_redemptions")
+      .eq("code", code)
+      .maybeSingle();
+    if (!data) return;
+    const coupon = data as { id: string; max_redemptions: number };
+    const { error } = await sb.from("coupon_redemptions").insert({
+      coupon_id: coupon.id,
+      code,
+      user_id: opts.userId,
+      discount: opts.discount,
+    });
+    // Duplicate (coupon,user) — already redeemed, don't double-count.
+    if (error) return;
+    await sb.rpc("increment_coupon_usage", {
+      p_coupon: coupon.id,
+      p_max: coupon.max_redemptions,
+    });
+    return;
+  }
+
   await connectDB();
-  const coupon = await Coupon.findOne({ code }).select("_id maxRedemptions").lean<CouponDoc>();
+  const coupon = await Coupon.findOne({ code }).select("_id maxRedemptions").lean<CouponDoc & { _id: Types.ObjectId }>();
   if (!coupon) return;
 
   try {
