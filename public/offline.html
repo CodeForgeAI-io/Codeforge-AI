@@ -157,19 +157,26 @@
       var textEl = document.getElementById("status-text");
       var retryEl = document.getElementById("retry");
 
+      // Reflect the current state, but never auto-reload on initial load:
+      // this page is only shown because a fetch already failed, and
+      // navigator.onLine can still report `true` on a flaky/captive network.
       function render() {
         if (navigator.onLine) {
-          statusEl.classList.add("online");
-          textEl.textContent = "Back online — reloading…";
-          retryEl.disabled = true;
-          retryEl.textContent = "Reloading…";
-          location.reload();
+          statusEl.classList.remove("online");
+          textEl.textContent = "Reconnecting…";
         } else {
           statusEl.classList.remove("online");
           textEl.textContent = "No connection";
         }
       }
-      window.addEventListener("online", render);
+      // Only a genuine offline→online transition triggers the reload.
+      window.addEventListener("online", function () {
+        statusEl.classList.add("online");
+        textEl.textContent = "Back online — reloading…";
+        retryEl.disabled = true;
+        retryEl.textContent = "Reloading…";
+        location.reload();
+      });
       window.addEventListener("offline", render);
       render();
     </script>
