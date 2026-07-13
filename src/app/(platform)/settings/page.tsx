@@ -7,6 +7,7 @@ import {
   ProfileSettingsForm,
 } from "@/features/settings/settings-forms";
 import { SettingsView } from "@/features/settings/settings-view";
+import { PasskeyManager } from "@/features/settings/passkey-manager";
 import { DeleteAccount } from "@/features/settings/delete-account";
 import { BillingPanel } from "@/features/subscription/billing-panel";
 import { UsagePanel } from "@/features/subscription/usage-panel";
@@ -39,6 +40,7 @@ export default async function SettingsPage() {
                 linkedinUrl: user.linkedinUrl ?? "",
               }}
             />
+            <PasskeyManager />
             <DeleteAccount />
           </>
         }

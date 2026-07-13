@@ -79,6 +79,7 @@ import {
   faListCheck,
   faLocationDot,
   faLock,
+  faFingerprint,
   faMagnifyingGlass,
   faMap,
   faMedal,
@@ -265,6 +266,7 @@ export const Share2 = make(faShareNodes);
 export const Shield = make(faShield);
 export const ShieldAlert = make(faShieldHalved);
 export const ShieldCheck = make(faShieldHalved);
+export const Fingerprint = make(faFingerprint);
 export const Sparkles = make(faWandMagicSparkles);
 export const Sprout = make(faSeedling);
 export const Square = make(faSquare);

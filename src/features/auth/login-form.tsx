@@ -7,8 +7,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signInAction } from "@/lib/auth-actions";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2 } from "@/components/icons";
+import { Eye, EyeOff, Loader2, Fingerprint } from "@/components/icons";
 import { loginSchema, type LoginInput } from "@/schemas/auth";
+import { loginWithPasskey, passkeysSupported } from "@/lib/passkey-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +34,25 @@ export function LoginForm({
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
+
+  async function onPasskey() {
+    setPasskeyBusy(true);
+    try {
+      await loginWithPasskey();
+      import("posthog-js").then(({ default: posthog }) => {
+        posthog.capture("user_logged_in", { method: "passkey" });
+      });
+      router.push(callbackUrl);
+      router.refresh();
+    } catch (e) {
+      // A user cancelling the browser prompt throws — don't nag them for that.
+      const msg = e instanceof Error ? e.message : "Passkey sign-in failed";
+      if (!/aborted|cancel|NotAllowed|timed out/i.test(msg)) toast.error(msg);
+    } finally {
+      setPasskeyBusy(false);
+    }
+  }
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -68,6 +88,22 @@ export function LoginForm({
       </CardHeader>
       <CardContent>
         <OAuthButtons google={google} github={github} callbackUrl={callbackUrl} />
+        {passkeysSupported() && (
+          <Button
+            type="button"
+            variant="outline"
+            className="mb-3 w-full"
+            onClick={onPasskey}
+            disabled={passkeyBusy}
+          >
+            {passkeyBusy ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Fingerprint className="size-4" />
+            )}
+            Sign in with a passkey
+          </Button>
+        )}
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
           <div className="grid gap-1.5">
             <Label htmlFor="email">Email</Label>
