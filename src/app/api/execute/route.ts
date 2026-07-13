@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { getLanguage } from "@/lib/constants";
-import { Question } from "@/models";
 import { runRequestSchema } from "@/schemas/execution";
 import { runTestSuite } from "@/services/execution";
+import { getSubmittableQuestion } from "@/services/submissions";
 import { getPostHogServer } from "@/lib/posthog-server";
 
 export const maxDuration = 60;
@@ -38,13 +37,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unsupported language" }, { status: 400 });
   }
 
-  await connectDB();
-  const question = await Question.findOne({
-    _id: parsed.data.questionId,
-    isPublished: true,
-  })
-    .select("testCases")
-    .lean();
+  const question = await getSubmittableQuestion(parsed.data.questionId);
   if (!question) {
     return NextResponse.json({ error: "Question not found" }, { status: 404 });
   }
