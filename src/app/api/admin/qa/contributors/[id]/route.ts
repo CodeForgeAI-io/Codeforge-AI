@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Types } from "mongoose";
-import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { QaContributor } from "@/models";
+import { updateContributorStatus } from "@/services/qa-store";
 import { sendEmail } from "@/lib/mailer";
 import { APP_NAME } from "@/lib/constants";
 
@@ -15,9 +13,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
 
   let body: { status?: string };
   try {
@@ -29,12 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 
-  await connectDB();
-  const doc = await QaContributor.findByIdAndUpdate(
-    id,
-    { $set: { status: body.status, reviewedAt: new Date() } },
-    { new: true },
-  ).lean();
+  const doc = await updateContributorStatus(id, body.status!);
   if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // Email the contributor when they're approved (best-effort).
