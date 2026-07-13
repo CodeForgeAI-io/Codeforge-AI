@@ -1,0 +1,310 @@
+import { connectDB } from "@/lib/mongodb";
+import {
+  Contest,
+  FrontendChallenge,
+  Question,
+  Submission,
+  Subscription,
+  User,
+  AiUsage,
+} from "@/models";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor } from "@/lib/data-backend";
+import { currentPeriod, monthlyAllowance } from "@/services/ai-credits";
+
+const be = () => backendFor("account");
+
+const day = (d: string | Date) => new Date(d).toISOString().slice(0, 10);
+
+export interface AdminAnalytics {
+  totals: {
+    users: number; newUsers30d: number; questions: number; publishedQuestions: number;
+    challenges: number; contests: number; submissions: number; acceptanceRate: number;
+  };
+  signupSeries: { date: string; signups: number }[];
+  submissionSeries: { date: string; submissions: number; accepted: number }[];
+  languageDistribution: { language: string; count: number }[];
+  difficultyAcceptance: { difficulty: string; total: number; accepted: number; rate: number }[];
+  revenue: { total: number; thisMonth: number; payments: number; payingUsers: number; currency: string };
+}
+
+/** Platform analytics dashboard. */
+export async function getAdminAnalytics(): Promise<AdminAnalytics> {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000);
+  const monthStart = new Date(new Date().toISOString().slice(0, 7) + "-01T00:00:00.000Z");
+
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    // Minimal builder surface to sidestep Supabase's deeply-generic types.
+    interface Filterable {
+      gte(col: string, v: unknown): Filterable;
+      eq(col: string, v: unknown): Filterable;
+      in(col: string, v: unknown[]): Filterable;
+    }
+    const countOf = async (table: string, apply?: (q: Filterable) => Filterable): Promise<number> => {
+      const base = sb.from(table).select("id", { count: "exact", head: true });
+      const q = apply ? (apply(base as unknown as Filterable) as unknown as typeof base) : base;
+      const { count } = await q;
+      return count ?? 0;
+    };
+
+    const [
+      totalUsers, newUsers30d, totalQuestions, publishedQuestions, totalChallenges, totalContests,
+      totalSubmissions, acceptedSubmissions, payingUsers,
+    ] = await Promise.all([
+      countOf("users"),
+      countOf("users", (q) => q.gte("created_at", thirtyDaysAgo.toISOString())),
+      countOf("questions"),
+      countOf("questions", (q) => q.eq("is_published", true)),
+      countOf("frontend_challenges"),
+      countOf("contests"),
+      countOf("submissions"),
+      countOf("submissions", (q) => q.eq("status", "Accepted")),
+      countOf("users", (q) => q.in("plan", ["go", "plus"])),
+    ]);
+
+    const [signupRows, subRows, langRows, dsaRows, questionsForDiff, paidSubs] = await Promise.all([
+      sb.from("users").select("created_at").gte("created_at", thirtyDaysAgo.toISOString()),
+      sb.from("submissions").select("created_at,status").gte("created_at", thirtyDaysAgo.toISOString()),
+      sb.from("submissions").select("language").not("language", "is", null),
+      sb.from("submissions").select("question_id,status").eq("kind", "dsa").not("question_id", "is", null),
+      sb.from("questions").select("id,difficulty"),
+      sb.from("subscriptions").select("amount,currency,created_at").eq("status", "paid"),
+    ]);
+
+    // signup series
+    const signupMap = new Map<string, number>();
+    for (const r of (signupRows.data ?? []) as { created_at: string }[]) signupMap.set(day(r.created_at), (signupMap.get(day(r.created_at)) ?? 0) + 1);
+    // submission series
+    const subMap = new Map<string, { count: number; accepted: number }>();
+    for (const r of (subRows.data ?? []) as { created_at: string; status: string }[]) {
+      const k = day(r.created_at); const e = subMap.get(k) ?? { count: 0, accepted: 0 };
+      e.count++; if (r.status === "Accepted") e.accepted++; subMap.set(k, e);
+    }
+    // language distribution
+    const langMap = new Map<string, number>();
+    for (const r of (langRows.data ?? []) as { language: string }[]) langMap.set(r.language, (langMap.get(r.language) ?? 0) + 1);
+    // difficulty acceptance
+    const diffOf = new Map<string, string>();
+    for (const q of (questionsForDiff.data ?? []) as { id: string; difficulty: string }[]) diffOf.set(q.id, q.difficulty);
+    const diffMap = new Map<string, { total: number; accepted: number }>();
+    for (const r of (dsaRows.data ?? []) as { question_id: string; status: string }[]) {
+      const d = diffOf.get(r.question_id); if (!d) continue;
+      const e = diffMap.get(d) ?? { total: 0, accepted: 0 }; e.total++; if (r.status === "Accepted") e.accepted++; diffMap.set(d, e);
+    }
+    // revenue
+    const paid = (paidSubs.data ?? []) as { amount: number; currency: string; created_at: string }[];
+    const revenueTotal = paid.reduce((s, p) => s + (p.amount ?? 0), 0);
+    const revenueMonth = paid.filter((p) => new Date(p.created_at) >= monthStart).reduce((s, p) => s + (p.amount ?? 0), 0);
+
+    return buildAnalytics({
+      totalUsers, newUsers30d, totalQuestions, publishedQuestions, totalChallenges, totalContests,
+      totalSubmissions, acceptedSubmissions, payingUsers,
+      signupSeries: [...signupMap.entries()].sort().map(([date, signups]) => ({ date, signups })),
+      submissionSeries: [...subMap.entries()].sort().map(([date, v]) => ({ date, submissions: v.count, accepted: v.accepted })),
+      languageDistribution: [...langMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([language, count]) => ({ language, count })),
+      difficultyAcceptance: [...diffMap.entries()].map(([difficulty, v]) => ({ difficulty, total: v.total, accepted: v.accepted, rate: v.total > 0 ? Math.round((v.accepted / v.total) * 100) : 0 })),
+      revenueTotal, revenueMonth, revenuePayments: paid.length, currency: paid[paid.length - 1]?.currency ?? "INR",
+    });
+  }
+
+  await connectDB();
+  const [
+    totalUsers, newUsers30d, totalQuestions, publishedQuestions, totalChallenges, totalContests,
+    totalSubmissions, acceptedSubmissions, signupSeries, submissionSeries, languageDistribution,
+    difficultyAcceptance, revenueAgg, revenueMonthAgg, payingUsers,
+  ] = await Promise.all([
+    User.countDocuments(), User.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
+    Question.countDocuments(), Question.countDocuments({ isPublished: true }),
+    FrontendChallenge.countDocuments(), Contest.countDocuments(),
+    Submission.countDocuments(), Submission.countDocuments({ status: "Accepted" }),
+    User.aggregate<{ _id: string; count: number }>([
+      { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+      { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]),
+    Submission.aggregate<{ _id: string; count: number; accepted: number }>([
+      { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+      { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 }, accepted: { $sum: { $cond: [{ $eq: ["$status", "Accepted"] }, 1, 0] } } } },
+      { $sort: { _id: 1 } },
+    ]),
+    Submission.aggregate<{ _id: string; count: number }>([
+      { $match: { language: { $exists: true, $ne: null } } },
+      { $group: { _id: "$language", count: { $sum: 1 } } }, { $sort: { count: -1 } }, { $limit: 12 },
+    ]),
+    Submission.aggregate<{ _id: string; total: number; accepted: number }>([
+      { $match: { kind: "dsa", question: { $exists: true } } },
+      { $lookup: { from: "questions", localField: "question", foreignField: "_id", as: "questionDoc" } },
+      { $unwind: "$questionDoc" },
+      { $group: { _id: "$questionDoc.difficulty", total: { $sum: 1 }, accepted: { $sum: { $cond: [{ $eq: ["$status", "Accepted"] }, 1, 0] } } } },
+    ]),
+    Subscription.aggregate<{ total: number; count: number; currency: string }>([
+      { $match: { status: "paid" } },
+      { $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 }, currency: { $last: "$currency" } } },
+    ]),
+    Subscription.aggregate<{ total: number }>([
+      { $match: { status: "paid", createdAt: { $gte: monthStart } } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]),
+    User.countDocuments({ plan: { $in: ["go", "plus"] } }),
+  ]);
+
+  return buildAnalytics({
+    totalUsers, newUsers30d, totalQuestions, publishedQuestions, totalChallenges, totalContests,
+    totalSubmissions, acceptedSubmissions, payingUsers,
+    signupSeries: signupSeries.map((r) => ({ date: r._id, signups: r.count })),
+    submissionSeries: submissionSeries.map((r) => ({ date: r._id, submissions: r.count, accepted: r.accepted })),
+    languageDistribution: languageDistribution.map((r) => ({ language: r._id, count: r.count })),
+    difficultyAcceptance: difficultyAcceptance.map((r) => ({ difficulty: r._id, total: r.total, accepted: r.accepted, rate: r.total > 0 ? Math.round((r.accepted / r.total) * 100) : 0 })),
+    revenueTotal: revenueAgg[0]?.total ?? 0, revenueMonth: revenueMonthAgg[0]?.total ?? 0,
+    revenuePayments: revenueAgg[0]?.count ?? 0, currency: revenueAgg[0]?.currency ?? "INR",
+  });
+}
+
+function buildAnalytics(x: {
+  totalUsers: number; newUsers30d: number; totalQuestions: number; publishedQuestions: number;
+  totalChallenges: number; totalContests: number; totalSubmissions: number; acceptedSubmissions: number;
+  payingUsers: number;
+  signupSeries: { date: string; signups: number }[];
+  submissionSeries: { date: string; submissions: number; accepted: number }[];
+  languageDistribution: { language: string; count: number }[];
+  difficultyAcceptance: { difficulty: string; total: number; accepted: number; rate: number }[];
+  revenueTotal: number; revenueMonth: number; revenuePayments: number; currency: string;
+}): AdminAnalytics {
+  return {
+    totals: {
+      users: x.totalUsers, newUsers30d: x.newUsers30d, questions: x.totalQuestions,
+      publishedQuestions: x.publishedQuestions, challenges: x.totalChallenges, contests: x.totalContests,
+      submissions: x.totalSubmissions,
+      acceptanceRate: x.totalSubmissions > 0 ? Math.round((x.acceptedSubmissions / x.totalSubmissions) * 100) : 0,
+    },
+    signupSeries: x.signupSeries,
+    submissionSeries: x.submissionSeries,
+    languageDistribution: x.languageDistribution,
+    difficultyAcceptance: x.difficultyAcceptance,
+    revenue: { total: x.revenueTotal, thisMonth: x.revenueMonth, payments: x.revenuePayments, payingUsers: x.payingUsers, currency: x.currency },
+  };
+}
+
+// ── Billing dashboard ──────────────────────────────────────────────────────
+
+export interface AdminBillingRow {
+  id: string; name: string; username: string; email: string | null; image: string | null;
+  plan: string; active: boolean; billingCycle: string | null; planExpiresAt: Date | null; trialEndsAt: Date | null;
+  usage: { period: string; used: number; allowance: number | null; remaining: number | null; unlimited: boolean };
+  revenue: number; payments: number; currency: string; lastPaymentAt: Date | null; createdAt: Date;
+}
+export interface AdminBilling {
+  rows: AdminBillingRow[];
+  period: string;
+  summary: { totalRevenue: number; totalPayments: number; currency: string; payingUsers: number; creditsUsedThisMonth: number };
+}
+
+interface BillingUser {
+  id: string; name: string; username: string; email: string | null; image: string | null;
+  plan: string; planExpiresAt: Date | null; trialEndsAt: Date | null; billingCycle: string | null; createdAt: Date;
+}
+
+/** Admin billing dashboard: per-user plan, AI usage, revenue. */
+export async function getAdminBilling(filter: { q?: string; plan?: string }): Promise<AdminBilling> {
+  const period = currentPeriod();
+  const now = Date.now();
+
+  let users: BillingUser[];
+  const usageByUser = new Map<string, number>();
+  const payByUser = new Map<string, { total: number; count: number; lastPaymentAt: Date; currency: string }>();
+  let summary: AdminBilling["summary"];
+
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    let uq = sb.from("users")
+      .select("id,name,username,email,image,plan,plan_expires_at,trial_ends_at,billing_cycle,created_at")
+      .order("created_at", { ascending: false }).limit(200);
+    if (filter.q) { const like = `%${filter.q}%`; uq = uq.or(`name.ilike.${like},email.ilike.${like},username.ilike.${like}`); }
+    if (filter.plan && filter.plan !== "all") uq = uq.eq("plan", filter.plan);
+    const { data: uData } = await uq;
+    users = ((uData ?? []) as Record<string, unknown>[]).map((u) => ({
+      id: u.id as string, name: u.name as string, username: u.username as string, email: (u.email as string) ?? null,
+      image: (u.image as string) ?? null, plan: (u.plan as string) ?? "free",
+      planExpiresAt: u.plan_expires_at ? new Date(u.plan_expires_at as string) : null,
+      trialEndsAt: u.trial_ends_at ? new Date(u.trial_ends_at as string) : null,
+      billingCycle: (u.billing_cycle as string) ?? null, createdAt: new Date(u.created_at as string),
+    }));
+    const ids = users.map((u) => u.id);
+    if (ids.length) {
+      const [{ data: usage }, { data: subs }] = await Promise.all([
+        sb.from("ai_usage").select("user_id,used").in("user_id", ids).eq("period", period),
+        sb.from("subscriptions").select("user_id,amount,currency,created_at").in("user_id", ids).eq("status", "paid"),
+      ]);
+      for (const u of (usage ?? []) as { user_id: string; used: number }[]) usageByUser.set(u.user_id, u.used);
+      for (const p of (subs ?? []) as { user_id: string; amount: number; currency: string; created_at: string }[]) {
+        const e = payByUser.get(p.user_id) ?? { total: 0, count: 0, lastPaymentAt: new Date(0), currency: "INR" };
+        e.total += p.amount ?? 0; e.count++; e.currency = p.currency ?? "INR";
+        const at = new Date(p.created_at); if (at > e.lastPaymentAt) e.lastPaymentAt = at;
+        payByUser.set(p.user_id, e);
+      }
+    }
+    const [{ data: allPaid }, { data: allUsage }, payingUsersRes] = await Promise.all([
+      sb.from("subscriptions").select("amount,currency").eq("status", "paid"),
+      sb.from("ai_usage").select("used").eq("period", period),
+      sb.from("users").select("id", { count: "exact", head: true }).in("plan", ["go", "plus"]),
+    ]);
+    const paidArr = (allPaid ?? []) as { amount: number; currency: string }[];
+    summary = {
+      totalRevenue: paidArr.reduce((s, p) => s + (p.amount ?? 0), 0),
+      totalPayments: paidArr.length,
+      currency: paidArr[paidArr.length - 1]?.currency ?? "INR",
+      payingUsers: payingUsersRes.count ?? 0,
+      creditsUsedThisMonth: ((allUsage ?? []) as { used: number }[]).reduce((s, u) => s + (u.used ?? 0), 0),
+    };
+  } else {
+    await connectDB();
+    const query: Record<string, unknown> = {};
+    if (filter.q) { const regex = { $regex: filter.q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" }; query.$or = [{ name: regex }, { email: regex }, { username: regex }]; }
+    if (filter.plan && filter.plan !== "all") query.plan = filter.plan;
+    const docs = await User.find(query).sort({ createdAt: -1 }).limit(200)
+      .select("name username email image plan planExpiresAt trialEndsAt billingCycle createdAt").lean();
+    users = docs.map((u) => ({
+      id: u._id.toString(), name: u.name, username: u.username, email: u.email ?? null, image: u.image ?? null,
+      plan: u.plan ?? "free", planExpiresAt: u.planExpiresAt ?? null, trialEndsAt: u.trialEndsAt ?? null,
+      billingCycle: u.billingCycle ?? null, createdAt: u.createdAt,
+    }));
+    const userIds = docs.map((u) => u._id);
+    const usageDocs = await AiUsage.find({ user: { $in: userIds }, period }).select("user used").lean();
+    for (const d of usageDocs) usageByUser.set(String(d.user), d.used);
+    const payAgg = await Subscription.aggregate<{ _id: unknown; total: number; count: number; lastPaymentAt: Date; currency: string }>([
+      { $match: { user: { $in: userIds }, status: "paid" } },
+      { $group: { _id: "$user", total: { $sum: "$amount" }, count: { $sum: 1 }, lastPaymentAt: { $max: "$createdAt" }, currency: { $last: "$currency" } } },
+    ]);
+    for (const p of payAgg) payByUser.set(String(p._id), { total: p.total, count: p.count, lastPaymentAt: p.lastPaymentAt, currency: p.currency });
+    const [totals] = await Subscription.aggregate<{ revenue: number; payments: number; currency: string }>([
+      { $match: { status: "paid" } },
+      { $group: { _id: null, revenue: { $sum: "$amount" }, payments: { $sum: 1 }, currency: { $last: "$currency" } } },
+    ]);
+    const totalCreditsUsed = await AiUsage.aggregate<{ used: number }>([
+      { $match: { period } }, { $group: { _id: null, used: { $sum: "$used" } } },
+    ]);
+    const payingUsers = await User.countDocuments({ plan: { $in: ["go", "plus"] } });
+    summary = {
+      totalRevenue: totals?.revenue ?? 0, totalPayments: totals?.payments ?? 0, currency: totals?.currency ?? "INR",
+      payingUsers, creditsUsedThisMonth: totalCreditsUsed[0]?.used ?? 0,
+    };
+  }
+
+  const rows: AdminBillingRow[] = users.map((u) => {
+    const used = usageByUser.get(u.id) ?? 0;
+    const allowance = monthlyAllowance(u.plan);
+    const unlimited = !Number.isFinite(allowance);
+    const pay = payByUser.get(u.id);
+    const active = u.plan !== "free" && (!u.planExpiresAt || u.planExpiresAt.getTime() > now);
+    return {
+      id: u.id, name: u.name, username: u.username, email: u.email, image: u.image,
+      plan: u.plan, active, billingCycle: u.billingCycle, planExpiresAt: u.planExpiresAt, trialEndsAt: u.trialEndsAt,
+      usage: { period, used, allowance: unlimited ? null : allowance, remaining: unlimited ? null : Math.max(0, allowance - used), unlimited },
+      revenue: pay?.total ?? 0, payments: pay?.count ?? 0, currency: pay?.currency ?? "INR",
+      lastPaymentAt: pay && pay.lastPaymentAt.getTime() > 0 ? pay.lastPaymentAt : null, createdAt: u.createdAt,
+    };
+  });
+
+  return { rows, period, summary };
+}
