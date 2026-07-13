@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { put } from "@vercel/blob";
+import { uploadPublicFile, storageEnabled } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -20,9 +20,9 @@ const ALLOWED_EXT = new Set(["pdf", "doc", "docx"]);
  * — can't silently break it. Requires BLOB_READ_WRITE_TOKEN.
  */
 export async function POST(req: NextRequest) {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!storageEnabled()) {
     return NextResponse.json(
-      { error: "Resume upload is not configured. Add BLOB_READ_WRITE_TOKEN." },
+      { error: "Resume upload is not configured." },
       { status: 503 },
     );
   }
@@ -51,12 +51,8 @@ export async function POST(req: NextRequest) {
     (ALLOWED.has(file.type) ? file.type : "application/pdf");
 
   try {
-    const blob = await put(`resumes/${file.name}`, file, {
-      access: "public",
-      addRandomSuffix: true,
-      contentType,
-    });
-    return NextResponse.json({ url: blob.url, name: file.name });
+    const url = await uploadPublicFile("resumes", file, contentType);
+    return NextResponse.json({ url, name: file.name });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Upload failed" },
