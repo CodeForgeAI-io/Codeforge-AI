@@ -7,15 +7,17 @@ const BLUE = "#006bff"; // blue-700 — links, accent
 const BLUE_100 = "#f0f7ff"; // blue-100 — info surface
 const BLUE_400 = "#cae7ff"; // blue-400 — info border
 const BG100 = "#ffffff"; // card surface
-const PAGE = "#f2f2f2"; // gray-100 — page background
-const SOFT = "#fafafa"; // background-200 — subtle separation
+const PAGE = "#eceef3"; // page background
+const SOFT = "#f6f7f9"; // subtle separation surface
 const BORDER = "#00000014"; // gray-alpha-400 — default border
-const SHADOW = "0 2px 2px rgba(0,0,0,0.04)"; // raised card
+const SHADOW = "0 12px 32px rgba(9,14,30,0.10)"; // raised card
+const DARK = "#0b1226"; // masthead / brand band
 const FONT =
   "'Geist','Geist Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
-const LOGO = "https://codeforgeai.io/logo.png";
+// White wordmark for the dark masthead (logo-dark.png is the light-on-dark variant).
+const LOGO_WHITE = "https://codeforgeai.io/logo-dark.png";
 
-function base(content: string): string {
+function base(content: string, footerExtra = ""): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,29 +30,35 @@ function base(content: string): string {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAGE};padding:40px 16px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="540" cellpadding="0" cellspacing="0" style="max-width:540px;width:100%;">
-          <!-- Logo -->
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;border-radius:18px;overflow:hidden;border:1px solid ${BORDER};box-shadow:${SHADOW};">
+          <!-- Masthead -->
           <tr>
-            <td align="center" style="padding-bottom:24px;">
-              <img src="${LOGO}" alt="CodeForge AI" height="28" style="height:28px;width:auto;display:block;" />
+            <td align="center" style="background:${DARK};background-image:linear-gradient(135deg,#0b3ea8 0%,#0b1226 60%);padding:30px 40px;border-bottom:3px solid ${BLUE};">
+              <img src="${LOGO_WHITE}" alt="CodeForge AI" height="26" style="height:26px;width:auto;display:block;" />
             </td>
           </tr>
 
-          <!-- Card -->
+          <!-- Card body -->
           <tr>
-            <td style="background:${BG100};border:1px solid ${BORDER};border-radius:16px;padding:40px;box-shadow:${SHADOW};">
+            <td style="background:${BG100};padding:40px;">
               ${content}
             </td>
           </tr>
+        </table>
 
-          <!-- Footer -->
+        <!-- Footer -->
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
           <tr>
-            <td align="center" style="padding-top:24px;">
-              <p style="margin:0 0 8px;font-size:13px;color:${MUTED};line-height:18px;">
-                You received this email because you have an account on CodeForge AI.<br/>
-                If you didn't request this, you can safely ignore it.
+            <td align="center" style="padding:22px 16px 0;">
+              <p style="margin:0 0 10px;font-size:13px;color:${MUTED};line-height:18px;">
+                <a href="https://codeforgeai.io/dashboard" style="color:${SECONDARY};text-decoration:none;">Dashboard</a>
+                &nbsp;&middot;&nbsp;
+                <a href="https://codeforgeai.io/help" style="color:${SECONDARY};text-decoration:none;">Help</a>
+                &nbsp;&middot;&nbsp;
+                <a href="https://codeforgeai.io/privacy" style="color:${SECONDARY};text-decoration:none;">Privacy</a>
               </p>
-              <p style="margin:0;font-size:13px;color:${MUTED};">
+              ${footerExtra}
+              <p style="margin:0;font-size:12px;color:${MUTED};line-height:18px;">
                 <a href="https://codeforgeai.io" style="color:${BLUE};text-decoration:none;">codeforgeai.io</a>
                 &nbsp;&middot;&nbsp; &copy; ${new Date().getFullYear()} CodeForge AI
               </p>
@@ -64,13 +72,13 @@ function base(content: string): string {
 </html>`;
 }
 
-/** Geist primary button — solid gray-1000, white label, 6px radius. */
+/** Primary button — brand blue, white label, pill-ish radius, soft shadow. */
 function btn(label: string, href: string): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px auto 0;">
     <tr>
-      <td align="center" style="background:${PRIMARY};border-radius:6px;">
+      <td align="center" style="background:${BLUE};border-radius:10px;box-shadow:0 6px 16px rgba(0,107,255,0.28);">
         <a href="${href}" target="_blank"
-           style="display:inline-block;padding:14px 24px;color:${BG100};font-size:16px;font-weight:500;line-height:20px;text-decoration:none;border-radius:6px;background:${PRIMARY};">
+           style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:16px;font-weight:600;line-height:20px;text-decoration:none;border-radius:10px;background:${BLUE};">
           ${label}
         </a>
       </td>
@@ -103,8 +111,8 @@ function eyebrow(label: string): string {
 }
 
 const H1 =
-  `margin:0 0 10px;color:${PRIMARY};font-size:24px;font-weight:600;line-height:32px;letter-spacing:-0.96px;`;
-const COPY = `margin:0 0 24px;color:${SECONDARY};font-size:16px;line-height:24px;`;
+  `margin:0 0 12px;color:${PRIMARY};font-size:26px;font-weight:700;line-height:32px;letter-spacing:-0.6px;`;
+const COPY = `margin:0 0 24px;color:${SECONDARY};font-size:16px;line-height:25px;`;
 
 // ─── Welcome / Account Created ────────────────────────────────────────────────
 
