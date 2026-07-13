@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { User } from "@/models";
+import { countNewsletterRecipients, listNewsletterRecipients } from "@/services/user-store";
 import { sendEmail } from "@/lib/mailer";
 import { newsletterEmailHtml } from "@/lib/email-templates";
 import { sanitizeNewsletterHtml, unsubscribeUrl } from "@/lib/newsletter";
@@ -46,8 +45,7 @@ async function sendPool(
 export async function GET() {
   const { error } = await requireAdmin();
   if (error) return error;
-  await connectDB();
-  const total = await User.countDocuments({ emailOptOut: { $ne: true }, banned: { $ne: true } });
+  const total = await countNewsletterRecipients();
   return NextResponse.json({ recipients: total });
 }
 
@@ -94,8 +92,6 @@ export async function POST(req: NextRequest) {
       unsubscribeUrl: unsubscribeUrl(APP_URL, to),
     });
 
-  await connectDB();
-
   // ── Single / test: one recipient, awaited so the admin sees the result. ──
   if (b.mode === "single" || b.mode === "test") {
     const to =
@@ -115,9 +111,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Broadcast: every opted-in, non-banned user. ──
-  const recipients = await User.find({ emailOptOut: { $ne: true }, banned: { $ne: true } })
-    .select("email name")
-    .lean<Recipient[]>();
+  const recipients = await listNewsletterRecipients();
   if (recipients.length === 0) {
     return NextResponse.json({ ok: true, sent: 0, failed: 0, total: 0 });
   }

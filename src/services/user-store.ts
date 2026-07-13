@@ -327,3 +327,34 @@ export async function adminUpdateUser(id: string, patch: AdminUserPatch): Promis
   const updated = await User.findByIdAndUpdate(id, { $set: patch }, { returnDocument: "after" });
   return Boolean(updated);
 }
+
+/** Count opted-in, non-banned users (newsletter reach). */
+export async function countNewsletterRecipients(): Promise<number> {
+  if (be() === "supabase") {
+    const { count } = await supabaseAdmin()
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .neq("email_opt_out", true)
+      .neq("banned", true);
+    return count ?? 0;
+  }
+  await connectDB();
+  return User.countDocuments({ emailOptOut: { $ne: true }, banned: { $ne: true } });
+}
+
+/** List opted-in, non-banned recipients (email + name) for a broadcast. */
+export async function listNewsletterRecipients(): Promise<{ email: string; name?: string }[]> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("users")
+      .select("email,name")
+      .neq("email_opt_out", true)
+      .neq("banned", true);
+    return ((data ?? []) as { email: string | null; name: string | null }[])
+      .filter((u) => u.email)
+      .map((u) => ({ email: u.email as string, name: u.name ?? undefined }));
+  }
+  await connectDB();
+  const users = await User.find({ emailOptOut: { $ne: true }, banned: { $ne: true } }).select("email name").lean();
+  return users.filter((u) => u.email).map((u) => ({ email: u.email as string, name: u.name }));
+}
