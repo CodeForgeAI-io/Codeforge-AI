@@ -5,8 +5,8 @@ export const aiChatRequestSchema = z.object({
   context: z
     .enum(["question", "challenge", "interview", "general"])
     .default("general"),
-  questionId: z.string().length(24).optional(),
-  challengeId: z.string().length(24).optional(),
+  questionId: z.string().regex(/^[0-9a-f]{24}$|^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).optional(),
+  challengeId: z.string().regex(/^[0-9a-f]{24}$|^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).optional(),
   /** User's current editor code, sent for context-aware help */
   code: z.string().max(64_000).optional(),
   language: z.string().max(20).optional(),

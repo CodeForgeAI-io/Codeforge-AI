@@ -15,7 +15,7 @@ export const challengeInputSchema = z.object({
 });
 
 export const challengeSubmitSchema = z.object({
-  challengeId: z.string().length(24),
+  challengeId: z.string().regex(/^[0-9a-f]{24}$|^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
   files: z
     .record(z.string().max(120), z.string().max(64_000))
     .refine((files) => Object.keys(files).length > 0, "No files submitted")

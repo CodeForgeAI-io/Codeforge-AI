@@ -2,7 +2,7 @@ import { z } from "zod";
 import { EXECUTION_LIMITS, LANGUAGE_IDS } from "@/lib/constants";
 
 export const runRequestSchema = z.object({
-  questionId: z.string().length(24),
+  questionId: z.string().regex(/^[0-9a-f]{24}$|^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
   language: z.enum(LANGUAGE_IDS),
   code: z.string().min(1).max(EXECUTION_LIMITS.maxCodeLength),
   /** When provided, runs only this custom input instead of sample tests */
@@ -13,7 +13,7 @@ export const runRequestSchema = z.object({
 });
 
 export const submitRequestSchema = z.object({
-  questionId: z.string().length(24),
+  questionId: z.string().regex(/^[0-9a-f]{24}$|^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
   language: z.enum(LANGUAGE_IDS),
   code: z.string().min(1).max(EXECUTION_LIMITS.maxCodeLength),
   contestSlug: z.string().max(120).optional(),

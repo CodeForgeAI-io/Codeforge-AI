@@ -10,7 +10,7 @@ export const contestInputSchema = z.object({
   questions: z
     .array(
       z.object({
-        questionId: z.string().length(24),
+        questionId: z.string().regex(/^[0-9a-f]{24}$|^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
         points: z.coerce.number().int().min(10).max(1000).default(100),
       }),
     )
