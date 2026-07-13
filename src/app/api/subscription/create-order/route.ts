@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
-import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
-import { Subscription } from "@/models/Subscription";
 import { PLANS } from "@/lib/plans";
 import type { BillingCycle, PlanId } from "@/lib/plans";
+import { createSubscriptionRecord } from "@/services/billing-store";
 
 export async function POST(req: NextRequest) {
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
@@ -28,7 +27,6 @@ export async function POST(req: NextRequest) {
     key_secret: process.env.RAZORPAY_KEY_SECRET!,
   });
 
-  await connectDB();
   const order = await razorpay.orders.create({
     amount: amount * 100, // paise
     currency: "INR",
@@ -36,8 +34,8 @@ export async function POST(req: NextRequest) {
     notes: { userId: session.user.id, plan, cycle },
   });
 
-  await Subscription.create({
-    user: session.user.id,
+  await createSubscriptionRecord({
+    userId: session.user.id,
     plan,
     billingCycle: cycle,
     amount,

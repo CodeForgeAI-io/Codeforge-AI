@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { enforceRateLimit } from "@/lib/rate-limit";
-import { User } from "@/models";
 import { getRazorpay, paymentsEnabled } from "@/lib/razorpay";
+import { getUserBillingFields, updateUserPlan } from "@/services/billing-store";
 import { getPostHogServer } from "@/lib/posthog-server";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { sendEmail } from "@/lib/mailer";
@@ -24,10 +23,7 @@ export async function POST(req: NextRequest) {
   const limited = await enforceRateLimit("payment", req, session.user.id);
   if (limited) return limited;
 
-  await connectDB();
-  const user = await User.findById(session.user.id)
-    .select("razorpaySubscriptionId plan planExpiresAt name email")
-    .lean();
+  const user = await getUserBillingFields(session.user.id);
 
   // For a recurring subscription, tell Razorpay to stop after the current cycle
   // so auto-pay is revoked but the user keeps access until period end.
@@ -40,7 +36,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  await User.findByIdAndUpdate(session.user.id, {
+  await updateUserPlan(session.user.id, {
     cancelAtPeriodEnd: true,
     subscriptionStatus: "cancelled",
     billingCycle: null,
