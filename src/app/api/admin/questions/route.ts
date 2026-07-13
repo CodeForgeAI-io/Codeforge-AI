@@ -1,42 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { Question } from "@/models";
 import {
   questionImportSchema,
   normalizeQuestionImport,
 } from "@/schemas/question";
 import { saveQuestionDraft } from "@/services/ai/generate-questions";
+import { adminListQuestions } from "@/services/questions";
 
 /** Admin: list ALL questions including unpublished drafts */
 export async function GET(req: NextRequest) {
   const { error } = await requireAdmin();
   if (error) return error;
 
-  await connectDB();
-  const q = req.nextUrl.searchParams.get("q")?.trim();
-  const query: Record<string, unknown> = {};
-  if (q) query.title = { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" };
-
-  const questions = await Question.find(query)
-    .sort({ createdAt: -1 })
-    .limit(200)
-    .select("slug title difficulty category isPublished source stats createdAt")
-    .lean();
-
-  return NextResponse.json({
-    questions: questions.map((question) => ({
-      id: question._id.toString(),
-      slug: question.slug,
-      title: question.title,
-      difficulty: question.difficulty,
-      category: question.category,
-      isPublished: question.isPublished,
-      source: question.source,
-      submissions: question.stats.submissions,
-      createdAt: question.createdAt,
-    })),
-  });
+  const search = req.nextUrl.searchParams.get("q")?.trim() || undefined;
+  const questions = await adminListQuestions(search);
+  return NextResponse.json({ questions });
 }
 
 /**
@@ -65,7 +43,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  await connectDB();
   const items = Array.isArray(parsed.data) ? parsed.data : [parsed.data];
   const created: { slug: string; title: string }[] = [];
   const failed: { title: string; reason: string }[] = [];
