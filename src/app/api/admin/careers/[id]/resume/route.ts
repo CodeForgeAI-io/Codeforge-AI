@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { get } from "@vercel/blob";
 import { requireAdmin } from "@/lib/api-auth";
 import { getApplicationResume } from "@/services/job-application-store";
 
@@ -25,20 +24,23 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "No résumé on file" }, { status: 404 });
   }
 
-  let res;
+  // The stored résumé URL is public (Vercel Blob or Supabase Storage) — fetch
+  // it through this admin-only endpoint so the raw URL never reaches the UI and
+  // downloads stay behind login. Works regardless of the storage backend.
+  let res: Response;
   try {
-    res = await get(app.resumeUrl, { access: "public" });
+    res = await fetch(app.resumeUrl);
   } catch {
     return NextResponse.json({ error: "Could not fetch résumé" }, { status: 502 });
   }
-  if (!res?.stream) {
+  if (!res.ok || !res.body) {
     return NextResponse.json({ error: "Résumé not found in storage" }, { status: 404 });
   }
 
   const filename = (app.resumeName || "resume").replace(/[\r\n"]/g, "");
-  return new NextResponse(res.stream as ReadableStream, {
+  return new NextResponse(res.body, {
     headers: {
-      "Content-Type": res.blob.contentType || "application/octet-stream",
+      "Content-Type": res.headers.get("content-type") || "application/octet-stream",
       "Content-Disposition": `inline; filename="${filename}"`,
       "Cache-Control": "private, no-store",
     },

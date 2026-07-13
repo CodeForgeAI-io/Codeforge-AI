@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { put } from "@vercel/blob";
 import { requireAdmin } from "@/lib/api-auth";
+import { uploadPublicFile, storageEnabled } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -12,9 +12,9 @@ export async function POST(req: NextRequest) {
   const { error } = await requireAdmin();
   if (error) return error;
 
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!storageEnabled()) {
     return NextResponse.json(
-      { error: "Image upload is not configured. Add BLOB_READ_WRITE_TOKEN." },
+      { error: "Image upload is not configured." },
       { status: 503 },
     );
   }
@@ -32,12 +32,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const blob = await put(`newsletter/${file.name}`, file, {
-      access: "public",
-      addRandomSuffix: true,
-      contentType: file.type,
-    });
-    return NextResponse.json({ url: blob.url });
+    const url = await uploadPublicFile("newsletter", file, file.type);
+    return NextResponse.json({ url });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Upload failed";
     // Common when the blob store/token is misconfigured — the composer also
