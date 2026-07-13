@@ -196,3 +196,130 @@ export async function redeemCoupon(opts: {
     { $inc: { usedCount: 1 } },
   );
 }
+
+// ── Admin ────────────────────────────────────────────────────────────────
+
+export interface AdminCoupon {
+  id: string;
+  code: string;
+  description: string;
+  type: string;
+  value: number;
+  minAmount: number;
+  maxRedemptions: number;
+  usedCount: number;
+  oncePerUser: boolean;
+  plans: string[];
+  expiresAt: Date | null;
+  active: boolean;
+  createdAt: Date;
+}
+
+/** Admin: list all coupons. */
+export async function adminListCoupons(): Promise<AdminCoupon[]> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("coupons")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    return ((data ?? []) as Record<string, unknown>[]).map((c) => ({
+      id: c.id as string, code: c.code as string, description: (c.description as string) ?? "",
+      type: c.type as string, value: c.value as number, minAmount: (c.min_amount as number) ?? 0,
+      maxRedemptions: (c.max_redemptions as number) ?? -1, usedCount: (c.used_count as number) ?? 0,
+      oncePerUser: Boolean(c.once_per_user), plans: (c.plans as string[]) ?? [],
+      expiresAt: c.expires_at ? new Date(c.expires_at as string) : null,
+      active: Boolean(c.active), createdAt: new Date(c.created_at as string),
+    }));
+  }
+  await connectDB();
+  const coupons = await Coupon.find().sort({ createdAt: -1 }).limit(500).lean();
+  return coupons.map((c) => ({
+    id: c._id.toString(), code: c.code, description: c.description ?? "", type: c.type, value: c.value,
+    minAmount: c.minAmount, maxRedemptions: c.maxRedemptions, usedCount: c.usedCount,
+    oncePerUser: c.oncePerUser, plans: c.plans ?? [], expiresAt: c.expiresAt ?? null,
+    active: c.active, createdAt: c.createdAt,
+  }));
+}
+
+export interface CreateCoupon {
+  code: string;
+  description: string;
+  type: string;
+  value: number;
+  minAmount: number;
+  maxRedemptions: number;
+  oncePerUser: boolean;
+  plans: string[];
+  expiresAt: Date | null;
+  active: boolean;
+}
+
+/** Admin: create a coupon. Returns its id, or null if the code exists. */
+export async function createCoupon(input: CreateCoupon): Promise<string | null> {
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    const { data: exists } = await sb.from("coupons").select("id").eq("code", input.code).maybeSingle();
+    if (exists) return null;
+    const { data, error } = await sb.from("coupons").insert({
+      code: input.code, description: input.description, type: input.type, value: input.value,
+      min_amount: input.minAmount, max_redemptions: input.maxRedemptions, once_per_user: input.oncePerUser,
+      plans: input.plans, expires_at: input.expiresAt ? input.expiresAt.toISOString() : null, active: input.active,
+    }).select("id").single();
+    if (error) throw new Error(error.message);
+    return (data as { id: string }).id;
+  }
+  await connectDB();
+  const exists = await Coupon.findOne({ code: input.code }).lean();
+  if (exists) return null;
+  const coupon = new Coupon({
+    code: input.code, description: input.description, type: input.type, value: input.value,
+    minAmount: input.minAmount, maxRedemptions: input.maxRedemptions, oncePerUser: input.oncePerUser,
+    plans: input.plans, expiresAt: input.expiresAt, active: input.active,
+  });
+  await coupon.save();
+  return coupon._id.toString();
+}
+
+export interface CouponPatch {
+  active?: boolean;
+  description?: string;
+  value?: number;
+  type?: string;
+  minAmount?: number;
+  maxRedemptions?: number;
+  oncePerUser?: boolean;
+  plans?: string[];
+  expiresAt?: Date | null;
+}
+
+const COUPON_FIELD_MAP: Record<keyof CouponPatch, string> = {
+  active: "active", description: "description", value: "value", type: "type",
+  minAmount: "min_amount", maxRedemptions: "max_redemptions", oncePerUser: "once_per_user",
+  plans: "plans", expiresAt: "expires_at",
+};
+
+/** Admin: update a coupon (never its code or usedCount). */
+export async function updateCoupon(id: string, patch: CouponPatch): Promise<void> {
+  if (be() === "supabase") {
+    const row: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(patch)) {
+      if (v === undefined) continue;
+      row[COUPON_FIELD_MAP[k as keyof CouponPatch]] = v instanceof Date ? v.toISOString() : v;
+    }
+    if (Object.keys(row).length) await supabaseAdmin().from("coupons").update(row).eq("id", id);
+    return;
+  }
+  await connectDB();
+  if (Types.ObjectId.isValid(id)) await Coupon.updateOne({ _id: id }, { $set: patch });
+}
+
+/** Admin: delete a coupon. */
+export async function deleteCoupon(id: string): Promise<void> {
+  if (be() === "supabase") {
+    await supabaseAdmin().from("coupons").delete().eq("id", id);
+    return;
+  }
+  await connectDB();
+  if (Types.ObjectId.isValid(id)) await Coupon.deleteOne({ _id: id });
+}
