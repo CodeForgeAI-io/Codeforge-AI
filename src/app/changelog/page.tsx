@@ -10,10 +10,29 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "2.5.3",
-    date: "July 12, 2026",
+    version: "3.0.0",
+    date: "July 13, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Passwordless sign-in with passkeys — add a passkey in Settings, then sign in with Face ID, Touch ID, Windows Hello or a security key. Nothing to type or remember, and it's phishing-resistant by design",
+      ],
+      improved: [
+        "We rebuilt the entire backend on Supabase for a faster, more reliable platform — your problems, submissions, progress, badges, notes, bookmarks and billing all moved across with nothing lost",
+        "A fresh, modern sign-in and sign-up experience — a clean split-screen design that looks great in both light and dark mode",
+        "As part of the upgrade you'll be asked to sign in once more; your account, data and plan are exactly as you left them",
+      ],
+      fixed: [
+        "Forgot-password now works end to end — the reset link reliably opens the ‘set a new password’ screen instead of erroring out",
+      ],
+    },
+  },
+  {
+    version: "2.5.3",
+    date: "July 12, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [],
       improved: [
