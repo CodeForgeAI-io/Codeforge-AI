@@ -33,6 +33,11 @@ Everything else (Razorpay, Groq, Resend, reCAPTCHA, PostHog…) stays as-is.
 > **Supabase → Authentication → URL Configuration → Redirect URLs**
 > (and the app's `/auth/callback`). Email+password login needs no redirect.
 
+> **Storage:** `DATA_BACKEND=supabase` also flips file uploads to Supabase
+> Storage (buckets `resumes` + `newsletter` already created, both public), so
+> `BLOB_READ_WRITE_TOKEN` is no longer needed on the preview. To keep uploads on
+> Vercel Blob independently, set `DATA_BACKEND_STORAGE=mongo`.
+
 ## 3. Test checklist (all should work against migrated Supabase data)
 
 **Auth**
@@ -59,6 +64,10 @@ Everything else (Razorpay, Groq, Resend, reCAPTCHA, PostHog…) stays as-is.
 **Billing / quotas**
 - [ ] AI mentor chat works and decrements AI credits.
 - [ ] Dashboard shows the correct plan; feature gates behave.
+
+**Storage**
+- [ ] Careers: upload a résumé (PDF) → admin can open it from the applicants list.
+- [ ] Admin newsletter: upload an image → it renders in the composer/email.
 
 ## 4. What to watch for
 
