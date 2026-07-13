@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { connectDB } from "@/lib/mongodb";
-import { Discussion, User } from "@/models";
+import { getRecentDiscussions, countDiscussions } from "@/services/discussions-store";
+import { countActiveMembers } from "@/services/user-store";
 import { getLeaderboard } from "@/services/stats";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -43,17 +43,11 @@ type RecentDiscussion = {
 };
 
 export default async function CommunityPage() {
-  await connectDB();
   const [topMembers, recentRaw, memberCount, discussionCount] = await Promise.all([
     getLeaderboard(5),
-    Discussion.find({})
-      .sort({ createdAt: -1 })
-      .limit(6)
-      .populate("author", "username name image")
-      .select("title kind author createdAt upvotes")
-      .lean(),
-    User.countDocuments({ banned: false }),
-    Discussion.countDocuments({}),
+    getRecentDiscussions(6),
+    countActiveMembers(),
+    countDiscussions(),
   ]);
   const recent = recentRaw as unknown as RecentDiscussion[];
 

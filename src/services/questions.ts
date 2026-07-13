@@ -37,6 +37,23 @@ export interface QuestionListResult {
   hasMore: boolean;
 }
 
+/** Published question slugs + last-modified (sitemap). */
+export async function listPublishedQuestionSlugs(): Promise<{ slug: string; updatedAt: Date }[]> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("questions")
+      .select("slug,updated_at")
+      .eq("is_published", true);
+    return ((data ?? []) as { slug: string; updated_at: string }[]).map((q) => ({
+      slug: q.slug,
+      updatedAt: new Date(q.updated_at),
+    }));
+  }
+  await connectDB();
+  const rows = await Question.find({ isPublished: true }, "slug updatedAt").lean<{ slug: string; updatedAt: Date }[]>();
+  return rows.map((q) => ({ slug: q.slug, updatedAt: q.updatedAt }));
+}
+
 /** Distinct question ids the user solved / attempted, as string sets */
 export async function getUserQuestionStatuses(userId: string): Promise<{
   solved: Set<string>;

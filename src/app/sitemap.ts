@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getEffectiveConfig } from "@/lib/site-config";
-import { connectDB } from "@/lib/mongodb";
-import { Question, BlogPost } from "@/models";
+import { listPublishedQuestionSlugs } from "@/services/questions";
+import { listPublishedSlugs } from "@/services/blog-store";
 import { DOC_ARTICLES } from "@/content/docs";
 import { CAREERS } from "@/content/careers";
 
@@ -39,9 +39,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let problemRoutes: MetadataRoute.Sitemap = [];
   try {
-    await connectDB();
     // Every published problem — including ones users generate — is indexed.
-    const problems = await Question.find({ isPublished: true }, "slug updatedAt").lean<{ slug: string; updatedAt: Date }[]>();
+    const problems = await listPublishedQuestionSlugs();
     problemRoutes = problems.map((p) => ({
       url: `${base}/problems/${p.slug}`,
       lastModified: p.updatedAt ?? now,
@@ -61,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let blogRoutes: MetadataRoute.Sitemap = [];
   try {
-    const posts = await BlogPost.find({ status: "published" }, "slug updatedAt").lean<{ slug: string; updatedAt: Date }[]>();
+    const posts = await listPublishedSlugs();
     blogRoutes = posts.map((p) => ({
       url: `${base}/blog/${p.slug}`,
       lastModified: p.updatedAt ?? now,
