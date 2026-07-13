@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "@/components/providers";
 import { AnalyticsScripts } from "@/components/analytics";
 import { PWARegister } from "@/components/pwa-register";
@@ -262,6 +263,7 @@ export default async function RootLayout({
         <Providers>{children}</Providers>
         <AnalyticsScripts />
         <SpeedInsights />
+        <Analytics />
         <PWARegister />
         {/* AdSense — loaded after the page is interactive so it never blocks
             first paint or competes for the main thread during navigation. */}
