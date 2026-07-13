@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Types } from "mongoose";
 import { z } from "zod";
-import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { mapToObject } from "@/lib/utils";
-import { Question, Submission } from "@/models";
 import { questionInputSchema } from "@/schemas/question";
+import { getAdminQuestion, updateQuestion, deleteQuestionCascade } from "@/services/questions";
 
 const patchSchema = questionInputSchema.partial();
 
@@ -19,43 +16,11 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
-
-  await connectDB();
-  const question = await Question.findById(id).lean();
+  const question = await getAdminQuestion(id);
   if (!question) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-
-  return NextResponse.json({
-    question: {
-      id: question._id.toString(),
-      title: question.title,
-      difficulty: question.difficulty,
-      category: question.category,
-      tags: question.tags,
-      companies: question.companies,
-      description: question.description,
-      examples: question.examples.map((example) => ({
-        input: example.input,
-        output: example.output,
-        explanation: example.explanation,
-      })),
-      constraints: question.constraints,
-      starterCode: mapToObject(question.starterCode),
-      testCases: question.testCases.map((testCase) => ({
-        input: testCase.input,
-        expected: testCase.expected,
-        hidden: testCase.hidden,
-      })),
-      solution: question.solution,
-      editorial: question.editorial,
-      hints: question.hints,
-      isPublished: question.isPublished,
-    },
-  });
+  return NextResponse.json({ question });
 }
 
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
@@ -63,9 +28,6 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
 
   let body: unknown;
   try {
@@ -78,30 +40,23 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
     return NextResponse.json(
-      {
-        error: `Validation failed at ${issue?.path.join(".") || "(root)"}: ${issue?.message}`,
-      },
+      { error: `Validation failed at ${issue?.path.join(".") || "(root)"}: ${issue?.message}` },
       { status: 400 },
     );
   }
 
-  await connectDB();
   // zod's .partial() still fills .default() values for absent fields —
-  // only update keys the client actually sent or we'd wipe data
+  // only update keys the client actually sent or we'd wipe data.
   const sentKeys = new Set(Object.keys(body as object));
   const update = Object.fromEntries(
     Object.entries(parsed.data).filter(([key]) => sentKeys.has(key)),
   );
 
-  const updated = await Question.findByIdAndUpdate(
-    id,
-    { $set: update },
-    { returnDocument: 'after' },
-  );
-  if (!updated) {
+  const slug = await updateQuestion(id, update);
+  if (!slug) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  return NextResponse.json({ ok: true, slug: updated.slug });
+  return NextResponse.json({ ok: true, slug });
 }
 
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {
@@ -109,16 +64,10 @@ export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
-
-  await connectDB();
-  const deleted = await Question.findByIdAndDelete(id);
-  if (!deleted) {
+  const ok = await deleteQuestionCascade(id);
+  if (!ok) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  await Submission.deleteMany({ question: deleted._id });
   return NextResponse.json({ ok: true });
 }
 

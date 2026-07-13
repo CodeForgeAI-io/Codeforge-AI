@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { Types } from "mongoose";
 import { requireUser } from "@/lib/api-auth";
-import { connectDB } from "@/lib/mongodb";
-import { Subscription, User } from "@/models";
 import { APP_NAME } from "@/lib/constants";
+import { getPaidSubscriptionById, getInvoiceUserProfile } from "@/services/billing-store";
 
 const INK = "#171717";
 const MUTED = "#8f8f8f";
@@ -32,27 +30,20 @@ export async function GET(
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid invoice id" }, { status: 400 });
-  }
 
-  await connectDB();
-  const sub = await Subscription.findOne({
-    _id: new Types.ObjectId(id),
-    user: new Types.ObjectId(session.user.id),
-    status: "paid",
-  }).lean();
+  const sub = await getPaidSubscriptionById(session.user.id, id);
   if (!sub) {
     return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
   }
-  const user = await User.findById(session.user.id).select("name email billing").lean();
-  const addr = user?.billing
-    ? [user.billing.line1, user.billing.line2, [user.billing.city, user.billing.state].filter(Boolean).join(", "), user.billing.postalCode, user.billing.country]
+  const user = await getInvoiceUserProfile(session.user.id);
+  const billing = user?.billing;
+  const addr = billing
+    ? [billing.line1, billing.line2, [billing.city, billing.state].filter(Boolean).join(", "), billing.postalCode, billing.country]
         .filter(Boolean)
         .join("<br/>")
     : "";
 
-  const num = `CF-${String(sub._id).slice(-8).toUpperCase()}`;
+  const num = `CF-${sub.id.slice(-8).toUpperCase()}`;
   const date = new Date(sub.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   const period =
     sub.periodStart && sub.periodEnd
@@ -103,7 +94,7 @@ td.r,th.r{text-align:right}
     <div class="cols">
       <div class="col">
         <div class="lbl">Billed to</div>
-        <div class="v">${user?.name ?? "Customer"}<br/>${user?.email ?? ""}${addr ? `<br/>${addr}` : ""}${user?.billing?.phone ? `<br/>${user.billing.phone}` : ""}</div>
+        <div class="v">${user?.name ?? "Customer"}<br/>${user?.email ?? ""}${addr ? `<br/>${addr}` : ""}${billing?.phone ? `<br/>${billing?.phone}` : ""}</div>
       </div>
       <div class="col">
         <div class="lbl">From</div>
@@ -124,7 +115,7 @@ td.r,th.r{text-align:right}
 
     <div class="total"><span>Total</span><span>${total}</span></div>
     <div class="paid">Paid</div>
-    ${sub.razorpayPaymentId ? `<div class="foot">Payment reference: ${sub.razorpayPaymentId}</div>` : ""}
+    ${sub.paymentId ? `<div class="foot">Payment reference: ${sub.paymentId}</div>` : ""}
     <div class="foot">Thank you for your business. Questions? Email <a href="mailto:${SUPPORT_EMAIL}" style="color:${BLUE};text-decoration:none">${SUPPORT_EMAIL}</a></div>
     <div class="poweredby">Powered by <img src="${SITE_URL}/black.png" alt="Setups Works"/></div>
   </div>

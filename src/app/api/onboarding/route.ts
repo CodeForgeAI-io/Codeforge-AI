@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { User } from "@/models";
 import { getPostHogServer } from "@/lib/posthog-server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor } from "@/lib/data-backend";
 
 export async function POST(req: NextRequest) {
   const { session, error } = await requireUser();
@@ -15,16 +17,33 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  await connectDB();
-  await User.findByIdAndUpdate(session.user.id, {
-    "onboarding.completed": true,
-    "onboarding.goal": goal,
-    "onboarding.level": level,
-    "onboarding.topics": topics,
-    "onboarding.companies": companies ?? [],
-    "onboarding.dailyGoal": dailyGoal,
-    "onboarding.completedAt": new Date(),
-  });
+  if (backendFor("account") === "supabase") {
+    await supabaseAdmin()
+      .from("users")
+      .update({
+        onboarding: {
+          completed: true,
+          goal,
+          level,
+          topics,
+          companies: companies ?? [],
+          dailyGoal,
+          completedAt: new Date().toISOString(),
+        },
+      })
+      .eq("id", session.user.id);
+  } else {
+    await connectDB();
+    await User.findByIdAndUpdate(session.user.id, {
+      "onboarding.completed": true,
+      "onboarding.goal": goal,
+      "onboarding.level": level,
+      "onboarding.topics": topics,
+      "onboarding.companies": companies ?? [],
+      "onboarding.dailyGoal": dailyGoal,
+      "onboarding.completedAt": new Date(),
+    });
+  }
 
   const posthog = getPostHogServer();
   posthog?.capture({

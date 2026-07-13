@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Types } from "mongoose";
 import { z } from "zod";
-import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { Contest } from "@/models";
+import { updateContest, deleteContest } from "@/services/contests";
 
 const patchSchema = z.object({
   isPublished: z.boolean().optional(),
@@ -21,9 +19,6 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
 
   let body: unknown;
   try {
@@ -40,13 +35,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     );
   }
 
-  await connectDB();
-  const updated = await Contest.findByIdAndUpdate(
-    id,
-    { $set: parsed.data },
-    { returnDocument: 'after' },
-  );
-  if (!updated) {
+  const ok = await updateContest(id, parsed.data);
+  if (!ok) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   return NextResponse.json({ ok: true });
@@ -57,13 +47,8 @@ export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   if (error) return error;
 
   const { id } = await params;
-  if (!Types.ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
-  }
-
-  await connectDB();
-  const deleted = await Contest.findByIdAndDelete(id);
-  if (!deleted) {
+  const ok = await deleteContest(id);
+  if (!ok) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   return NextResponse.json({ ok: true });

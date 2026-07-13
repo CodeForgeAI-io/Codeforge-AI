@@ -37,6 +37,23 @@ export interface QuestionListResult {
   hasMore: boolean;
 }
 
+/** Published question slugs + last-modified (sitemap). */
+export async function listPublishedQuestionSlugs(): Promise<{ slug: string; updatedAt: Date }[]> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("questions")
+      .select("slug,updated_at")
+      .eq("is_published", true);
+    return ((data ?? []) as { slug: string; updated_at: string }[]).map((q) => ({
+      slug: q.slug,
+      updatedAt: new Date(q.updated_at),
+    }));
+  }
+  await connectDB();
+  const rows = await Question.find({ isPublished: true }, "slug updatedAt").lean<{ slug: string; updatedAt: Date }[]>();
+  return rows.map((q) => ({ slug: q.slug, updatedAt: q.updatedAt }));
+}
+
 /** Distinct question ids the user solved / attempted, as string sets */
 export async function getUserQuestionStatuses(userId: string): Promise<{
   solved: Set<string>;
@@ -348,3 +365,185 @@ async function getQuestionBySlugSupabase(slug: string) {
 export type QuestionDetail = NonNullable<
   Awaited<ReturnType<typeof getQuestionBySlug>>
 >;
+
+// ── Admin ────────────────────────────────────────────────────────────────
+
+export interface AdminQuestionListItem {
+  id: string;
+  slug: string;
+  title: string;
+  difficulty: string;
+  category: string;
+  isPublished: boolean;
+  source: string | null;
+  submissions: number;
+  createdAt: Date;
+}
+
+/** Admin: list all questions (drafts included), optional title search. */
+export async function adminListQuestions(search?: string): Promise<AdminQuestionListItem[]> {
+  if (be() === "supabase") {
+    let q = supabaseAdmin()
+      .from("questions")
+      .select("id,slug,title,difficulty,category,is_published,source,stats,created_at")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (search) q = q.ilike("title", `%${search}%`);
+    const { data } = await q;
+    return ((data ?? []) as {
+      id: string; slug: string; title: string; difficulty: string; category: string;
+      is_published: boolean; source: string | null; stats: QStats | null; created_at: string;
+    }[]).map((x) => ({
+      id: x.id, slug: x.slug, title: x.title, difficulty: x.difficulty, category: x.category,
+      isPublished: x.is_published, source: x.source, submissions: x.stats?.submissions ?? 0, createdAt: new Date(x.created_at),
+    }));
+  }
+  await connectDB();
+  const query: Record<string, unknown> = {};
+  if (search) query.title = { $regex: search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" };
+  const questions = await Question.find(query).sort({ createdAt: -1 }).limit(200)
+    .select("slug title difficulty category isPublished source stats createdAt").lean();
+  return questions.map((x) => ({
+    id: x._id.toString(), slug: x.slug, title: x.title, difficulty: x.difficulty, category: x.category,
+    isPublished: x.isPublished, source: x.source ?? null, submissions: x.stats.submissions, createdAt: x.createdAt,
+  }));
+}
+
+/** Admin: full question detail for the edit dialog. */
+export async function getAdminQuestion(id: string) {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("questions")
+      .select("id,title,difficulty,category,tags,companies,description,examples,constraints,starter_code,test_cases,solution,editorial,hints,is_published")
+      .eq("id", id)
+      .maybeSingle();
+    if (!data) return null;
+    const d = data as SbQuestionDetailRow & { solution: string | null; is_published: boolean };
+    return {
+      id: d.id, title: d.title, difficulty: d.difficulty, category: d.category, tags: d.tags ?? [],
+      companies: d.companies ?? [], description: d.description,
+      examples: (d.examples ?? []).map((e) => ({ input: e.input, output: e.output, explanation: e.explanation ?? null })),
+      constraints: d.constraints ?? [], starterCode: d.starter_code ?? {},
+      testCases: (d.test_cases ?? []).map((t) => ({ input: t.input, expected: t.expected, hidden: t.hidden })),
+      solution: (d as { solution: string | null }).solution, editorial: d.editorial, hints: d.hints ?? [], isPublished: d.is_published,
+    };
+  }
+  if (!Types.ObjectId.isValid(id)) return null;
+  await connectDB();
+  const q = await Question.findById(id).lean();
+  if (!q) return null;
+  return {
+    id: q._id.toString(), title: q.title, difficulty: q.difficulty, category: q.category, tags: q.tags,
+    companies: q.companies, description: q.description,
+    examples: q.examples.map((e) => ({ input: e.input, output: e.output, explanation: e.explanation ?? null })),
+    constraints: q.constraints, starterCode: mapToObject(q.starterCode),
+    testCases: q.testCases.map((t) => ({ input: t.input, expected: t.expected, hidden: t.hidden })),
+    solution: q.solution, editorial: q.editorial, hints: q.hints, isPublished: q.isPublished,
+  };
+}
+
+const Q_FIELD_MAP: Record<string, string> = {
+  title: "title", difficulty: "difficulty", category: "category", tags: "tags", companies: "companies",
+  description: "description", examples: "examples", constraints: "constraints", starterCode: "starter_code",
+  testCases: "test_cases", solution: "solution", editorial: "editorial", hints: "hints", isPublished: "is_published",
+};
+
+/** Admin: update selected fields of a question. Returns the slug, or null. */
+export async function updateQuestion(id: string, patch: Record<string, unknown>): Promise<string | null> {
+  if (be() === "supabase") {
+    const row: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(patch)) if (Q_FIELD_MAP[k]) row[Q_FIELD_MAP[k]] = v;
+    if (!Object.keys(row).length) {
+      const { data } = await supabaseAdmin().from("questions").select("slug").eq("id", id).maybeSingle();
+      return (data as { slug: string } | null)?.slug ?? null;
+    }
+    const { data, error } = await supabaseAdmin().from("questions").update(row).eq("id", id).select("slug").maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data as { slug: string } | null)?.slug ?? null;
+  }
+  if (!Types.ObjectId.isValid(id)) return null;
+  await connectDB();
+  const updated = await Question.findByIdAndUpdate(id, { $set: patch }, { returnDocument: "after" });
+  return updated?.slug ?? null;
+}
+
+/** Admin: delete a question and its submissions. Returns false if not found. */
+export async function deleteQuestionCascade(id: string): Promise<boolean> {
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    const { data } = await sb.from("questions").delete().eq("id", id).select("id").maybeSingle();
+    if (!data) return false;
+    await sb.from("submissions").delete().eq("question_id", id);
+    return true;
+  }
+  if (!Types.ObjectId.isValid(id)) return false;
+  await connectDB();
+  const deleted = await Question.findByIdAndDelete(id);
+  if (!deleted) return false;
+  await Submission.deleteMany({ question: deleted._id });
+  return true;
+}
+
+/** Admin: bulk publish/unpublish/delete. Returns the affected count. */
+export async function bulkQuestions(ids: string[], action: "publish" | "unpublish" | "delete"): Promise<number> {
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    if (action === "delete") {
+      const { data } = await sb.from("questions").delete().in("id", ids).select("id");
+      await sb.from("submissions").delete().in("question_id", ids);
+      return (data ?? []).length;
+    }
+    const { data } = await sb.from("questions").update({ is_published: action === "publish" }).in("id", ids).select("id");
+    return (data ?? []).length;
+  }
+  await connectDB();
+  const objIds = ids.filter((i) => Types.ObjectId.isValid(i)).map((i) => new Types.ObjectId(i));
+  if (action === "delete") {
+    const result = await Question.deleteMany({ _id: { $in: objIds } });
+    await Submission.deleteMany({ question: { $in: objIds } });
+    return result.deletedCount ?? 0;
+  }
+  const result = await Question.updateMany({ _id: { $in: objIds } }, { $set: { isPublished: action === "publish" } });
+  return result.modifiedCount ?? 0;
+}
+
+/** Admin: every question in import-file shape (backup export). */
+export async function exportQuestions(): Promise<Record<string, unknown>[]> {
+  const shape = (q: {
+    title: string; difficulty: string; category: string; tags: string[]; companies: string[];
+    description: string; examples: { input: string; output: string; explanation?: string | null }[];
+    constraints: string[]; starterCode: Record<string, string>;
+    testCases: { input: string; expected: string; hidden: boolean }[];
+    solution?: string | null; editorial?: string | null; hints: string[]; isPublished: boolean;
+  }) => ({
+    title: q.title, difficulty: q.difficulty, category: q.category, tags: q.tags, companies: q.companies,
+    description: q.description,
+    examples: q.examples.map((e) => ({ input: e.input, output: e.output, ...(e.explanation ? { explanation: e.explanation } : {}) })),
+    constraints: q.constraints, starterCode: q.starterCode,
+    testCases: q.testCases.map((t) => ({ input: t.input, expected: t.expected, hidden: t.hidden })),
+    ...(q.solution ? { solution: q.solution } : {}), ...(q.editorial ? { editorial: q.editorial } : {}),
+    hints: q.hints, isPublished: q.isPublished,
+  });
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("questions")
+      .select("title,difficulty,category,tags,companies,description,examples,constraints,starter_code,test_cases,solution,editorial,hints,is_published")
+      .order("created_at", { ascending: true });
+    return ((data ?? []) as Record<string, unknown>[]).map((q) => shape({
+      title: q.title as string, difficulty: q.difficulty as string, category: q.category as string,
+      tags: (q.tags as string[]) ?? [], companies: (q.companies as string[]) ?? [], description: q.description as string,
+      examples: (q.examples as { input: string; output: string; explanation?: string }[]) ?? [],
+      constraints: (q.constraints as string[]) ?? [], starterCode: (q.starter_code as Record<string, string>) ?? {},
+      testCases: (q.test_cases as { input: string; expected: string; hidden: boolean }[]) ?? [],
+      solution: q.solution as string | null, editorial: q.editorial as string | null,
+      hints: (q.hints as string[]) ?? [], isPublished: q.is_published as boolean,
+    }));
+  }
+  await connectDB();
+  const questions = await Question.find().sort({ createdAt: 1 }).lean();
+  return questions.map((q) => shape({
+    title: q.title, difficulty: q.difficulty, category: q.category, tags: q.tags, companies: q.companies,
+    description: q.description, examples: q.examples, constraints: q.constraints, starterCode: mapToObject(q.starterCode),
+    testCases: q.testCases, solution: q.solution, editorial: q.editorial, hints: q.hints, isPublished: q.isPublished,
+  }));
+}

@@ -2,6 +2,8 @@ import crypto from "crypto";
 import Razorpay from "razorpay";
 import { RazorpayPlan } from "@/models";
 import { PLANS, type PlanId, type BillingCycle } from "@/lib/plans";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { backendFor } from "@/lib/data-backend";
 
 /** True when Razorpay server credentials are configured. */
 export function paymentsEnabled(): boolean {
@@ -89,8 +91,19 @@ export async function getOrCreatePlanId(
       ? `${plan}_${cycle}_${amount}`
       : `${plan}_${cycle}`;
 
-  const existing = await RazorpayPlan.findById(key).lean<{ planId: string }>();
-  if (existing?.planId) return existing.planId;
+  const useSupabase = backendFor("razorpay_plans") === "supabase";
+  if (useSupabase) {
+    const { data } = await supabaseAdmin()
+      .from("razorpay_plans")
+      .select("plan_id")
+      .eq("id", key)
+      .maybeSingle();
+    const planId = (data as { plan_id: string } | null)?.plan_id;
+    if (planId) return planId;
+  } else {
+    const existing = await RazorpayPlan.findById(key).lean<{ planId: string }>();
+    if (existing?.planId) return existing.planId;
+  }
 
   const def = PLANS[plan];
   // razorpay sdk types are loose here; period accepts "monthly" | "yearly"
@@ -105,10 +118,19 @@ export async function getOrCreatePlanId(
     },
   } as Parameters<Razorpay["plans"]["create"]>[0]);
 
-  await RazorpayPlan.updateOne(
-    { _id: key },
-    { $set: { planId: created.id, plan, cycle, amount } },
-    { upsert: true },
-  );
+  if (useSupabase) {
+    await supabaseAdmin()
+      .from("razorpay_plans")
+      .upsert(
+        { id: key, plan_id: created.id, plan, cycle, amount },
+        { onConflict: "id" },
+      );
+  } else {
+    await RazorpayPlan.updateOne(
+      { _id: key },
+      { $set: { planId: created.id, plan, cycle, amount } },
+      { upsert: true },
+    );
+  }
   return created.id;
 }

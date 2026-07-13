@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { enforceRateLimit } from "@/lib/rate-limit";
-import { Subscription, User } from "@/models";
 import { PLANS, type BillingCycle, type PlanId } from "@/lib/plans";
 import {
   paymentsEnabled,
@@ -12,6 +10,11 @@ import {
   amountForPlan,
 } from "@/lib/razorpay";
 import { validateCoupon, redeemCoupon } from "@/lib/coupons";
+import {
+  updateUserPlan,
+  getUserBillingFields,
+  createSubscriptionRecord,
+} from "@/services/billing-store";
 
 export const runtime = "nodejs";
 
@@ -77,15 +80,14 @@ export async function POST(req: NextRequest) {
     country: trim(body.billing?.country, 2) || "IN",
   };
 
-  await connectDB();
-  await User.findByIdAndUpdate(session.user.id, { billing });
+  await updateUserPlan(session.user.id, { billing });
 
   // Card-on-file free trial: only for new users who never trialed, only when
   // no coupon is applied (a discounted first charge and a delayed first charge
   // don't mix cleanly). The card is authenticated up front; Razorpay makes the
   // first real charge at `start_at`, so the user pays nothing during the trial.
   const trialDays = PLANS[plan].trialDays;
-  const existingUser = await User.findById(session.user.id).select("trialEndsAt").lean();
+  const existingUser = await getUserBillingFields(session.user.id);
   const wantsTrial =
     body.trial === true && trialDays > 0 && !couponCode && !existingUser?.trialEndsAt;
   const trialEndsAt = wantsTrial
@@ -99,8 +101,8 @@ export async function POST(req: NextRequest) {
     if (cycle === "yearly") periodEnd.setFullYear(periodEnd.getFullYear() + 1);
     else periodEnd.setMonth(periodEnd.getMonth() + 1);
 
-    await Subscription.create({
-      user: session.user.id,
+    await createSubscriptionRecord({
+      userId: session.user.id,
       plan,
       billingCycle: cycle,
       amount: 0,
@@ -113,7 +115,7 @@ export async function POST(req: NextRequest) {
       periodStart: now,
       periodEnd,
     });
-    await User.findByIdAndUpdate(session.user.id, {
+    await updateUserPlan(session.user.id, {
       plan,
       billingCycle: cycle,
       planExpiresAt: periodEnd,
@@ -149,8 +151,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await Subscription.create({
-      user: session.user.id,
+    await createSubscriptionRecord({
+      userId: session.user.id,
       plan,
       billingCycle: cycle,
       amount: finalAmount,

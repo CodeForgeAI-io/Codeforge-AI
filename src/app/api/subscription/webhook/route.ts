@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import { User, Subscription, WebhookEvent } from "@/models";
 import { verifyWebhookSignature } from "@/lib/razorpay";
+import {
+  recordWebhookEvent,
+  findUserByRazorpaySubId,
+  updateUserByRazorpaySubId,
+  updateUserPlan,
+  upsertInvoiceByPaymentId,
+} from "@/services/billing-store";
 import { getPostHogServer } from "@/lib/posthog-server";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { sendEmail } from "@/lib/mailer";
@@ -63,12 +68,9 @@ export async function POST(req: NextRequest) {
   const eventType = payload.event ?? "unknown";
   const eventId = req.headers.get("x-razorpay-event-id") ?? `${eventType}:${Date.now()}`;
 
-  await connectDB();
-
-  // 2) Idempotency — a duplicate delivery fails this unique insert and exits.
-  try {
-    await WebhookEvent.create({ _id: eventId, event: eventType });
-  } catch {
+  // 2) Idempotency — a duplicate delivery is a no-op.
+  const isNew = await recordWebhookEvent(eventId, eventType);
+  if (!isNew) {
     return NextResponse.json({ ok: true, duplicate: true });
   }
 
@@ -80,8 +82,8 @@ export async function POST(req: NextRequest) {
       case "subscription.charged": {
         const subId = subEntity?.id;
         if (!subId) break;
-        const user = await User.findOne({ razorpaySubscriptionId: subId });
-        const userId = user?._id?.toString() ?? subEntity?.notes?.userId;
+        const user = await findUserByRazorpaySubId(subId);
+        const userId = user?.id ?? subEntity?.notes?.userId;
         if (!userId) break;
 
         const plan = (user?.plan && user.plan !== "free" ? user.plan : subEntity?.notes?.plan) ?? "go";
@@ -94,29 +96,21 @@ export async function POST(req: NextRequest) {
         // Record the charge as an invoice (idempotent on payment id).
         let newInvoice = false;
         if (payEntity?.id) {
-          const res = await Subscription.updateOne(
-            { razorpayPaymentId: payEntity.id },
-            {
-              $setOnInsert: {
-                user: userId,
-                plan,
-                billingCycle: cycle,
-                amount: (payEntity.amount ?? 0) / 100,
-                currency: payEntity.currency ?? "INR",
-                kind: "subscription",
-                razorpaySubscriptionId: subId,
-                razorpayPaymentId: payEntity.id,
-                status: "paid",
-                periodStart,
-                periodEnd,
-              },
-            },
-            { upsert: true },
-          );
-          newInvoice = (res.upsertedCount ?? 0) > 0;
+          newInvoice = await upsertInvoiceByPaymentId(payEntity.id, {
+            userId,
+            plan,
+            billingCycle: cycle,
+            amount: (payEntity.amount ?? 0) / 100,
+            currency: payEntity.currency ?? "INR",
+            kind: "subscription",
+            razorpaySubscriptionId: subId,
+            status: "paid",
+            periodStart,
+            periodEnd,
+          });
         }
 
-        await User.findByIdAndUpdate(userId, {
+        await updateUserPlan(userId, {
           plan,
           billingCycle: cycle,
           planExpiresAt: periodEnd,
@@ -149,17 +143,14 @@ export async function POST(req: NextRequest) {
       case "subscription.activated":
       case "subscription.authenticated": {
         const subId = subEntity?.id;
-        if (subId) await User.updateOne({ razorpaySubscriptionId: subId }, { subscriptionStatus: "active" });
+        if (subId) await updateUserByRazorpaySubId(subId, { subscriptionStatus: "active" });
         break;
       }
 
       case "subscription.halted": {
         const subId = subEntity?.id;
         if (subId) {
-          const u = await User.findOneAndUpdate(
-            { razorpaySubscriptionId: subId },
-            { subscriptionStatus: "halted" },
-          );
+          const u = await updateUserByRazorpaySubId(subId, { subscriptionStatus: "halted" });
           // A recurring charge failed → auto-pay paused. Ask them to fix the card.
           if (u?.email) {
             const plan = u.plan && u.plan !== "free" ? u.plan : subEntity?.notes?.plan ?? "go";
@@ -182,10 +173,9 @@ export async function POST(req: NextRequest) {
         const subId = subEntity?.id;
         if (subId) {
           // Keep access until planExpiresAt; a later check downgrades to free.
-          await User.updateOne(
-            { razorpaySubscriptionId: subId },
-            { subscriptionStatus: eventType === "subscription.completed" ? "completed" : "cancelled" },
-          );
+          await updateUserByRazorpaySubId(subId, {
+            subscriptionStatus: eventType === "subscription.completed" ? "completed" : "cancelled",
+          });
         }
         break;
       }

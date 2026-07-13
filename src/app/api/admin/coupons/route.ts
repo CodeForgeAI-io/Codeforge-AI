@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/api-auth";
-import { Coupon } from "@/models";
-import { normalizeCode } from "@/lib/coupons";
+import { normalizeCode, adminListCoupons, createCoupon } from "@/lib/coupons";
 
 export const runtime = "nodejs";
 
@@ -10,25 +8,8 @@ export async function GET() {
   const { error } = await requireAdmin();
   if (error) return error;
 
-  await connectDB();
-  const coupons = await Coupon.find().sort({ createdAt: -1 }).limit(500).lean();
-  return NextResponse.json({
-    coupons: coupons.map((c) => ({
-      id: c._id.toString(),
-      code: c.code,
-      description: c.description ?? "",
-      type: c.type,
-      value: c.value,
-      minAmount: c.minAmount,
-      maxRedemptions: c.maxRedemptions,
-      usedCount: c.usedCount,
-      oncePerUser: c.oncePerUser,
-      plans: c.plans ?? [],
-      expiresAt: c.expiresAt ?? null,
-      active: c.active,
-      createdAt: c.createdAt,
-    })),
-  });
+  const coupons = await adminListCoupons();
+  return NextResponse.json({ coupons });
 }
 
 export async function POST(req: NextRequest) {
@@ -56,11 +37,7 @@ export async function POST(req: NextRequest) {
     ? body.plans.filter((p) => p === "go" || p === "plus")
     : [];
 
-  await connectDB();
-  const exists = await Coupon.findOne({ code }).lean();
-  if (exists) return NextResponse.json({ error: "That code already exists" }, { status: 409 });
-
-  const coupon = await Coupon.create({
+  const id = await createCoupon({
     code,
     description: String(body.description ?? "").slice(0, 200),
     type,
@@ -72,6 +49,7 @@ export async function POST(req: NextRequest) {
     expiresAt: body.expiresAt ? new Date(String(body.expiresAt)) : null,
     active: body.active !== false,
   });
+  if (!id) return NextResponse.json({ error: "That code already exists" }, { status: 409 });
 
-  return NextResponse.json({ ok: true, id: coupon._id.toString() }, { status: 201 });
+  return NextResponse.json({ ok: true, id }, { status: 201 });
 }
