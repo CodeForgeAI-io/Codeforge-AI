@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, TrendingUp, Search, BarChart3 } from "@/components/icons";
+import { Loader2, TrendingUp } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -13,18 +13,6 @@ interface PostHog {
   activeNow: number; users24h: number; pageviews24h: number; pageviews7d: number;
   topPages: { path: string; views: number }[];
   topEvents: { event: string; count: number }[];
-}
-interface Ga4 {
-  configured: boolean; error?: string;
-  activeUsers: number;
-  topPages: { path: string; users: number }[];
-  topCountries: { country: string; users: number }[];
-}
-interface Gsc {
-  configured: boolean; error?: string;
-  clicks: number; impressions: number; ctr: number; position: number;
-  topQueries: { query: string; clicks: number; impressions: number }[];
-  topPages: { page: string; clicks: number; impressions: number }[];
 }
 
 function useInsight<T>(source: string, refetchInterval?: number) {
@@ -43,15 +31,10 @@ export function InsightsView() {
   return (
     <div className="space-y-4">
       <PostHogSection />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Ga4Section />
-        <GscSection />
-      </div>
     </div>
   );
 }
 
-// ── PostHog ──────────────────────────────────────────────────────────────────
 function PostHogSection() {
   const { data, isLoading } = useInsight<PostHog>("posthog", 30_000);
 
@@ -83,65 +66,6 @@ function PostHogSection() {
   );
 }
 
-// ── GA4 ──────────────────────────────────────────────────────────────────────
-function Ga4Section() {
-  const { data, isLoading } = useInsight<Ga4>("ga4", 30_000);
-
-  return (
-    <Section
-      icon={<BarChart3 className="size-4" />}
-      title="Google Analytics — Realtime"
-      live
-      loading={isLoading}
-      configured={data?.configured}
-      error={data?.error}
-      setup="Set GA4_PROPERTY_ID and GOOGLE_SERVICE_ACCOUNT_JSON (service account with GA4 access)."
-    >
-      {data && (
-        <>
-          <Stat label="Active users" value={fmt(data.activeUsers)} accent hint="right now" />
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <RankList title="Top pages" rows={data.topPages.map((p) => [p.path || "(not set)", fmt(p.users)])} />
-            <RankList title="Top countries" rows={data.topCountries.map((c) => [c.country || "—", fmt(c.users)])} />
-          </div>
-        </>
-      )}
-    </Section>
-  );
-}
-
-// ── GSC ──────────────────────────────────────────────────────────────────────
-function GscSection() {
-  const { data, isLoading } = useInsight<Gsc>("search-console");
-
-  return (
-    <Section
-      icon={<Search className="size-4" />}
-      title="Search Console — last 28 days"
-      loading={isLoading}
-      configured={data?.configured}
-      error={data?.error}
-      setup="Set GSC_SITE_URL (e.g. sc-domain:codeforgeai.io) and GOOGLE_SERVICE_ACCOUNT_JSON (added to the property)."
-    >
-      {data && (
-        <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat label="Clicks" value={fmt(data.clicks)} accent />
-            <Stat label="Impressions" value={fmt(data.impressions)} />
-            <Stat label="CTR" value={`${data.ctr}%`} />
-            <Stat label="Avg position" value={String(data.position)} />
-          </div>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <RankList title="Top queries" rows={data.topQueries.map((q) => [q.query, fmt(q.clicks)])} />
-            <RankList title="Top pages" rows={data.topPages.map((p) => [p.page.replace(/^https?:\/\/[^/]+/, "") || "/", fmt(p.clicks)])} />
-          </div>
-        </>
-      )}
-    </Section>
-  );
-}
-
-// ── Shared ────────────────────────────────────────────────────────────────────
 function Section({
   icon, title, live, loading, configured, error, setup, children,
 }: {
