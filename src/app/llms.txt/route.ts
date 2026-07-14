@@ -1,6 +1,8 @@
 import { getEffectiveConfig } from "@/lib/site-config";
 import { DOC_ARTICLES, DOC_CATEGORIES } from "@/content/docs";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants";
+import { FOUNDER } from "@/lib/founder";
+import { listPublishedPosts } from "@/services/blog-store";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,19 @@ export async function GET() {
     ];
   });
 
+  // Latest published blog posts (best-effort; never break llms.txt on DB error).
+  let blogLines: string[] = [];
+  try {
+    const posts = await listPublishedPosts(100);
+    blogLines = posts.map(
+      (p) => `- [${p.title}](${base}/blog/${p.slug})${p.description ? `: ${p.description}` : ""}`,
+    );
+  } catch {
+    // ignore
+  }
+
+  const founderProfiles = FOUNDER.profiles.map((p) => `- ${p.label}: ${p.href}`).join("\n");
+
 const body = `# ${APP_NAME}
 
 > ${APP_DESCRIPTION}
@@ -29,9 +44,12 @@ Website: ${base}
 LLMs File: ${base}/llms.txt
 Sitemap: ${base}/sitemap.xml
 
-Company: Setups Works
-Founder: Nitheesh Rajendran
+Name: CodeForge AI
+Also known as: CodeForge, Codeforge AI, Code Forge AI, codeforgeai, codeforgeai.io
+Company: Setups Works (parent organization)
+Founder: ${FOUNDER.name} (${FOUNDER.role})
 Category: AI Coding Interview Preparation Platform
+Founded: 2026, Chennai, Tamil Nadu, India
 Primary Language: English
 
 ---
@@ -41,6 +59,32 @@ Primary Language: English
 ${APP_NAME} is an AI-powered coding interview preparation platform for students and software engineers.
 
 The platform helps developers practice Data Structures & Algorithms, solve coding problems, prepare for technical interviews, use an online compiler supporting 12 programming languages, receive AI-powered mentoring, improve coding skills through personalized learning, and track progress using skill analytics and spaced repetition.
+
+---
+
+## Founder
+
+Name: ${FOUNDER.name}
+Role: ${FOUNDER.role} of ${APP_NAME}
+Profile: ${FOUNDER.url}
+
+${FOUNDER.description}
+
+Areas of expertise: ${FOUNDER.knowsAbout.join(", ")}.
+
+Profiles:
+${founderProfiles}
+
+---
+
+## Company — Setups Works
+
+${APP_NAME} is a product of Setups Works, an independent software studio founded by ${FOUNDER.name} and based in Chennai, Tamil Nadu, India. Setups Works builds AI-powered developer tools and educational products.
+
+- Parent organization: Setups Works
+- Product: ${APP_NAME} (${base})
+- Location: Chennai, Tamil Nadu, India
+- Contact: info@codeforgeai.io
 
 ---
 
@@ -122,6 +166,14 @@ Protected endpoints require authenticated sessions.
 ## Documentation
 
 ${docLines.join("\n")}
+
+---
+
+## Blog Posts
+
+${blogLines.length ? blogLines.join("\n") : `See all posts at ${base}/blog`}
+
+Full, always-current index: ${base}/post-sitemap.xml
 
 ---
 
@@ -207,13 +259,22 @@ ${base}/sitemap.xml
 
 ---
 
-## Sitemap
+## Sitemaps
 
+Sitemap index (auto-updating, references every child sitemap below):
 ${base}/sitemap.xml
 
-This sitemap contains canonical URLs for public pages, documentation, blog posts, help articles, and platform resources.
+Per-content-type sitemaps:
+- Pages: ${base}/page-sitemap.xml
+- Problems (all published DSA problems): ${base}/problem-sitemap.xml
+- Blog posts: ${base}/post-sitemap.xml
+- Forum discussions: ${base}/discussion-sitemap.xml
+- Help / documentation: ${base}/help-sitemap.xml
+- Careers: ${base}/careers-sitemap.xml
 
-AI assistants and search engines may use it to discover updated content.
+These sitemaps contain canonical URLs for all public content and auto-update as
+problems, blog posts and forum threads are added. AI assistants and search
+engines may use them to discover and re-crawl updated content.
 
 ---
 
