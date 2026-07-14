@@ -7,6 +7,10 @@ import {
   Subscription,
   User,
   AiUsage,
+  AiChat,
+  AiToolRun,
+  Progress,
+  DailyActivity,
 } from "@/models";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { backendFor } from "@/lib/data-backend";
@@ -307,4 +311,251 @@ export async function getAdminBilling(filter: { q?: string; plan?: string }): Pr
   });
 
   return { rows, period, summary };
+}
+
+// ── Key metrics (Growth · Retention · Learning · Business) ──────────────────
+
+export interface AdminMetrics {
+  growth: {
+    totalUsers: number;
+    newUsers: { today: number; week: number; month: number };
+    activeUsers: { dau: number; wau: number; mau: number };
+  };
+  retention: {
+    /** % of a cohort that came back the next day (null = not enough data). */
+    day1: number | null;
+    day7: number | null;
+    /** Average session length in minutes — not instrumented yet (null). */
+    avgSessionMinutes: number | null;
+  };
+  learning: {
+    problemsSolved: number;
+    aiMentorUsage: number;
+    resumeReviews: number;
+    courseCompletions: number;
+  };
+  business: {
+    trialUsers: number;
+    paidUsers: number;
+    mrr: number;
+    currency: string;
+    conversionRate: number;
+    /** 30-day approximation (null = no paid users yet). */
+    churnRate: number | null;
+  };
+}
+
+const DAY = 86_400_000;
+const dayStr = (t: number) => new Date(t).toISOString().slice(0, 10);
+
+/** Raw rows both backends fetch; the pure computer below turns them into metrics. */
+interface MetricsRaw {
+  now: number;
+  totalUsers: number;
+  newToday: number;
+  newWeek: number;
+  newMonth: number;
+  acceptedSubs: number;
+  aiChats: number;
+  resumeReviews: number;
+  courseCompletions: number;
+  trialUsers: number;
+  paidUsers: number;
+  expiredLast30: number;
+  activity: { user: string; date: string }[]; // last 31 days
+  cohortUsers: { id: string; createdAt: number }[]; // signups in last 31 days
+  activePaid: { id: string; billingCycle: string | null; planExpiresAt: number | null }[];
+  paidSubs: { user: string; amount: number; currency: string; billingCycle: string | null; createdAt: number }[];
+}
+
+function computeMetrics(raw: MetricsRaw): AdminMetrics {
+  const todayStr = dayStr(raw.now);
+  const wauFrom = dayStr(raw.now - 6 * DAY);
+  const mauFrom = dayStr(raw.now - 29 * DAY);
+
+  // Active users + a membership set for retention lookups.
+  const active = new Set<string>(); // "user|date"
+  const dau = new Set<string>();
+  const wau = new Set<string>();
+  const mau = new Set<string>();
+  for (const a of raw.activity) {
+    active.add(`${a.user}|${a.date}`);
+    if (a.date >= mauFrom) mau.add(a.user);
+    if (a.date >= wauFrom) wau.add(a.user);
+    if (a.date === todayStr) dau.add(a.user);
+  }
+
+  // Cohort retention: of users who signed up ≥ dayN days ago (within 30d),
+  // what share had activity on their signup-day + dayN?
+  const retentionAt = (dayN: number): number | null => {
+    const oldest = raw.now - 30 * DAY;
+    const newest = raw.now - dayN * DAY;
+    let cohort = 0;
+    let returned = 0;
+    for (const u of raw.cohortUsers) {
+      if (u.createdAt < oldest || u.createdAt >= newest) continue;
+      cohort++;
+      const signup = new Date(`${dayStr(u.createdAt)}T00:00:00.000Z`).getTime();
+      if (active.has(`${u.id}|${dayStr(signup + dayN * DAY)}`)) returned++;
+    }
+    return cohort > 0 ? Math.round((returned / cohort) * 100) : null;
+  };
+
+  // MRR: latest paid subscription per active paid user, normalized to monthly.
+  const latestAt = new Map<string, number>();
+  const latest = new Map<string, { amount: number; currency: string; cycle: string | null }>();
+  for (const s of raw.paidSubs) {
+    if ((latestAt.get(s.user) ?? -1) < s.createdAt) {
+      latestAt.set(s.user, s.createdAt);
+      latest.set(s.user, { amount: s.amount, currency: s.currency, cycle: s.billingCycle });
+    }
+  }
+  let mrr = 0;
+  const curCount = new Map<string, number>();
+  for (const u of raw.activePaid) {
+    if (u.planExpiresAt !== null && u.planExpiresAt < raw.now) continue; // lapsed
+    const sub = latest.get(u.id);
+    if (!sub) continue;
+    const cycle = (sub.cycle ?? u.billingCycle ?? "monthly").toLowerCase();
+    mrr += /year|annual/.test(cycle) ? sub.amount / 12 : sub.amount;
+    curCount.set(sub.currency, (curCount.get(sub.currency) ?? 0) + 1);
+  }
+  const currency = [...curCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "INR";
+
+  const churnBase = raw.paidUsers + raw.expiredLast30;
+
+  return {
+    growth: {
+      totalUsers: raw.totalUsers,
+      newUsers: { today: raw.newToday, week: raw.newWeek, month: raw.newMonth },
+      activeUsers: { dau: dau.size, wau: wau.size, mau: mau.size },
+    },
+    retention: {
+      day1: retentionAt(1),
+      day7: retentionAt(7),
+      avgSessionMinutes: null,
+    },
+    learning: {
+      problemsSolved: raw.acceptedSubs,
+      aiMentorUsage: raw.aiChats,
+      resumeReviews: raw.resumeReviews,
+      courseCompletions: raw.courseCompletions,
+    },
+    business: {
+      trialUsers: raw.trialUsers,
+      paidUsers: raw.paidUsers,
+      mrr: Math.round(mrr),
+      currency,
+      conversionRate: raw.totalUsers > 0 ? Math.round((raw.paidUsers / raw.totalUsers) * 1000) / 10 : 0,
+      churnRate: churnBase > 0 ? Math.round((raw.expiredLast30 / churnBase) * 1000) / 10 : null,
+    },
+  };
+}
+
+/** Growth / retention / learning / business KPIs for the admin dashboard. */
+export async function getAdminMetrics(): Promise<AdminMetrics> {
+  const now = Date.now();
+  const nowIso = new Date(now).toISOString();
+  const startTodayIso = new Date(`${dayStr(now)}T00:00:00.000Z`).toISOString();
+  const weekAgoIso = new Date(now - 7 * DAY).toISOString();
+  const monthAgoIso = new Date(now - 30 * DAY).toISOString();
+  const activityFrom = dayStr(now - 31 * DAY);
+
+  if (be() === "supabase") {
+    const sb = supabaseAdmin();
+    interface Filterable {
+      gte(col: string, v: unknown): Filterable;
+      gt(col: string, v: unknown): Filterable;
+      lt(col: string, v: unknown): Filterable;
+      eq(col: string, v: unknown): Filterable;
+      in(col: string, v: unknown[]): Filterable;
+    }
+    const countOf = async (table: string, apply?: (q: Filterable) => Filterable): Promise<number> => {
+      const base = sb.from(table).select("id", { count: "exact", head: true });
+      const q = apply ? (apply(base as unknown as Filterable) as unknown as typeof base) : base;
+      const { count } = await q;
+      return count ?? 0;
+    };
+    // Paginated fetch (Supabase caps a single response at ~1000 rows).
+    const fetchAll = async <T>(build: () => { range: (a: number, b: number) => PromiseLike<{ data: unknown[] | null }> }): Promise<T[]> => {
+      const out: T[] = [];
+      const size = 1000;
+      for (let from = 0; from < 40_000; from += size) {
+        const { data } = await build().range(from, from + size - 1);
+        const rows = (data ?? []) as T[];
+        out.push(...rows);
+        if (rows.length < size) break;
+      }
+      return out;
+    };
+
+    const [
+      totalUsers, newToday, newWeek, newMonth, acceptedSubs, aiChats, resumeReviews,
+      courseCompletions, trialUsers, paidUsers, expiredLast30,
+    ] = await Promise.all([
+      countOf("users"),
+      countOf("users", (q) => q.gte("created_at", startTodayIso)),
+      countOf("users", (q) => q.gte("created_at", weekAgoIso)),
+      countOf("users", (q) => q.gte("created_at", monthAgoIso)),
+      countOf("submissions", (q) => q.eq("status", "Accepted")),
+      countOf("ai_chats"),
+      countOf("ai_tool_runs", (q) => q.eq("tool", "resume")),
+      countOf("progress", (q) => q.gte("percent", 100)),
+      countOf("users", (q) => q.gt("trial_ends_at", nowIso)),
+      countOf("users", (q) => q.in("plan", ["go", "plus"])),
+      countOf("users", (q) => q.gte("plan_expires_at", monthAgoIso).lt("plan_expires_at", nowIso)),
+    ]);
+
+    const [activityRows, cohortRows, activePaidRows, paidSubRows] = await Promise.all([
+      fetchAll<{ user_id: string; date: string }>(() =>
+        sb.from("daily_activity").select("user_id,date").gte("date", activityFrom) as never),
+      fetchAll<{ id: string; created_at: string }>(() =>
+        sb.from("users").select("id,created_at").gte("created_at", new Date(now - 31 * DAY).toISOString()) as never),
+      fetchAll<{ id: string; billing_cycle: string | null; plan_expires_at: string | null }>(() =>
+        sb.from("users").select("id,billing_cycle,plan_expires_at").in("plan", ["go", "plus"]) as never),
+      fetchAll<{ user_id: string; amount: number; currency: string; billing_cycle: string | null; created_at: string }>(() =>
+        sb.from("subscriptions").select("user_id,amount,currency,billing_cycle,created_at").eq("status", "paid") as never),
+    ]);
+
+    return computeMetrics({
+      now, totalUsers, newToday, newWeek, newMonth, acceptedSubs, aiChats, resumeReviews,
+      courseCompletions, trialUsers, paidUsers, expiredLast30,
+      activity: activityRows.map((r) => ({ user: r.user_id, date: r.date })),
+      cohortUsers: cohortRows.map((r) => ({ id: r.id, createdAt: new Date(r.created_at).getTime() })),
+      activePaid: activePaidRows.map((r) => ({ id: r.id, billingCycle: r.billing_cycle, planExpiresAt: r.plan_expires_at ? new Date(r.plan_expires_at).getTime() : null })),
+      paidSubs: paidSubRows.map((r) => ({ user: r.user_id, amount: r.amount ?? 0, currency: r.currency ?? "INR", billingCycle: r.billing_cycle, createdAt: new Date(r.created_at).getTime() })),
+    });
+  }
+
+  await connectDB();
+  const [
+    totalUsers, newToday, newWeek, newMonth, acceptedSubs, aiChats, resumeReviews,
+    courseCompletions, trialUsers, paidUsers, expiredLast30,
+    activityDocs, cohortDocs, activePaidDocs, paidSubDocs,
+  ] = await Promise.all([
+    User.countDocuments(),
+    User.countDocuments({ createdAt: { $gte: new Date(startTodayIso) } }),
+    User.countDocuments({ createdAt: { $gte: new Date(weekAgoIso) } }),
+    User.countDocuments({ createdAt: { $gte: new Date(monthAgoIso) } }),
+    Submission.countDocuments({ status: "Accepted" }),
+    AiChat.countDocuments(),
+    AiToolRun.countDocuments({ tool: "resume" }),
+    Progress.countDocuments({ percent: { $gte: 100 } }),
+    User.countDocuments({ trialEndsAt: { $gt: new Date(now) } }),
+    User.countDocuments({ plan: { $in: ["go", "plus"] } }),
+    User.countDocuments({ planExpiresAt: { $gte: new Date(monthAgoIso), $lt: new Date(now) } }),
+    DailyActivity.find({ date: { $gte: activityFrom } }).select("user date").lean(),
+    User.find({ createdAt: { $gte: new Date(now - 31 * DAY) } }).select("createdAt").lean(),
+    User.find({ plan: { $in: ["go", "plus"] } }).select("billingCycle planExpiresAt").lean(),
+    Subscription.find({ status: "paid" }).select("user amount currency billingCycle createdAt").lean(),
+  ]);
+
+  return computeMetrics({
+    now, totalUsers, newToday, newWeek, newMonth, acceptedSubs, aiChats, resumeReviews,
+    courseCompletions, trialUsers, paidUsers, expiredLast30,
+    activity: activityDocs.map((d) => ({ user: String(d.user), date: d.date })),
+    cohortUsers: cohortDocs.map((d) => ({ id: String(d._id), createdAt: new Date(d.createdAt).getTime() })),
+    activePaid: activePaidDocs.map((d) => ({ id: String(d._id), billingCycle: d.billingCycle ?? null, planExpiresAt: d.planExpiresAt ? new Date(d.planExpiresAt).getTime() : null })),
+    paidSubs: paidSubDocs.map((d) => ({ user: String(d.user), amount: d.amount ?? 0, currency: d.currency ?? "INR", billingCycle: d.billingCycle ?? null, createdAt: new Date(d.createdAt).getTime() })),
+  });
 }
