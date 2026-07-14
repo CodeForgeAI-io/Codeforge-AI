@@ -2,137 +2,149 @@
 
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, TrendingUp } from "@/components/icons";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Loader2, TrendingUp, Users, Layers, Globe, MonitorPlay, AlertTriangle, Clock,
+} from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const fmt = (n: number) => n.toLocaleString();
-
-interface PostHog {
-  configured: boolean; error?: string;
-  activeNow: number; users24h: number; pageviews24h: number; pageviews7d: number;
-  topPages: { path: string; views: number }[];
-  topEvents: { event: string; count: number }[];
+function duration(sec: number): string {
+  if (!sec) return "0s";
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return m ? `${m}m ${s}s` : `${s}s`;
 }
 
-function useInsight<T>(source: string, refetchInterval?: number) {
-  return useQuery<T>({
-    queryKey: ["admin-insight", source],
-    queryFn: async () => {
-      const res = await fetch(`/api/admin/insights/${source}`);
-      if (!res.ok) throw new Error("Failed to load");
-      return res.json();
-    },
-    refetchInterval,
-  });
+interface NameCount { name: string; count: number }
+interface PostHog {
+  configured: boolean; error?: string;
+  activeNow: number; uniques24h: number; sessions24h: number; avgSessionSec: number;
+  pageviews24h: number; pageviews7d: number; errors24h: number;
+  trend: { date: string; views: number }[];
+  topPages: { path: string; views: number }[];
+  topEvents: NameCount[];
+  referrers: NameCount[]; countries: NameCount[]; browsers: NameCount[];
+  devices: NameCount[]; os: NameCount[];
 }
 
 export function InsightsView() {
+  const { data, isLoading } = useQuery<PostHog>({
+    queryKey: ["admin-insight", "posthog"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/insights/posthog");
+      if (!res.ok) throw new Error("Failed to load");
+      return res.json();
+    },
+    refetchInterval: 30_000,
+  });
+
+  if (isLoading) {
+    return <div className="flex justify-center py-20"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>;
+  }
+  if (!data?.configured) {
+    return (
+      <Card><CardContent className="p-4">
+        <Badge variant="secondary" className="mb-2">Not configured</Badge>
+        <p className="text-sm text-muted-foreground">Set POSTHOG_PERSONAL_API_KEY (and optionally POSTHOG_PROJECT_ID) to enable PostHog insights.</p>
+      </CardContent></Card>
+    );
+  }
+  if (data.error) {
+    return <Card><CardContent className="p-4 text-sm text-destructive">Couldn&apos;t load PostHog: {data.error}</CardContent></Card>;
+  }
+
   return (
     <div className="space-y-4">
-      <PostHogSection />
+      <div className="flex items-center gap-2">
+        <span className="flex size-7 items-center justify-center rounded-md bg-[#006bff]/10 text-[#006bff]"><TrendingUp className="size-4" /></span>
+        <h2 className="text-sm font-semibold">PostHog — Product Analytics</h2>
+        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-easy">
+          <span className="size-1.5 animate-pulse rounded-full bg-easy" /> live · auto-refresh 30s
+        </span>
+      </div>
+
+      {/* Headline stats */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
+        <Stat icon={<Users className="size-3.5" />} label="Active now" hint="30 min" value={fmt(data.activeNow)} accent />
+        <Stat icon={<Users className="size-3.5" />} label="Visitors" hint="24h" value={fmt(data.uniques24h)} />
+        <Stat icon={<Layers className="size-3.5" />} label="Sessions" hint="24h" value={fmt(data.sessions24h)} />
+        <Stat icon={<Clock className="size-3.5" />} label="Avg session" value={duration(data.avgSessionSec)} />
+        <Stat icon={<TrendingUp className="size-3.5" />} label="Pageviews" hint="24h" value={fmt(data.pageviews24h)} />
+        <Stat icon={<TrendingUp className="size-3.5" />} label="Pageviews" hint="7d" value={fmt(data.pageviews7d)} />
+        <Stat icon={<AlertTriangle className="size-3.5" />} label="Errors" hint="24h" value={fmt(data.errors24h)} warn={data.errors24h > 0} />
+      </div>
+
+      {/* Trend */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Pageviews — last 14 days</CardTitle></CardHeader>
+        <CardContent className="h-56">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data.trend}>
+              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+              <XAxis dataKey="date" tickFormatter={(d) => String(d).slice(5)} fontSize={11} />
+              <YAxis allowDecimals={false} width={30} fontSize={11} />
+              <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+              <Area type="monotone" dataKey="views" stroke="#006bff" fill="#006bff" fillOpacity={0.2} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Breakdowns */}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <Panel title="Top pages" hint="24h"><RankList rows={data.topPages.map((p) => [p.path, fmt(p.views)])} /></Panel>
+        <Panel title="Top events" hint="24h"><RankList rows={data.topEvents.map((e) => [e.name, fmt(e.count)])} /></Panel>
+        <Panel title="Referrers / sources" hint="7d" icon={<Globe className="size-3.5" />}><RankList rows={data.referrers.map((r) => [r.name, fmt(r.count)])} /></Panel>
+        <Panel title="Countries" hint="7d" icon={<Globe className="size-3.5" />}><RankList rows={data.countries.map((c) => [c.name, fmt(c.count)])} /></Panel>
+        <Panel title="Browsers" hint="7d" icon={<MonitorPlay className="size-3.5" />}><RankList rows={data.browsers.map((b) => [b.name, fmt(b.count)])} /></Panel>
+        <Panel title="Devices & OS" hint="7d" icon={<MonitorPlay className="size-3.5" />}>
+          <RankList rows={[...data.devices.map((d) => [d.name, fmt(d.count)] as [string, string]), ...data.os.map((o) => [o.name, fmt(o.count)] as [string, string])]} />
+        </Panel>
+      </div>
     </div>
   );
 }
 
-function PostHogSection() {
-  const { data, isLoading } = useInsight<PostHog>("posthog", 30_000);
-
+function Stat({ icon, label, hint, value, accent, warn }: {
+  icon: ReactNode; label: string; hint?: string; value: string; accent?: boolean; warn?: boolean;
+}) {
   return (
-    <Section
-      icon={<TrendingUp className="size-4" />}
-      title="PostHog — Product Analytics"
-      live
-      loading={isLoading}
-      configured={data?.configured}
-      error={data?.error}
-      setup="Set POSTHOG_PERSONAL_API_KEY (and optionally POSTHOG_PROJECT_ID) in your environment."
-    >
-      {data && (
-        <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat label="Active now" value={fmt(data.activeNow)} accent hint="last 30 min" />
-            <Stat label="Users (24h)" value={fmt(data.users24h)} />
-            <Stat label="Pageviews (24h)" value={fmt(data.pageviews24h)} />
-            <Stat label="Pageviews (7d)" value={fmt(data.pageviews7d)} />
-          </div>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <RankList title="Top pages (24h)" rows={data.topPages.map((p) => [p.path, fmt(p.views)])} />
-            <RankList title="Top events (24h)" rows={data.topEvents.map((e) => [e.event, fmt(e.count)])} />
-          </div>
-        </>
-      )}
-    </Section>
+    <div className="rounded-lg border bg-muted/20 p-3">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        {icon}
+        {label}{hint && <span className="text-muted-foreground/60">· {hint}</span>}
+      </div>
+      <p className={`mt-1 text-2xl font-semibold tabular-nums ${accent ? "text-[#006bff]" : warn ? "text-warning" : ""}`}>{value}</p>
+    </div>
   );
 }
 
-function Section({
-  icon, title, live, loading, configured, error, setup, children,
-}: {
-  icon: ReactNode; title: string; live?: boolean; loading?: boolean;
-  configured?: boolean; error?: string; setup: string; children: ReactNode;
-}) {
+function Panel({ title, hint, icon, children }: { title: string; hint?: string; icon?: ReactNode; children: ReactNode }) {
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <span className="flex size-7 items-center justify-center rounded-md bg-[#006bff]/10 text-[#006bff]">{icon}</span>
-          {title}
-          {live && configured && (
-            <span className="ml-1 inline-flex items-center gap-1 text-[11px] font-medium text-easy">
-              <span className="size-1.5 animate-pulse rounded-full bg-easy" /> live
-            </span>
-          )}
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-1.5 text-sm">
+          {icon}{title}
+          {hint && <span className="ml-auto text-[11px] font-normal text-muted-foreground">{hint}</span>}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="flex justify-center py-8"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
-        ) : configured === false ? (
-          <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-            <Badge variant="secondary" className="mb-2">Not configured</Badge>
-            <p>{setup}</p>
-          </div>
-        ) : error ? (
-          <div className="rounded-lg border border-dashed border-destructive/40 p-4 text-sm text-destructive">
-            Couldn&apos;t load: {error}
-          </div>
-        ) : (
-          children
-        )}
-      </CardContent>
+      <CardContent>{children}</CardContent>
     </Card>
   );
 }
 
-function Stat({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: boolean }) {
+function RankList({ rows }: { rows: [string, string][] }) {
+  if (rows.length === 0) return <p className="py-4 text-center text-xs text-muted-foreground">No data yet.</p>;
   return (
-    <div className="rounded-lg border bg-muted/20 p-3">
-      <p className={`text-2xl font-semibold tabular-nums ${accent ? "text-[#006bff]" : ""}`}>{value}</p>
-      <p className="text-xs text-muted-foreground">
-        {label}
-        {hint && <span className="text-muted-foreground/60"> · {hint}</span>}
-      </p>
-    </div>
-  );
-}
-
-function RankList({ title, rows }: { title: string; rows: [string, string][] }) {
-  return (
-    <div>
-      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
-      {rows.length === 0 ? (
-        <p className="py-4 text-center text-xs text-muted-foreground">No data yet.</p>
-      ) : (
-        <ul className="divide-y text-sm">
-          {rows.map(([k, v], i) => (
-            <li key={`${k}-${i}`} className="flex items-center justify-between gap-3 py-1.5">
-              <span className="min-w-0 truncate text-muted-foreground">{k}</span>
-              <span className="shrink-0 font-semibold tabular-nums">{v}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <ul className="divide-y text-sm">
+      {rows.map(([k, v], i) => (
+        <li key={`${k}-${i}`} className="flex items-center justify-between gap-3 py-1.5">
+          <span className="min-w-0 truncate text-muted-foreground">{k}</span>
+          <span className="shrink-0 font-semibold tabular-nums">{v}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
