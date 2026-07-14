@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
@@ -48,6 +48,7 @@ export function CheckoutForm({
   trialDays,
   trialEligible,
   initialTrial,
+  initialCouponCode,
   defaults,
 }: {
   plan: "go" | "plus";
@@ -59,6 +60,7 @@ export function CheckoutForm({
   trialEligible: boolean;
   /** Whether to open in trial mode (from ?trial=1). */
   initialTrial: boolean;
+  initialCouponCode?: string;
   defaults: Defaults;
 }) {
   const router = useRouter();
@@ -74,7 +76,7 @@ export function CheckoutForm({
   );
 
   // Coupon state
-  const [couponInput, setCouponInput] = useState("");
+  const [couponInput, setCouponInput] = useState(initialCouponCode?.toUpperCase() ?? "");
   const [coupon, setCoupon] = useState<{ code: string; discount: number; finalAmount: number } | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
@@ -82,8 +84,8 @@ export function CheckoutForm({
   const due = coupon ? coupon.finalAmount : amount;
   const PlanIcon = plan === "plus" ? Crown : Zap;
 
-  async function applyCoupon() {
-    const code = couponInput.trim();
+  async function applyCoupon(codeOverride?: string) {
+    const code = (typeof codeOverride === "string" ? codeOverride : couponInput).trim();
     if (!code) return;
     setCouponBusy(true);
     setCouponError(null);
@@ -96,13 +98,17 @@ export function CheckoutForm({
       const data = await res.json();
       if (!res.ok || !data.ok) {
         setCoupon(null);
-        setCouponError(data.reason ?? data.error ?? "Invalid coupon");
+        const errMessage = data.reason ?? data.error ?? "Invalid coupon";
+        setCouponError(errMessage);
+        toast.error(errMessage);
         return;
       }
       setCoupon({ code: data.code, discount: data.discount, finalAmount: data.finalAmount });
       toast.success(`Coupon ${data.code} applied`);
     } catch {
-      setCouponError("Could not validate coupon");
+      const errMessage = "Could not validate coupon";
+      setCouponError(errMessage);
+      toast.error(errMessage);
     } finally {
       setCouponBusy(false);
     }
@@ -113,6 +119,15 @@ export function CheckoutForm({
     setCouponInput("");
     setCouponError(null);
   }
+
+  // Auto-apply logic (Safe for Strict Mode duplicate mounts)
+  const autoApplied = useRef(false);
+  useEffect(() => {
+    if (initialCouponCode && !trial && !autoApplied.current) {
+      autoApplied.current = true;
+      applyCoupon(initialCouponCode);
+    }
+  }, [initialCouponCode, trial]);
   const set = (k: keyof Defaults) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -331,7 +346,7 @@ export function CheckoutForm({
                     placeholder="Coupon code"
                     className="h-9"
                   />
-                  <Button variant="outline" size="sm" onClick={applyCoupon} disabled={couponBusy || !couponInput.trim()}>
+                  <Button variant="outline" size="sm" onClick={() => applyCoupon()} disabled={couponBusy || !couponInput.trim()}>
                     {couponBusy ? <Loader2 className="size-4 animate-spin" /> : "Apply"}
                   </Button>
                 </div>

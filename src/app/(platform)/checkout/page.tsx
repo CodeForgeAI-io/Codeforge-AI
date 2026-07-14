@@ -11,12 +11,12 @@ export const dynamic = "force-dynamic";
 export default async function CheckoutPage({
   searchParams,
 }: {
-  searchParams: Promise<{ plan?: string; cycle?: string; trial?: string }>;
+  searchParams: Promise<{ plan?: string; cycle?: string; trial?: string; code?: string }>;
 }) {
   const session = await getSession();
   if (!session?.user?.id) redirect("/login?callbackUrl=/pricing");
 
-  const { plan: planParam, cycle: cycleParam, trial: trialParam } = await searchParams;
+  const { plan: planParam, cycle: cycleParam, trial: trialParam, code } = await searchParams;
   const plan = planParam === "go" || planParam === "plus" ? planParam : null;
   const cycle = cycleParam === "yearly" ? "yearly" : "monthly";
   if (!plan) redirect("/pricing");
@@ -42,6 +42,7 @@ export default async function CheckoutPage({
       trialDays={def.trialDays}
       trialEligible={trialEligible}
       initialTrial={trialParam === "1" || trialParam === "true"}
+      initialCouponCode={code ?? ""}
       defaults={{
         name: user.name ?? "",
         email: user.email ?? "",
