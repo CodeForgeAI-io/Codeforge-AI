@@ -21,7 +21,7 @@ const XSL = `<?xml version="1.0" encoding="UTF-8"?>
             font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
           .wrap { max-width: 1000px; margin: 0 auto; }
           .head { display: flex; align-items: center; gap: .6rem; margin-bottom: .35rem; }
-          .dot { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(150deg,#006bff,#0b3ea8); }
+          .logo { width: 30px; height: 30px; border-radius: 7px; display: block; }
           h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
           .muted { color: #666; font-size: .9rem; margin: 0 0 1.25rem; }
           .count { color: #171717; }
@@ -49,7 +49,7 @@ const XSL = `<?xml version="1.0" encoding="UTF-8"?>
       </head>
       <body>
         <div class="wrap">
-          <div class="head"><span class="dot"></span><h1>CodeForge AI — XML Sitemap</h1></div>
+          <div class="head"><img class="logo" src="/icon-512.png" alt="CodeForge AI"/><h1>CodeForge AI — XML Sitemap</h1></div>
           <p class="muted">Generated for search engines. This page is a human-readable view.</p>
 
           <xsl:if test="s:sitemapindex">
