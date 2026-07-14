@@ -7,6 +7,10 @@ import { getDiscussionForView, getDiscussionTitle } from "@/services/discussions
 import { PublicHeader } from "@/components/layout/public-header";
 import { Button } from "@/components/ui/button";
 import { ForumDetail } from "@/features/discussions/forum-detail";
+import { JsonLd } from "@/components/json-ld";
+import { APP_NAME } from "@/lib/constants";
+
+const SITE = "https://codeforgeai.io";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +21,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const title = await getDiscussionTitle(id);
-  return { title: title ? `${title} — Forum` : "Thread" };
+  if (!title) return { title: "Thread" };
+  const description = `${title} — join the discussion on the ${APP_NAME} community forum for coding-interview prep, DSA and career advice.`;
+  return {
+    title: `${title} — Forum`,
+    description,
+    alternates: { canonical: `/forum/${id}` },
+    openGraph: { type: "article", url: `${SITE}/forum/${id}`, title: `${title} — Forum`, description },
+  };
 }
 
 export default async function ForumThreadPage({
@@ -31,8 +42,34 @@ export default async function ForumThreadPage({
   const discussion = await getDiscussionForView(id);
   if (!discussion) notFound();
 
+  const author = discussion.author;
+  const threadLd = {
+    "@context": "https://schema.org",
+    "@type": "DiscussionForumPosting",
+    "@id": `${SITE}/forum/${id}#thread`,
+    headline: discussion.title,
+    url: `${SITE}/forum/${id}`,
+    datePublished: discussion.createdAt,
+    text: (discussion.content ?? "").replace(/\s+/g, " ").trim().slice(0, 500),
+    author: author
+      ? { "@type": "Person", name: author.name || author.username, url: `${SITE}/profile/${author.username}` }
+      : { "@type": "Organization", name: APP_NAME, url: SITE },
+    interactionStatistic: [
+      { "@type": "InteractionCounter", interactionType: "https://schema.org/LikeAction", userInteractionCount: discussion.upvotes?.length ?? 0 },
+      { "@type": "InteractionCounter", interactionType: "https://schema.org/CommentAction", userInteractionCount: discussion.replies?.length ?? 0 },
+      { "@type": "InteractionCounter", interactionType: "https://schema.org/ViewAction", userInteractionCount: discussion.views ?? 0 },
+    ],
+    publisher: {
+      "@type": "Organization",
+      name: APP_NAME,
+      url: SITE,
+      logo: { "@type": "ImageObject", url: `${SITE}/icon-512.png` },
+    },
+  };
+
   return (
     <div className="min-h-svh bg-background">
+      <JsonLd data={threadLd} />
       <PublicHeader signedIn={!!session?.user} />
       <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
         <div className="mb-6 flex items-center gap-2">

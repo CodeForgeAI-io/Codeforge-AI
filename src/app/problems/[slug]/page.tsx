@@ -9,10 +9,27 @@ import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { DifficultyBadge } from "@/components/shared/difficulty-badge";
+import { JsonLd } from "@/components/json-ld";
+import { APP_NAME } from "@/lib/constants";
+
+const SITE = "https://codeforgeai.io";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ contest?: string }>;
+}
+
+/** Strip markdown to a clean, truncated meta-description sentence. */
+function summarize(md: string, max = 155): string {
+  const text = md
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`[^`]*`/g, " ")
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/[#>*_~|]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (text.length <= max) return text;
+  return `${text.slice(0, max - 1).replace(/\s+\S*$/, "")}…`;
 }
 
 export async function generateMetadata({
@@ -20,7 +37,22 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const question = await getQuestionBySlug(slug).catch(() => null);
-  return { title: question?.title ?? "Problem" };
+  if (!question) return { title: "Problem" };
+
+  const tagBit = question.tags?.length ? ` covering ${question.tags.slice(0, 3).join(", ")}` : "";
+  const description =
+    summarize(question.description) ||
+    `Solve ${question.title}, a ${question.difficulty} coding-interview problem${tagBit}, in the online compiler with an AI mentor on ${APP_NAME}.`;
+  const url = `${SITE}/problems/${question.slug}`;
+
+  return {
+    title: `${question.title} — ${question.difficulty} Coding Problem`,
+    description,
+    keywords: [question.title, `${question.title} solution`, question.difficulty, ...(question.tags ?? []), "coding interview", "dsa"],
+    alternates: { canonical: `/problems/${question.slug}` },
+    openGraph: { type: "article", url, title: `${question.title} — ${question.difficulty} Coding Problem`, description },
+    twitter: { card: "summary_large_image", title: question.title, description },
+  };
 }
 
 /**
@@ -35,8 +67,48 @@ export default async function ProblemPage({ params, searchParams }: PageProps) {
   const question = await getQuestionBySlug(slug);
   if (!question) notFound();
 
+  const url = `${SITE}/problems/${question.slug}`;
+  const problemLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": ["LearningResource", "TechArticle"],
+        "@id": `${url}#problem`,
+        name: question.title,
+        headline: question.title,
+        url,
+        description: summarize(question.description),
+        learningResourceType: "Coding practice problem",
+        educationalLevel: question.difficulty,
+        educationalUse: "Interview preparation",
+        teaches: question.tags ?? [],
+        about: (question.tags ?? []).map((t) => ({ "@type": "Thing", name: t })),
+        inLanguage: "en",
+        isAccessibleForFree: true,
+        keywords: [question.title, question.difficulty, ...(question.tags ?? []), "coding interview", "dsa"].join(", "),
+        author: { "@type": "Organization", name: APP_NAME, url: SITE },
+        publisher: {
+          "@type": "Organization",
+          name: APP_NAME,
+          url: SITE,
+          logo: { "@type": "ImageObject", url: `${SITE}/icon-512.png` },
+        },
+        mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SITE },
+          { "@type": "ListItem", position: 2, name: "Problems", item: `${SITE}/problems` },
+          { "@type": "ListItem", position: 3, name: question.title, item: url },
+        ],
+      },
+    ],
+  };
+
   return (
     <div className="flex h-svh flex-col">
+      <JsonLd data={problemLd} />
       <header className="flex h-14 shrink-0 items-center gap-3 border-b bg-background px-3">
         <Logo href={signedIn ? "/dashboard" : "/"} compact />
         <Button asChild variant="ghost" size="sm">

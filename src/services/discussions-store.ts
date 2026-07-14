@@ -232,6 +232,27 @@ export async function getRecentDiscussions(limit: number): Promise<RecentDiscuss
   }));
 }
 
+/** Public forum threads (id + last-modified) for the sitemap. */
+export async function listDiscussionsForSitemap(limit = 5000): Promise<{ id: string; updatedAt: Date }[]> {
+  if (be() === "supabase") {
+    const { data } = await supabaseAdmin()
+      .from("discussions")
+      .select("id,created_at")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    return ((data ?? []) as { id: string; created_at: string }[]).map((r) => ({
+      id: r.id,
+      updatedAt: new Date(r.created_at),
+    }));
+  }
+  await connectDB();
+  const docs = await Discussion.find({}).sort({ createdAt: -1 }).limit(limit).select("createdAt").lean();
+  return (docs as unknown as { _id: { toString(): string }; createdAt: Date }[]).map((d) => ({
+    id: d._id.toString(),
+    updatedAt: new Date(d.createdAt),
+  }));
+}
+
 /** Count discussions (optionally only those created today). */
 export async function countDiscussions(opts: { sinceToday?: boolean } = {}): Promise<number> {
   if (be() === "supabase") {

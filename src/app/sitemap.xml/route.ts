@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const base = await siteBase();
   const now = new Date();
-  const children = ["page", "problem", "post", "help", "careers"].map((name) => ({
+  const children = ["page", "problem", "post", "discussion", "help", "careers"].map((name) => ({
     loc: `${base}/${name}-sitemap.xml`,
     lastmod: now,
   }));
