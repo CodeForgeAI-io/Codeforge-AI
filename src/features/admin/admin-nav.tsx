@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Tag,
   Trophy,
+  TrendingUp,
   Users,
   type LucideIcon,
 } from "@/components/icons";
@@ -37,7 +38,10 @@ interface AdminNavSection {
 const SECTIONS: AdminNavSection[] = [
   {
     heading: "Overview",
-    items: [{ href: "/admin", label: "Analytics", icon: BarChart3 }],
+    items: [
+      { href: "/admin", label: "Analytics", icon: BarChart3 },
+      { href: "/admin/insights", label: "Live Insights", icon: TrendingUp },
+    ],
   },
   {
     heading: "Content",
