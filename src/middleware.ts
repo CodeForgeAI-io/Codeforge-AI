@@ -117,7 +117,8 @@ export async function middleware(req: NextRequest) {
   // ── Public routes ───────────────────────────────────────────────────────────
   // All per-type child sitemaps (page-sitemap.xml, problem-sitemap.xml, …) must
   // be crawlable, not redirected to /login.
-  const isSitemap = pathname === "/sitemap.xml" || pathname.endsWith("-sitemap.xml");
+  const isSitemap =
+    pathname === "/sitemap.xml" || pathname.endsWith("-sitemap.xml") || pathname.endsWith(".xsl");
   if (pathname === "/" || isSitemap || PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) {
     if (isAuthed && (pathname === "/login" || pathname === "/register")) {
       return NextResponse.redirect(new URL("/dashboard", req.url));

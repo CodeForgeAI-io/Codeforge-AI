@@ -27,7 +27,7 @@ export function urlset(entries: SitemapEntry[]): string {
       return `  <url>\n${parts.join("\n")}\n  </url>`;
     })
     .join("\n");
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>`;
 }
 
 /** Build a `<sitemapindex>` referencing the per-type child sitemaps (Yoast-style). */
@@ -39,7 +39,7 @@ export function sitemapIndex(children: { loc: string; lastmod?: Date }[]): strin
       return `  <sitemap>\n${parts.join("\n")}\n  </sitemap>`;
     })
     .join("\n");
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</sitemapindex>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</sitemapindex>`;
 }
 
 /** XML response with sensible edge caching (1h fresh, 1d stale-while-revalidate). */
