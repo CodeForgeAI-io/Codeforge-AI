@@ -37,6 +37,7 @@ const PUBLIC_PREFIXES = [
   "/robots.txt",
   "/llms.txt",
   "/ads.txt",
+  "/indexnow-key.txt", // IndexNow ownership-verification key
   "/manifest.webmanifest", // PWA manifest
   "/sw.js", // PWA service worker
   "/offline.html", // PWA offline fallback

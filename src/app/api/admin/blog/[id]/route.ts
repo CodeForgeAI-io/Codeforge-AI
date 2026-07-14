@@ -6,6 +6,7 @@ import {
   blogNeedsPublishedAt,
   type BlogPatch,
 } from "@/services/blog-store";
+import { pingIndexNow } from "@/lib/indexnow";
 
 export const runtime = "nodejs";
 
@@ -49,6 +50,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const ok = await updateBlogPost(id, update);
   if (!ok) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // Recrawl the blog listing (which links the post) when it goes/updates public.
+  if (body.status === "published") await pingIndexNow("/blog");
   return NextResponse.json({ ok: true });
 }
 

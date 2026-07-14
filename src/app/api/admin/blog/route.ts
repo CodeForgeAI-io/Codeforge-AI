@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-auth";
 import { adminListPosts, createBlogPost } from "@/services/blog-store";
+import { pingIndexNow } from "@/lib/indexnow";
 
 export const runtime = "nodejs";
 
@@ -67,6 +68,8 @@ export async function POST(req: NextRequest) {
     authorId: session.user.id,
     status,
   });
+
+  if (status === "published") await pingIndexNow([`/blog/${slug}`, "/blog"]);
 
   return NextResponse.json({ ok: true, id, slug }, { status: 201 });
 }

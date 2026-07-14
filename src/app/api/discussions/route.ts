@@ -5,6 +5,7 @@ import { Discussion } from "@/models";
 import { escapeRegex, sanitizeUserContent, cap } from "@/lib/sanitize";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { backendFor } from "@/lib/data-backend";
+import { pingIndexNow } from "@/lib/indexnow";
 import {
   DISCUSSION_LIST_COLS,
   DISCUSSION_FULL_COLS,
@@ -108,6 +109,7 @@ export async function POST(req: NextRequest) {
     if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 });
     const row = data as SbDiscussionRow;
     const authors = await fetchAuthors([row.author_id ?? ""].filter(Boolean));
+    await pingIndexNow(`/forum/${row.id}`);
     return NextResponse.json({ discussion: detailShape(row, authors) }, { status: 201 });
   }
 
@@ -123,5 +125,6 @@ export async function POST(req: NextRequest) {
   });
 
   await discussion.populate("author", "username name image");
+  await pingIndexNow(`/forum/${discussion._id}`);
   return NextResponse.json({ discussion }, { status: 201 });
 }

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/api-auth";
 import { questionInputSchema } from "@/schemas/question";
 import { getAdminQuestion, updateQuestion, deleteQuestionCascade } from "@/services/questions";
+import { pingIndexNow } from "@/lib/indexnow";
 
 const patchSchema = questionInputSchema.partial();
 
@@ -55,6 +56,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   const slug = await updateQuestion(id, update);
   if (!slug) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  // Nudge search engines the moment a problem goes public.
+  if ((update as { isPublished?: boolean }).isPublished === true) {
+    await pingIndexNow(`/problems/${slug}`);
   }
   return NextResponse.json({ ok: true, slug });
 }
