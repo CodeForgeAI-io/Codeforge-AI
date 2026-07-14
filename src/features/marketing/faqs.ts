@@ -5,6 +5,7 @@ export interface Faq {
 }
 
 export const FAQS: Faq[] = [
+  { q: "What is CodeForge AI?", a: "CodeForge AI (codeforgeai.io) is an AI-powered coding-interview prep platform. It combines LeetCode-style DSA problems, an online compiler for 12 languages, frontend sandbox challenges, live contests, personalized roadmaps, spaced-repetition revision and a real-time streaming AI mentor and pair programmer — all in one developer workspace." },
   { q: "Is CodeForge AI really free?", a: "Yes. Problems, the online compiler, frontend challenges, contests, roadmaps, all 9 AI tools and the forum are completely free. Just create an account." },
   { q: "Can I just run code without a problem?", a: "Yes — the built-in Compiler gives you a blank editor for any of 12 languages with custom stdin, real stdout/stderr and runtime + memory stats. No problem or test cases required. Open it from the nav or head to /compiler." },
   { q: "Which languages can I code in?", a: "JavaScript, TypeScript, Python, Java, C, C++, C#, Go, PHP, Rust, Kotlin and Swift — all in a secure cloud sandbox, in both problems and the compiler." },
