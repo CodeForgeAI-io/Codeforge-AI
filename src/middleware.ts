@@ -33,7 +33,6 @@ const PUBLIC_PREFIXES = [
   "/beta",
   "/api/beta",
   "/api/subscription/webhook", // Razorpay webhook — verified by signature, no session
-  "/api/subscription/callback", // Razorpay hosted-checkout return POST — cross-site, cookie-less (SameSite), HMAC-verified
   "/.well-known", // security.txt and other public well-known resources
   "/_next",
   "/favicon",
@@ -89,10 +88,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // ── CORS guard for mutating API requests ───────────────────────────────────
-  // /api/subscription/callback is a top-level POST from Razorpay's hosted
-  // checkout — legitimately cross-origin; it authenticates via the session
-  // cookie plus the payment HMAC instead.
-  if (isMutatingApi && !pathname.startsWith("/api/auth") && pathname !== "/api/subscription/callback") {
+  if (isMutatingApi && !pathname.startsWith("/api/auth")) {
     if (!isSameOrigin(req)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

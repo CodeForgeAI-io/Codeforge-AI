@@ -11,26 +11,21 @@ import { Label } from "@/components/ui/label";
 import { formatPrice } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
-/**
- * Full-page Razorpay hosted checkout (no popup): build a form with the
- * subscription + prefill fields and POST it to Razorpay's embedded endpoint.
- * The browser navigates to Razorpay's payment page (UPI/cards/netbanking),
- * which then POSTs the result back to our callback_url.
- */
-function submitHostedCheckout(fields: Record<string, string>) {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = "https://api.razorpay.com/v1/checkout/embedded";
-  for (const [name, value] of Object.entries(fields)) {
-    if (!value) continue;
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = name;
-    input.value = value;
-    form.appendChild(input);
+declare global {
+  interface Window {
+    Razorpay: new (opts: Record<string, unknown>) => { open(): void };
   }
-  document.body.appendChild(form);
-  form.submit();
+}
+
+function loadRazorpay(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
 }
 
 interface Defaults {
@@ -55,7 +50,6 @@ export function CheckoutForm({
   initialTrial,
   initialCouponCode,
   campaign,
-  initialResult,
   defaults,
 }: {
   plan: "go" | "plus";
@@ -70,8 +64,6 @@ export function CheckoutForm({
   initialCouponCode?: string;
   /** /join campaign code — extends the trial; re-validated server-side. */
   campaign?: string;
-  /** Result of a full-page Razorpay redirect (from ?payment=…&ref=…). */
-  initialResult?: { status: "success" | "failed" | "cancelled"; ref?: string; reason?: string };
   defaults: Defaults;
 }) {
   const router = useRouter();
@@ -102,23 +94,6 @@ export function CheckoutForm({
   // Fresh signups (e.g. from /join) continue into onboarding via the dashboard
   // gate; existing users land on their billing settings.
   const afterPayment = session?.user?.onboardingComplete === false ? "/dashboard" : "/settings?tool=billing";
-
-  // Landed back from the full-page Razorpay redirect — show the outcome.
-  const consumedResult = useRef(false);
-  useEffect(() => {
-    if (!initialResult || consumedResult.current) return;
-    consumedResult.current = true;
-    if (initialResult.status === "success") {
-      setPaymentId(initialResult.ref ?? null);
-      setStep("success");
-      void update();
-    } else if (initialResult.status === "failed") {
-      toast.error(initialResult.reason ?? "Payment failed — you have not been charged.");
-    } else {
-      toast("Payment cancelled — you have not been charged.");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialResult]);
 
   // Success screen auto-continues after a short beat.
   useEffect(() => {
@@ -228,37 +203,61 @@ export function CheckoutForm({
         return;
       }
 
-      // Carry the original checkout context on the callback/cancel URLs so the
-      // redirect lands back on this exact offer with a result screen.
-      const ctx = new URLSearchParams({ plan, cycle });
-      if (trial) ctx.set("trial", "1");
-      if (trial && campaign) ctx.set("campaign", campaign);
-      if (!trial && coupon?.code) ctx.set("code", coupon.code);
-      const origin = window.location.origin;
+      const ok = await loadRazorpay();
+      if (!ok) throw new Error("Failed to load payment gateway");
 
-      setStep("processing");
-      // Full-page Razorpay checkout — the browser leaves for Razorpay's hosted
-      // page and returns via /api/subscription/callback (no popup).
-      submitHostedCheckout({
-        key_id: data.key,
+      const rzp = new window.Razorpay({
+        key: data.key,
         subscription_id: data.subscriptionId,
         name: "CodeForge AI",
         description: trial
           ? `${planName} — ${trialDays}-day free trial, then ${cycle}`
           : `${planName} — ${cycle} (auto-renews)`,
-        image: `${origin}/icon-192.png`,
-        "theme[color]": "#006bff",
+        image: `${window.location.origin}/icon-192.png`,
+        theme: { color: "#006bff" },
         // Prefilled so Razorpay skips the contact/email step and goes straight
         // to the payment apps (UPI / cards / netbanking).
-        "prefill[name]": form.name.trim(),
-        "prefill[email]": form.email.trim() || session?.user?.email || "",
-        "prefill[contact]": form.phone.trim(),
-        "notes[address]": [billing.line1, billing.city, billing.state, billing.postalCode]
-          .filter(Boolean)
-          .join(", "),
-        callback_url: `${origin}/api/subscription/callback?${ctx}`,
-        cancel_url: `${origin}/checkout?${ctx}&payment=cancelled`,
+        prefill: {
+          name: form.name.trim(),
+          email: form.email.trim() || session?.user?.email || "",
+          contact: form.phone.trim(),
+        },
+        notes: {
+          address: [billing.line1, billing.city, billing.state, billing.postalCode]
+            .filter(Boolean)
+            .join(", "),
+        },
+        modal: {
+          ondismiss: () => setLoading(false),
+        },
+        handler: async (response: {
+          razorpay_payment_id: string;
+          razorpay_subscription_id: string;
+          razorpay_signature: string;
+        }) => {
+          setStep("processing");
+          const verify = await fetch("/api/subscription/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              razorpaySubscriptionId: response.razorpay_subscription_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            }),
+          });
+          const v = await verify.json();
+          if (verify.ok) {
+            setPaymentId(response.razorpay_payment_id);
+            await update();
+            setStep("success");
+          } else {
+            toast.error(v.error ?? "Payment verification failed");
+            setStep("review");
+            setLoading(false);
+          }
+        },
       });
+      rzp.open();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Payment failed");
       setLoading(false);

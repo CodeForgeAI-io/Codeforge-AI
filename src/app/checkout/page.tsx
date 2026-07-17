@@ -21,16 +21,7 @@ export const dynamic = "force-dynamic";
 export default async function CheckoutPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    plan?: string;
-    cycle?: string;
-    trial?: string;
-    code?: string;
-    campaign?: string;
-    payment?: string;
-    ref?: string;
-    reason?: string;
-  }>;
+  searchParams: Promise<{ plan?: string; cycle?: string; trial?: string; code?: string; campaign?: string }>;
 }) {
   const {
     plan: planParam,
@@ -38,9 +29,6 @@ export default async function CheckoutPage({
     trial: trialParam,
     code,
     campaign: campaignParam,
-    payment,
-    ref,
-    reason,
   } = await searchParams;
 
   const session = await getSession();
@@ -97,11 +85,6 @@ export default async function CheckoutPage({
       initialTrial={trialParam === "1" || trialParam === "true"}
       initialCouponCode={code ?? ""}
       campaign={campaignApplies ? campaign.code : undefined}
-      initialResult={
-        payment === "success" || payment === "failed" || payment === "cancelled"
-          ? { status: payment, ref, reason }
-          : undefined
-      }
           defaults={{
             name: user.name ?? "",
             email: user.email ?? "",
