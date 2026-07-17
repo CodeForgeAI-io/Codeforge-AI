@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RegisterForm } from "@/features/auth/register-form";
 import ScrollStack, { ScrollStackItem } from "@/components/reactbits/ScrollStack";
 import AnimatedContent from "@/components/reactbits/AnimatedContent";
+import { MarketingHeader, MarketingFooter, pageCls } from "./chrome";
 import { cn } from "@/lib/utils";
 import { APP_NAME } from "@/lib/constants";
 
@@ -35,9 +36,11 @@ export function JoinView({
   const perCycle = campaign.cycle === "yearly" ? "year" : "month";
 
   return (
-    <>
+    <div className={cn("min-h-svh", pageCls)}>
+      <MarketingHeader signedIn={signedIn} />
+
       {/* ── Split hero: offer (left) + sign-up (right) ─────────────────── */}
-      <section className="relative overflow-hidden border-b">
+      <section className="relative overflow-hidden border-b pt-20">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10"
@@ -185,7 +188,9 @@ export function JoinView({
           </section>
         </AnimatedContent>
       </div>
-    </>
+
+      <MarketingFooter />
+    </div>
   );
 }
 

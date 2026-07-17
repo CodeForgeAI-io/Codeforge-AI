@@ -179,6 +179,12 @@ export async function POST(req: NextRequest) {
       ...(trialEndsAt ? { trialEndsAt } : {}),
     });
 
+    // Attribute the signup to the /join offer so admins can see who came from
+    // which link. Only stamped when the campaign actually granted the trial.
+    if (trialEndsAt && campaign) {
+      await updateUserPlan(session.user.id, { campaign: campaign.code });
+    }
+
     return NextResponse.json({
       subscriptionId: subscription.id,
       key: publicKeyId(),

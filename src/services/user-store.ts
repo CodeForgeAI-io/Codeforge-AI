@@ -307,6 +307,8 @@ export interface AdminUser {
   trialEndsAt: Date | null;
   billingCycle: string | null;
   betaUser: boolean;
+  /** /join offer code this user claimed (e.g. LAUNCH30), null if organic. */
+  campaign: string | null;
   createdAt: Date;
 }
 
@@ -320,7 +322,7 @@ function shapeAdminUser(u: {
   id: string; name: string; username: string; email: string | null; image: string | null;
   role: string; banned: boolean; stats: AdminUserStats | null; providers: string[] | null;
   plan: string | null; planExpiresAt: Date | null; trialEndsAt: Date | null;
-  billingCycle: string | null; betaUser: boolean | null; createdAt: Date;
+  billingCycle: string | null; betaUser: boolean | null; campaign?: string | null; createdAt: Date;
 }): AdminUser {
   const s = u.stats ?? {};
   return {
@@ -331,7 +333,7 @@ function shapeAdminUser(u: {
     streak: s.streak?.current ?? 0, longestStreak: s.streak?.longest ?? 0,
     providers: u.providers ?? [], plan: u.plan ?? "free",
     planExpiresAt: u.planExpiresAt, trialEndsAt: u.trialEndsAt, billingCycle: u.billingCycle,
-    betaUser: Boolean(u.betaUser), createdAt: u.createdAt,
+    betaUser: Boolean(u.betaUser), campaign: u.campaign ?? null, createdAt: u.createdAt,
   };
 }
 
@@ -340,7 +342,7 @@ export async function adminListUsers(filter: { q?: string; plan?: string }): Pro
   if (be() === "supabase") {
     let query = supabaseAdmin()
       .from("users")
-      .select("id,name,username,email,image,role,banned,stats,providers,plan,plan_expires_at,trial_ends_at,billing_cycle,beta_user,created_at")
+      .select("id,name,username,email,image,role,banned,stats,providers,plan,plan_expires_at,trial_ends_at,billing_cycle,beta_user,campaign,created_at")
       .order("created_at", { ascending: false })
       .limit(200);
     if (filter.q) {
@@ -359,6 +361,7 @@ export async function adminListUsers(filter: { q?: string; plan?: string }): Pro
       plan: (u.plan as string) ?? null, planExpiresAt: u.plan_expires_at ? new Date(u.plan_expires_at as string) : null,
       trialEndsAt: u.trial_ends_at ? new Date(u.trial_ends_at as string) : null,
       billingCycle: (u.billing_cycle as string) ?? null, betaUser: (u.beta_user as boolean) ?? null,
+      campaign: (u.campaign as string) ?? null,
       createdAt: new Date(u.created_at as string),
     }));
   }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { PublicHeader } from "@/components/layout/public-header";
 import { JoinView } from "@/features/marketing/join-view";
 import { getCampaign, defaultCampaign } from "@/lib/campaigns";
 import { PLANS } from "@/lib/plans";
@@ -56,9 +55,7 @@ export default async function JoinPage({
   }));
 
   return (
-    <div className="min-h-svh bg-background">
-      <PublicHeader signedIn={!!session?.user} />
-      <JoinView
+    <JoinView
         campaign={{
           code: campaign.code,
           plan: campaign.plan,
@@ -71,9 +68,8 @@ export default async function JoinPage({
         price={price}
         groups={groups}
         signedIn={!!session?.user}
-        google={!!process.env.GOOGLE_CLIENT_ID}
-        github={!!process.env.GITHUB_CLIENT_ID}
-      />
-    </div>
+      google={!!process.env.GOOGLE_CLIENT_ID}
+      github={!!process.env.GITHUB_CLIENT_ID}
+    />
   );
 }

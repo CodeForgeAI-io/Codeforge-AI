@@ -12,6 +12,7 @@ import {
   Search,
   Shield,
   Sparkles,
+  Tag,
   Trash2,
   Trophy,
   UserCheck,
@@ -77,6 +78,7 @@ interface AdminUser {
   trialEndsAt: string | null;
   billingCycle: "monthly" | "yearly" | null;
   betaUser: boolean;
+  campaign: string | null;
   createdAt: string;
 }
 
@@ -231,6 +233,14 @@ function UserDetailSheet({
             {user.betaUser && (
               <span className="inline-flex items-center gap-0.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-purple-400">
                 <Sparkles className="size-2.5" /> Beta
+              </span>
+            )}
+            {user.campaign && (
+              <span
+                title={`Joined via the /join offer link (${user.campaign})`}
+                className="inline-flex items-center gap-0.5 rounded-full border border-[#006bff]/30 bg-[#006bff]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#006bff]"
+              >
+                <Tag className="size-2.5" /> {user.campaign}
               </span>
             )}
           </div>

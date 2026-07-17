@@ -17,6 +17,8 @@ export interface UserPlanPatch {
   trialEndsAt?: Date | null;
   billing?: object;
   betaUser?: boolean;
+  /** /join offer code the user claimed (e.g. LAUNCH30). */
+  campaign?: string | null;
 }
 
 const USER_FIELD_MAP: Record<keyof UserPlanPatch, string> = {
@@ -29,6 +31,7 @@ const USER_FIELD_MAP: Record<keyof UserPlanPatch, string> = {
   trialEndsAt: "trial_ends_at",
   billing: "billing",
   betaUser: "beta_user",
+  campaign: "campaign",
 };
 
 function toSb(value: unknown): unknown {
