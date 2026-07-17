@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -6,6 +7,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "@/components/providers";
 import { AnalyticsScripts } from "@/components/analytics";
 import { PWARegister } from "@/components/pwa-register";
+import { GoogleOneTap } from "@/components/google-one-tap";
 import { getEffectiveConfig } from "@/lib/site-config";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants";
 import { FOUNDER } from "@/lib/founder";
@@ -270,7 +272,15 @@ export default async function RootLayout({
         <JsonLd data={jsonLd} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          {/* Google One Tap for signed-out visitors (client id is public by design) */}
+          {process.env.GOOGLE_CLIENT_ID && (
+            <Suspense>
+              <GoogleOneTap clientId={process.env.GOOGLE_CLIENT_ID} />
+            </Suspense>
+          )}
+        </Providers>
         <AnalyticsScripts />
         <SpeedInsights />
         <Analytics />

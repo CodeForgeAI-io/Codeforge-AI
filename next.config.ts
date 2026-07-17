@@ -20,11 +20,11 @@ const ADS_CONNECT_SRC =
 // va.vercel-scripts.com serves the Vercel Speed Insights script.
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.clarity.ms https://us-assets.i.posthog.com https://cdn.jsdelivr.net https://checkout.razorpay.com https://va.vercel-scripts.com https://www.google.com https://www.gstatic.com ${ADS_SCRIPT_SRC}`,
+  `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.clarity.ms https://us-assets.i.posthog.com https://cdn.jsdelivr.net https://checkout.razorpay.com https://va.vercel-scripts.com https://www.google.com https://www.gstatic.com https://accounts.google.com ${ADS_SCRIPT_SRC}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
   "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
   "img-src 'self' data: blob: https:",
-  `connect-src 'self' https://api.groq.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://cdn.jsdelivr.net https://*.razorpay.com https://lumberjack.razorpay.com https://blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://*.private.blob.vercel-storage.com https://*.codesandbox.io wss://*.codesandbox.io https://www.google.com ${ADS_CONNECT_SRC}`,
+  `connect-src 'self' https://api.groq.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://cdn.jsdelivr.net https://*.razorpay.com https://lumberjack.razorpay.com https://blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://*.private.blob.vercel-storage.com https://*.codesandbox.io wss://*.codesandbox.io https://www.google.com https://accounts.google.com ${ADS_CONNECT_SRC}`,
   "worker-src 'self' blob:",
   "media-src 'self'",
   "object-src 'none'",
@@ -32,7 +32,7 @@ const CSP = [
   // Sandpack (compiler Web mode + frontend challenges) runs its bundler and
   // Node runtime in iframes served from *.codesandbox.io.
   // Google ad units render inside doubleclick/googlesyndication iframes.
-  `frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.codesandbox.io https://www.google.com ${ADS_FRAME_SRC}`,
+  `frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.codesandbox.io https://www.google.com https://accounts.google.com ${ADS_FRAME_SRC}`,
   // We still refuse to BE framed (clickjacking) regardless of the above.
   "frame-ancestors 'none'",
   "base-uri 'self'",
