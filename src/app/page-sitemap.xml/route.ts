@@ -20,6 +20,7 @@ export async function GET() {
     { loc: `${base}/about`, lastmod: now, changefreq: "monthly", priority: 0.6 },
     { loc: `${base}/contact`, lastmod: now, changefreq: "monthly", priority: 0.5 },
     { loc: `${base}/changelog`, lastmod: now, changefreq: "weekly", priority: 0.6 },
+    { loc: `${base}/status`, lastmod: now, changefreq: "daily", priority: 0.4 },
     { loc: `${base}/feedback`, lastmod: now, changefreq: "monthly", priority: 0.4 },
     { loc: `${base}/terms`, lastmod: now, changefreq: "yearly", priority: 0.3 },
     { loc: `${base}/privacy`, lastmod: now, changefreq: "yearly", priority: 0.3 },
