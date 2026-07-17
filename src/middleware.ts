@@ -135,7 +135,8 @@ export async function middleware(req: NextRequest) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
     const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
+    // Keep the query string — e.g. /checkout?plan=go&campaign=… must survive login.
+    loginUrl.searchParams.set("callbackUrl", pathname + req.nextUrl.search);
     return NextResponse.redirect(loginUrl);
   }
 

@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { RegisterForm } from "@/features/auth/register-form";
-import ScrollStack, { ScrollStackItem } from "@/components/reactbits/ScrollStack";
 import AnimatedContent from "@/components/reactbits/AnimatedContent";
 import { MarketingHeader, MarketingFooter, pageCls } from "./chrome";
 import { cn } from "@/lib/utils";
@@ -122,43 +121,38 @@ export function JoinView({
         </div>
       </section>
 
-      <ScrollStack
-        useWindowScroll
-        className="w-full"
-        innerClassName="pt-[8vh] px-4 sm:px-8 lg:px-16 pb-[35vh]"
-        itemDistance={48}
-        itemStackDistance={20}
-        baseScale={0.9}
-      >
-        {groups.map((g) => (
-          <ScrollStackItem
-            key={g.group}
-            itemClassName="h-auto! my-5! p-6! sm:p-8! rounded-3xl! border bg-card shadow-xl"
-          >
-            <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight">
-              <span className="flex size-7 items-center justify-center rounded-md bg-[#006bff]/10 text-[#006bff]">
-                <Sparkles className="size-3.5" />
-              </span>
-              {g.group}
-            </h3>
-            <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
-              {g.items.map((f) => (
-                <li key={f.label} className="flex items-start gap-2.5">
-                  {f.included ? (
-                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-easy" />
-                  ) : (
-                    <Circle className="mt-0.5 size-4 shrink-0 text-muted-foreground/40" />
-                  )}
-                  <div className="min-w-0">
-                    <p className={cn("text-sm font-medium", !f.included && "text-muted-foreground/60")}>{f.label}</p>
-                    <p className="text-xs text-muted-foreground">{f.description}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </ScrollStackItem>
+      {/* CSS sticky stacking — same pattern as the homepage workflow section:
+          each card pins slightly lower than the previous one and they pile up
+          as you scroll. No JS, no dead space, works on every device. */}
+      <div className="mx-auto mt-8 w-full max-w-4xl px-4 pb-16 sm:px-6">
+        {groups.map((g, i) => (
+          <div key={g.group} className="sticky mb-6" style={{ top: 84 + i * 26, zIndex: i + 1 }}>
+            <div className="rounded-3xl border bg-card p-6 shadow-[0_24px_80px_rgba(15,23,42,0.14)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.55)] sm:p-8">
+              <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-[#006bff]/10 text-[#006bff]">
+                  <Sparkles className="size-4" />
+                </span>
+                {g.group}
+              </h3>
+              <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                {g.items.map((f) => (
+                  <li key={f.label} className="flex items-start gap-2.5">
+                    {f.included ? (
+                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-easy" />
+                    ) : (
+                      <Circle className="mt-0.5 size-4 shrink-0 text-muted-foreground/40" />
+                    )}
+                    <div className="min-w-0">
+                      <p className={cn("text-sm font-medium", !f.included && "text-muted-foreground/60")}>{f.label}</p>
+                      <p className="text-xs text-muted-foreground">{f.description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         ))}
-      </ScrollStack>
+      </div>
 
       {/* ── FAQ + closing CTA ──────────────────────────────────────────── */}
       <div className="mx-auto max-w-3xl px-4 pb-16 sm:px-6">

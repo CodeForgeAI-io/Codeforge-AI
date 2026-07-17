@@ -180,11 +180,15 @@ export function CheckoutForm({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not start subscription");
 
+      // Fresh signups (e.g. from /join) continue into onboarding via the
+      // dashboard gate; existing users land on their billing settings.
+      const afterPayment = session?.user?.onboardingComplete === false ? "/dashboard" : "/settings?tool=billing";
+
       // 100%-off coupon — plan granted server-side, no payment needed.
       if (data.granted) {
         toast.success(`Welcome to ${planName}! Your coupon covered it.`);
         await update();
-        router.push("/settings?tool=billing");
+        router.push(afterPayment);
         router.refresh();
         return;
       }
@@ -235,7 +239,7 @@ export function CheckoutForm({
                 : `Welcome to ${planName}! Auto-pay is on.`,
             );
             await update();
-            router.push("/settings?tool=billing");
+            router.push(afterPayment);
             router.refresh();
           } else {
             toast.error(v.error ?? "Payment verification failed");
