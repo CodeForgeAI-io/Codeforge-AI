@@ -10,10 +10,31 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "3.1.0",
-    date: "July 13, 2026",
+    version: "3.2.0",
+    date: "July 17, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Live System Status page at /status — real health checks for the website, database, auth, code execution, AI mentor, cache, storage, payments and email, plus every feature and AI tool, with 30-day uptime bars and auto-refresh",
+        "Join offer page at /join — claim a full month of Go free with auto-pay: ₹1 refundable authorisation today, ₹0 for 30 days, cancel anytime; sign up and checkout on one page",
+        "Admin Live Insights — realtime PostHog analytics in the admin panel: active users, sessions, pageview trends, top pages/events, referrers, countries, browsers and devices",
+        "Admin Key Metrics — growth (DAU/WAU/MAU), retention, learning and business KPIs at a glance",
+      ],
+      improved: [
+        "Much stronger SEO — per-content-type XML sitemaps (problems, blog, forum, help, careers) that update automatically, IndexNow pings on new content, rich structured data on problems and forum threads, and a smarter llms.txt for AI assistants",
+        "Admins can see which users joined through an offer link with a campaign badge on the Users page",
+      ],
+      fixed: [
+        "Sitemaps previously redirected crawlers to the login page, making Google report “Sitemap is HTML” — they now serve pure XML",
+      ],
+    },
+  },
+  {
+    version: "3.1.0",
+    date: "July 13, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Make your profile yours — upload a custom avatar and cover photo, with a live safe-zone guide so nothing important gets cropped, both shown on your public profile",

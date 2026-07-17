@@ -10,7 +10,7 @@ LeetCode-style DSA problems · An **instant online compiler** · Frontend sandbo
 
 <br/>
 
-[![Version](https://img.shields.io/badge/version-3.1.0-006bff?style=flat-square)](https://codeforgeai.io/changelog)
+[![Version](https://img.shields.io/badge/version-3.2.0-006bff?style=flat-square)](https://codeforgeai.io/changelog)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-000000?style=flat-square&logo=nextdotjs)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-149ECA?style=flat-square&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
@@ -408,7 +408,7 @@ npm run typecheck # Type-check without emitting
 
 ## Changelog
 
-The complete, always-current release history lives in-app — currently **v3.1.0**:
+The complete, always-current release history lives in-app — currently **v3.2.0**:
 
 **[View the Changelog](https://codeforgeai.io/changelog)** (or `/changelog` on your deployment)
 
