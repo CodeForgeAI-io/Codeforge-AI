@@ -23,6 +23,8 @@ export const ScrollStackItem: React.FC<ScrollStackItemProps> = ({ children, item
 
 interface ScrollStackProps {
   className?: string;
+  /** Overrides the inner wrapper's spacing (default: `pt-[20vh] px-20 pb-[50rem]`). */
+  innerClassName?: string;
   children: ReactNode;
   itemDistance?: number;
   itemScale?: number;
@@ -40,6 +42,7 @@ interface ScrollStackProps {
 const ScrollStack: React.FC<ScrollStackProps> = ({
   children,
   className = '',
+  innerClassName = 'pt-[20vh] px-20 pb-[50rem]',
   itemDistance = 100,
   itemScale = 0.03,
   itemStackDistance = 30,
@@ -339,7 +342,7 @@ const ScrollStack: React.FC<ScrollStackProps> = ({
         willChange: 'scroll-position'
       }}
     >
-      <div className="scroll-stack-inner pt-[20vh] px-20 pb-[50rem] min-h-screen">
+      <div className={`scroll-stack-inner min-h-screen ${innerClassName}`.trim()}>
         {children}
         {/* Spacer so the last pin can release cleanly */}
         <div className="scroll-stack-end w-full h-px" />

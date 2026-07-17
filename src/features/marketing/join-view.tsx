@@ -124,15 +124,16 @@ export function JoinView({
 
       <ScrollStack
         useWindowScroll
-        className="mx-auto max-w-3xl px-4 sm:px-6"
-        itemDistance={60}
-        itemStackDistance={24}
-        baseScale={0.88}
+        className="w-full"
+        innerClassName="pt-[8vh] px-4 sm:px-8 lg:px-16 pb-[35vh]"
+        itemDistance={48}
+        itemStackDistance={20}
+        baseScale={0.9}
       >
         {groups.map((g) => (
           <ScrollStackItem
             key={g.group}
-            itemClassName="!h-auto !my-6 !p-7 !rounded-3xl border bg-card shadow-xl"
+            itemClassName="h-auto! my-5! p-6! sm:p-8! rounded-3xl! border bg-card shadow-xl"
           >
             <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight">
               <span className="flex size-7 items-center justify-center rounded-md bg-[#006bff]/10 text-[#006bff]">
