@@ -118,9 +118,12 @@ async function checkExecution() {
       if (!process.env.JUDGE0_API_KEY) return { status: "not_configured" as Health, detail: "JUDGE0_API_KEY not set" };
       return { status: "operational" as Health };
     }
-    // paiza (default) — probe the public API root.
+    // paiza (default) — the runner status endpoint answers 200 for an unknown
+    // id, which proves the API is serving without submitting a real job.
     const base = process.env.PAIZA_URL ?? "https://api.paiza.io";
-    const res = await fetch(`${base}/runners/get_languages`, { signal: AbortSignal.timeout(TIMEOUT) });
+    const res = await fetch(`${base}/runners/get_status?id=status-probe&api_key=guest`, {
+      signal: AbortSignal.timeout(TIMEOUT),
+    });
     return res.ok ? { status: "operational" as Health } : { status: "degraded" as Health, detail: `HTTP ${res.status}` };
   });
 }
