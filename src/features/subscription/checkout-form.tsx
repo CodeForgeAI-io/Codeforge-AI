@@ -70,6 +70,10 @@ export function CheckoutForm({
   const { data: session, update } = useSession();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<Defaults>(defaults);
+  // Payment flow screens: fill billing → review & pay (Razorpay overlay) →
+  // verifying the signature → animated success receipt.
+  const [step, setStep] = useState<"billing" | "review" | "processing" | "success">("billing");
+  const [paymentId, setPaymentId] = useState<string | null>(null);
   // Card-on-file trial: the card is authenticated now, the first charge fires
   // when the trial ends. Only offered to eligible accounts.
   const [trial, setTrial] = useState(initialTrial && trialEligible);
@@ -86,6 +90,20 @@ export function CheckoutForm({
 
   const due = coupon ? coupon.finalAmount : amount;
   const PlanIcon = plan === "plus" ? Crown : Zap;
+
+  // Fresh signups (e.g. from /join) continue into onboarding via the dashboard
+  // gate; existing users land on their billing settings.
+  const afterPayment = session?.user?.onboardingComplete === false ? "/dashboard" : "/settings?tool=billing";
+
+  // Success screen auto-continues after a short beat.
+  useEffect(() => {
+    if (step !== "success") return;
+    const t = setTimeout(() => {
+      router.push(afterPayment);
+      router.refresh();
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [step, afterPayment, router]);
 
   async function applyCoupon(codeOverride?: string) {
     const code = (typeof codeOverride === "string" ? codeOverride : couponInput).trim();
@@ -180,16 +198,11 @@ export function CheckoutForm({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not start subscription");
 
-      // Fresh signups (e.g. from /join) continue into onboarding via the
-      // dashboard gate; existing users land on their billing settings.
-      const afterPayment = session?.user?.onboardingComplete === false ? "/dashboard" : "/settings?tool=billing";
-
       // 100%-off coupon — plan granted server-side, no payment needed.
       if (data.granted) {
         toast.success(`Welcome to ${planName}! Your coupon covered it.`);
         await update();
-        router.push(afterPayment);
-        router.refresh();
+        setStep("success");
         return;
       }
 
@@ -222,6 +235,7 @@ export function CheckoutForm({
           razorpay_subscription_id: string;
           razorpay_signature: string;
         }) => {
+          setStep("processing");
           const verify = await fetch("/api/subscription/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -233,16 +247,12 @@ export function CheckoutForm({
           });
           const v = await verify.json();
           if (verify.ok) {
-            toast.success(
-              trial
-                ? `Your ${trialDays}-day free trial started! First charge on ${firstChargeDate}.`
-                : `Welcome to ${planName}! Auto-pay is on.`,
-            );
+            setPaymentId(response.razorpay_payment_id);
             await update();
-            router.push(afterPayment);
-            router.refresh();
+            setStep("success");
           } else {
             toast.error(v.error ?? "Payment verification failed");
+            setStep("review");
             setLoading(false);
           }
         },
@@ -254,17 +264,160 @@ export function CheckoutForm({
     }
   }
 
+  // ── Screen: verifying payment ────────────────────────────────────────────
+  if (step === "processing") {
+    return (
+      <div className="mx-auto flex min-h-[60svh] max-w-md flex-col items-center justify-center px-4 text-center">
+        <span className="flex size-16 items-center justify-center rounded-full bg-primary/10">
+          <Loader2 className="size-7 animate-spin text-primary" />
+        </span>
+        <h1 className="mt-5 text-xl font-bold tracking-tight">Verifying your payment…</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Confirming the signature with Razorpay. Don&apos;t close this tab — this takes a few seconds.
+        </p>
+      </div>
+    );
+  }
+
+  // ── Screen: success receipt ──────────────────────────────────────────────
+  if (step === "success") {
+    return (
+      <div className="mx-auto flex min-h-[60svh] max-w-md flex-col items-center justify-center px-4 py-10 text-center">
+        <span className="flex size-16 animate-[bounce_1s_ease-in-out_1] items-center justify-center rounded-full bg-easy/15 ring-8 ring-easy/10">
+          <ShieldCheck className="size-8 text-easy" />
+        </span>
+        <h1 className="mt-5 text-2xl font-bold tracking-tight">
+          {trial ? "Your free trial has started!" : `Welcome to ${planName}!`}
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {trial
+            ? `Enjoy ${planName} free for ${trialDays} days. Auto-pay charges ${formatPrice(amount)} on ${firstChargeDate} — cancel anytime before that.`
+            : "Auto-pay is active. A receipt is on its way to your inbox."}
+        </p>
+
+        <div className="mt-6 w-full divide-y rounded-xl border bg-card text-left text-sm">
+          <div className="flex justify-between px-4 py-2.5"><span className="text-muted-foreground">Plan</span><span className="font-medium">{planName} · {cycle}</span></div>
+          <div className="flex justify-between px-4 py-2.5"><span className="text-muted-foreground">Paid today</span><span className="font-medium tabular-nums">{trial ? formatPrice(0) : formatPrice(due)}</span></div>
+          {trial && (
+            <div className="flex justify-between px-4 py-2.5"><span className="text-muted-foreground">First charge</span><span className="font-medium">{firstChargeDate}</span></div>
+          )}
+          {paymentId && (
+            <div className="flex justify-between px-4 py-2.5"><span className="text-muted-foreground">Reference</span><span className="font-mono text-xs">{paymentId}</span></div>
+          )}
+        </div>
+
+        <Button
+          size="lg"
+          className="mt-6 w-full max-w-xs gap-2"
+          onClick={() => { router.push(afterPayment); router.refresh(); }}
+        >
+          Continue <Sparkles className="size-4" />
+        </Button>
+        <p className="mt-2 text-xs text-muted-foreground">Taking you onward automatically…</p>
+      </div>
+    );
+  }
+
+  // ── Screens: billing → review & pay ──────────────────────────────────────
+  const steps = [
+    { id: "billing", label: "Billing" },
+    { id: "review", label: "Review & pay" },
+    { id: "success", label: "Confirmation" },
+  ] as const;
+  const stepIndex = step === "billing" ? 0 : 1;
+
+  function continueToReview() {
+    const err = validate();
+    if (err) { toast.error(err); return; }
+    setStep("review");
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-      <button
-        onClick={() => router.push("/pricing")}
-        className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" /> Back to plans
-      </button>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <button
+          onClick={() => (step === "review" ? setStep("billing") : router.push("/pricing"))}
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" /> {step === "review" ? "Edit billing" : "Back to plans"}
+        </button>
+
+        {/* Step indicator */}
+        <ol className="flex items-center gap-2 text-[11px] font-medium">
+          {steps.map((s, i) => (
+            <li key={s.id} className="flex items-center gap-2">
+              {i > 0 && <span className="h-px w-5 bg-border" />}
+              <span
+                className={cn(
+                  "flex items-center gap-1.5",
+                  i === stepIndex ? "text-primary" : i < stepIndex ? "text-easy" : "text-muted-foreground/60",
+                )}
+              >
+                <span
+                  className={cn(
+                    "flex size-4.5 items-center justify-center rounded-full border text-[10px] tabular-nums",
+                    i === stepIndex
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : i < stepIndex
+                        ? "border-easy bg-easy/10 text-easy"
+                        : "border-border",
+                  )}
+                >
+                  {i + 1}
+                </span>
+                <span className="hidden sm:inline">{s.label}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        {/* billing details */}
+        {step === "review" ? (
+          /* review card — read-only billing summary */
+          <div className="rounded-2xl border bg-card p-6">
+            <h1 className="text-lg font-semibold tracking-tight">Review your details</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              One last look before the secure Razorpay window opens.
+            </p>
+            <div className="mt-5 divide-y rounded-xl border text-sm">
+              <ReviewRow label="Name" value={form.name} />
+              <ReviewRow label="Email" value={form.email || session?.user?.email || "—"} />
+              <ReviewRow label="Phone" value={form.phone} />
+              <ReviewRow
+                label="Address"
+                value={[form.line1, form.line2, form.city, form.state, form.postalCode, form.country]
+                  .filter(Boolean)
+                  .join(", ")}
+              />
+            </div>
+
+            <div className="mt-5 rounded-xl border bg-muted/30 p-4 text-xs leading-relaxed text-muted-foreground">
+              {trial ? (
+                <>Clicking <span className="font-semibold text-foreground">Start free trial</span> opens Razorpay to
+                approve the auto-pay mandate (a refundable ~₹1 authorisation). You pay nothing today; the first
+                charge of <span className="font-semibold text-foreground">{formatPrice(amount)}</span> is on{" "}
+                <span className="font-semibold text-foreground">{firstChargeDate}</span> unless you cancel first.</>
+              ) : (
+                <>Clicking <span className="font-semibold text-foreground">Pay</span> opens Razorpay&apos;s secure
+                window to complete the {formatPrice(due)} payment and enable auto-renewal. Cancel anytime from
+                Settings → Billing.</>
+              )}
+            </div>
+
+            <div className="mt-5">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Pay with</p>
+              <div className="flex flex-wrap gap-1.5">
+                {["UPI", "Cards", "NetBanking", "Wallets", "EMI"].map((m) => (
+                  <span key={m} className="rounded-full border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                    {m}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+        /* billing details */
         <div className="rounded-2xl border bg-card p-6">
           <h1 className="text-lg font-semibold tracking-tight">Billing details</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -301,6 +454,7 @@ export function CheckoutForm({
             </Field>
           </div>
         </div>
+        )}
 
         {/* order summary */}
         <div className="lg:sticky lg:top-20 lg:self-start">
@@ -402,16 +556,22 @@ export function CheckoutForm({
               </p>
             ) : null}
 
-            <Button onClick={pay} disabled={loading} size="lg" className="mt-5 w-full gap-2">
-              {loading ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
-              {loading
-                ? "Opening payment…"
-                : trial
-                  ? `Start ${trialDays}-day free trial`
-                  : due <= 0
-                    ? "Activate plan"
-                    : `Pay ${formatPrice(due)}`}
-            </Button>
+            {step === "billing" ? (
+              <Button onClick={continueToReview} size="lg" className="mt-5 w-full gap-2">
+                Continue to review <ArrowLeft className="size-4 rotate-180" />
+              </Button>
+            ) : (
+              <Button onClick={pay} disabled={loading} size="lg" className="mt-5 w-full gap-2">
+                {loading ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
+                {loading
+                  ? "Opening payment…"
+                  : trial
+                    ? `Start ${trialDays}-day free trial`
+                    : due <= 0
+                      ? "Activate plan"
+                      : `Pay ${formatPrice(due)}`}
+              </Button>
+            )}
 
             <div className="mt-4 space-y-1.5 text-[11px] text-muted-foreground">
               <p className="flex items-center gap-1.5">
@@ -424,6 +584,15 @@ export function CheckoutForm({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ReviewRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4 px-4 py-2.5">
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="text-right font-medium">{value || "—"}</span>
     </div>
   );
 }
