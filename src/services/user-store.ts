@@ -394,12 +394,13 @@ export interface AdminUserPatch {
   plan?: string;
   billingCycle?: string | null;
   planExpiresAt?: Date | null;
+  trialEndsAt?: Date | null;
   betaUser?: boolean;
 }
 
 const ADMIN_USER_MAP: Record<keyof AdminUserPatch, string> = {
   role: "role", banned: "banned", plan: "plan", billingCycle: "billing_cycle",
-  planExpiresAt: "plan_expires_at", betaUser: "beta_user",
+  planExpiresAt: "plan_expires_at", trialEndsAt: "trial_ends_at", betaUser: "beta_user",
 };
 
 /** Admin: update a user's role/ban/plan fields. Returns false if not found. */

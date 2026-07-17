@@ -6,9 +6,13 @@ import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import {
   CalendarDays,
+  ClipboardCopy,
   Crown,
+  ExternalLink,
   Flame,
   Loader2,
+  Mail,
+  RotateCcw,
   Search,
   Shield,
   Sparkles,
@@ -182,13 +186,25 @@ function UserDetailSheet({
   const meta = PLAN_META[user.plan] ?? PLAN_META.free;
   const PlanIcon = meta.icon;
 
-  function grantGoPlan30Days() {
-    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    onPatch({ plan: "go", planExpiresAt: expires, betaUser: true });
+  // Grant panel: pick a plan and duration instead of a fixed "Go · 30d".
+  const [grantPlan, setGrantPlan] = useState<"go" | "plus">("go");
+  const [grantDays, setGrantDays] = useState("30");
+
+  function grantAccess() {
+    const days = Number(grantDays);
+    const expires = days > 0 ? new Date(Date.now() + days * 86_400_000).toISOString() : null;
+    onPatch({ plan: grantPlan, planExpiresAt: expires, betaUser: true });
   }
 
   function revokePlan() {
     onPatch({ plan: "free", planExpiresAt: null, billingCycle: null });
+  }
+
+  function copy(text: string, label: string) {
+    navigator.clipboard.writeText(text).then(
+      () => toast.success(`${label} copied`),
+      () => toast.error("Couldn't copy"),
+    );
   }
 
   return (
@@ -249,6 +265,26 @@ function UserDetailSheet({
             <CalendarDays className="size-3.5" />
             Joined {format(new Date(user.createdAt), "MMMM d, yyyy")}
           </div>
+
+          {/* Quick actions */}
+          <div className="mt-3 grid grid-cols-4 gap-1.5">
+            <Button asChild size="sm" variant="outline" className="h-8 gap-1 text-[11px]">
+              <a href={`/profile/${user.username}`} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="size-3" /> Profile
+              </a>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="h-8 gap-1 text-[11px]">
+              <a href={`mailto:${user.email ?? ""}`}>
+                <Mail className="size-3" /> Email
+              </a>
+            </Button>
+            <Button size="sm" variant="outline" className="h-8 gap-1 text-[11px]" onClick={() => copy(user.email ?? "", "Email")}>
+              <ClipboardCopy className="size-3" /> Copy @
+            </Button>
+            <Button size="sm" variant="outline" className="h-8 gap-1 text-[11px]" onClick={() => copy(user.id, "User ID")}>
+              <ClipboardCopy className="size-3" /> ID
+            </Button>
+          </div>
         </div>
 
         <div className="flex-1 space-y-0 divide-y divide-border/60">
@@ -298,9 +334,16 @@ function UserDetailSheet({
                   </span>
                 </InfoRow>
               )}
-              {isOnTrial && trialExpiry && (
-                <InfoRow label="Trial ends">
+              {trialExpiry && (
+                <InfoRow label={isOnTrial ? "Trial ends" : "Trialed"}>
                   {format(trialExpiry, "MMM d, yyyy")}
+                </InfoRow>
+              )}
+              {user.campaign && (
+                <InfoRow label="Joined via offer">
+                  <span className="inline-flex items-center gap-1 font-semibold text-[#006bff]">
+                    <Tag className="size-3" /> {user.campaign}
+                  </span>
                 </InfoRow>
               )}
               <InfoRow label="Beta user">
@@ -311,28 +354,37 @@ function UserDetailSheet({
               </InfoRow>
             </div>
 
-            {/* Plan actions */}
+            {/* Grant access: plan × duration */}
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Change plan</p>
-              <Select value={user.plan} onValueChange={(plan) => onPatch({ plan })}>
-                <SelectTrigger className="h-9 w-full text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="free">Free</SelectItem>
-                  <SelectItem value="go">Go</SelectItem>
-                  <SelectItem value="plus">Plus</SelectItem>
-                </SelectContent>
-              </Select>
-
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Grant access</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Select value={grantPlan} onValueChange={(v) => setGrantPlan(v as "go" | "plus")}>
+                  <SelectTrigger className="h-9 w-full text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="go">Go</SelectItem>
+                    <SelectItem value="plus">Plus</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={grantDays} onValueChange={setGrantDays}>
+                  <SelectTrigger className="h-9 w-full text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">7 days</SelectItem>
+                    <SelectItem value="30">30 days</SelectItem>
+                    <SelectItem value="90">90 days</SelectItem>
+                    <SelectItem value="365">1 year</SelectItem>
+                    <SelectItem value="0">Lifetime</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   size="sm"
                   variant="outline"
                   className="h-9 w-full gap-1.5 border-blue-500/40 text-blue-400 hover:bg-blue-500/10 text-xs font-semibold"
-                  onClick={grantGoPlan30Days}
+                  onClick={grantAccess}
                 >
-                  <Zap className="size-3.5" /> Grant Go · 30d
+                  <Zap className="size-3.5" /> Grant {grantPlan === "go" ? "Go" : "Plus"}
+                  {grantDays === "0" ? " · lifetime" : ` · ${grantDays}d`}
                 </Button>
                 <Button
                   size="sm"
@@ -344,6 +396,40 @@ function UserDetailSheet({
                   Revoke plan
                 </Button>
               </div>
+            </div>
+
+            {/* Trial controls */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Trial</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-9 w-full gap-1.5 text-xs font-semibold"
+                  onClick={() =>
+                    onPatch({
+                      trialEndsAt: new Date(
+                        Math.max(now, trialExpiry?.getTime() ?? now) + 7 * 86_400_000,
+                      ).toISOString(),
+                    })
+                  }
+                >
+                  <Sparkles className="size-3.5" /> Extend trial +7d
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-9 w-full gap-1.5 text-xs font-semibold"
+                  onClick={() => onPatch({ trialEndsAt: null })}
+                  disabled={!trialExpiry}
+                  title="Clears the trial record so this account can start a fresh card-on-file trial"
+                >
+                  <RotateCcw className="size-3.5" /> Reset eligibility
+                </Button>
+              </div>
+              <p className="text-[10px] leading-relaxed text-muted-foreground">
+                Resetting lets the account start a fresh card-on-file trial (e.g. a /join offer) again.
+              </p>
             </div>
           </section>
 

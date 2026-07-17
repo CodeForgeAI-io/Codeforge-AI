@@ -10,6 +10,7 @@ const patchSchema = z.object({
   plan: z.enum(["free", "go", "plus"]).optional(),
   billingCycle: z.enum(["monthly", "yearly"]).nullable().optional(),
   planExpiresAt: z.string().nullable().optional(),
+  trialEndsAt: z.string().nullable().optional(),
   betaUser: z.boolean().optional(),
 });
 
@@ -51,6 +52,9 @@ export async function PATCH(
   if (parsed.data.betaUser !== undefined) patch.betaUser = parsed.data.betaUser;
   if (parsed.data.planExpiresAt !== undefined) {
     patch.planExpiresAt = parsed.data.planExpiresAt ? new Date(parsed.data.planExpiresAt) : null;
+  }
+  if (parsed.data.trialEndsAt !== undefined) {
+    patch.trialEndsAt = parsed.data.trialEndsAt ? new Date(parsed.data.trialEndsAt) : null;
   }
 
   const ok = await adminUpdateUser(id, patch);
