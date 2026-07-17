@@ -25,9 +25,12 @@ import { getRecaptchaToken } from "@/lib/recaptcha-client";
 export function RegisterForm({
   google,
   github,
+  callbackUrl = "/dashboard",
 }: {
   google: boolean;
   github: boolean;
+  /** Where to land after signing up (e.g. the /join offer's checkout). */
+  callbackUrl?: string;
 }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -51,7 +54,7 @@ export function RegisterForm({
         posthog.identify(values.email, { email: values.email, name: values.name, username: values.username });
         posthog.capture("user_registered", { method: "email" });
       });
-      router.push("/dashboard");
+      router.push(callbackUrl);
       router.refresh();
     } finally {
       setSubmitting(false);
@@ -69,7 +72,7 @@ export function RegisterForm({
         </CardDescription>
       </CardHeader>
       <CardContent className="px-0">
-        <OAuthButtons google={google} github={github} callbackUrl="/dashboard" />
+        <OAuthButtons google={google} github={github} callbackUrl={callbackUrl} />
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">

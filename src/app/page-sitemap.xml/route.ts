@@ -12,6 +12,7 @@ export async function GET() {
     { loc: `${base}/problems`, lastmod: now, changefreq: "daily", priority: 0.9 },
     { loc: `${base}/compiler`, lastmod: now, changefreq: "monthly", priority: 0.7 },
     { loc: `${base}/pricing`, lastmod: now, changefreq: "weekly", priority: 0.8 },
+    { loc: `${base}/join`, lastmod: now, changefreq: "weekly", priority: 0.7 },
     { loc: `${base}/blog`, lastmod: now, changefreq: "weekly", priority: 0.7 },
     { loc: `${base}/help`, lastmod: now, changefreq: "weekly", priority: 0.7 },
     { loc: `${base}/forum`, lastmod: now, changefreq: "daily", priority: 0.6 },

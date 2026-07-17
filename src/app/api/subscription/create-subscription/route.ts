@@ -10,6 +10,7 @@ import {
   amountForPlan,
 } from "@/lib/razorpay";
 import { validateCoupon, redeemCoupon } from "@/lib/coupons";
+import { getCampaign } from "@/lib/campaigns";
 import {
   updateUserPlan,
   getUserBillingFields,
@@ -39,7 +40,14 @@ export async function POST(req: NextRequest) {
     postalCode?: string;
     country?: string;
   }
-  let body: { plan?: PlanId; cycle?: BillingCycle; billing?: Billing; coupon?: string; trial?: boolean };
+  let body: {
+    plan?: PlanId;
+    cycle?: BillingCycle;
+    billing?: Billing;
+    coupon?: string;
+    trial?: boolean;
+    campaign?: string;
+  };
   try {
     body = await req.json();
   } catch {
@@ -86,7 +94,13 @@ export async function POST(req: NextRequest) {
   // no coupon is applied (a discounted first charge and a delayed first charge
   // don't mix cleanly). The card is authenticated up front; Razorpay makes the
   // first real charge at `start_at`, so the user pays nothing during the trial.
-  const trialDays = PLANS[plan].trialDays;
+  // A /join campaign code extends the trial (no discount — see lib/campaigns).
+  // Re-resolved here: the client never dictates the trial length.
+  const campaign = getCampaign(body.campaign);
+  const trialDays =
+    campaign && campaign.plan === plan && campaign.cycle === cycle
+      ? campaign.trialDays
+      : PLANS[plan].trialDays;
   const existingUser = await getUserBillingFields(session.user.id);
   const wantsTrial =
     body.trial === true && trialDays > 0 && !couponCode && !existingUser?.trialEndsAt;
@@ -144,6 +158,7 @@ export async function POST(req: NextRequest) {
         plan,
         cycle,
         coupon: couponCode ?? "",
+        campaign: trialEndsAt && campaign ? campaign.code : "",
         address: [billing.line1, billing.city, billing.state, billing.postalCode, billing.country]
           .filter(Boolean)
           .join(", ")

@@ -49,6 +49,7 @@ export function CheckoutForm({
   trialEligible,
   initialTrial,
   initialCouponCode,
+  campaign,
   defaults,
 }: {
   plan: "go" | "plus";
@@ -61,6 +62,8 @@ export function CheckoutForm({
   /** Whether to open in trial mode (from ?trial=1). */
   initialTrial: boolean;
   initialCouponCode?: string;
+  /** /join campaign code — extends the trial; re-validated server-side. */
+  campaign?: string;
   defaults: Defaults;
 }) {
   const router = useRouter();
@@ -165,7 +168,14 @@ export function CheckoutForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // A trial delays the first charge; coupons apply to immediate purchases only.
-        body: JSON.stringify({ plan, cycle, billing, trial, coupon: trial ? undefined : coupon?.code }),
+        body: JSON.stringify({
+          plan,
+          cycle,
+          billing,
+          trial,
+          campaign: trial ? campaign : undefined,
+          coupon: trial ? undefined : coupon?.code,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not start subscription");
