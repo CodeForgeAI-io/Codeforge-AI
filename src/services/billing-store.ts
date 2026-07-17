@@ -175,6 +175,31 @@ export interface SubscriptionRecord {
 }
 
 /** Find a user's subscription by order or subscription id. */
+/**
+ * Owner of a gateway subscription/order. Used by the hosted-checkout callback,
+ * where Razorpay's cross-site POST carries no session cookies (SameSite=Lax) —
+ * the payment HMAC authenticates the request and this resolves who it's for.
+ */
+export async function findSubscriptionOwner(opts: {
+  razorpaySubscriptionId?: string;
+  razorpayOrderId?: string;
+}): Promise<string | null> {
+  if (!opts.razorpaySubscriptionId && !opts.razorpayOrderId) return null;
+  if (be() === "supabase") {
+    let q = supabaseAdmin().from("subscriptions").select("user_id");
+    if (opts.razorpaySubscriptionId) q = q.eq("razorpay_subscription_id", opts.razorpaySubscriptionId);
+    else q = q.eq("razorpay_order_id", opts.razorpayOrderId!);
+    const { data } = await q.limit(1).maybeSingle();
+    return (data as { user_id?: string } | null)?.user_id ?? null;
+  }
+  await connectDB();
+  const query: Record<string, unknown> = {};
+  if (opts.razorpaySubscriptionId) query.razorpaySubscriptionId = opts.razorpaySubscriptionId;
+  else query.razorpayOrderId = opts.razorpayOrderId;
+  const doc = await Subscription.findOne(query).select("user").lean();
+  return doc ? String(doc.user) : null;
+}
+
 export async function findUserSubscription(opts: {
   userId: string;
   razorpayOrderId?: string;

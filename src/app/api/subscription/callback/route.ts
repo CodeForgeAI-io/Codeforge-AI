@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { activateVerifiedPayment } from "@/services/billing-activate";
+import { findSubscriptionOwner } from "@/services/billing-store";
+import { getUserCheckout } from "@/services/user-store";
 
 export const runtime = "nodejs";
 
 /**
  * Razorpay hosted-checkout callback (full-page redirect flow, no popup).
  *
- * Razorpay POSTs the payment result here as a top-level browser navigation, so
- * the user's session cookies ride along. Security: the session identifies the
- * user and the HMAC signature proves the payment — the cross-origin POST body
- * itself is never trusted (this path is exempted from the same-origin guard for
- * exactly that reason). On success we activate and bounce back to /checkout's
- * receipt screen; on failure we bounce back with the reason.
+ * Razorpay POSTs the payment result here as a top-level cross-site navigation.
+ * SameSite=Lax means the session cookies do NOT ride along on a cross-site
+ * POST, so this route is deliberately session-free: the payment HMAC signature
+ * is the authentication, and the owner is resolved from our own subscription
+ * record for the gateway id. Nothing in the POST body is trusted before the
+ * constant-time signature check inside activateVerifiedPayment.
  */
 export async function POST(req: NextRequest) {
   const url = new URL(req.url);
@@ -27,17 +28,6 @@ export async function POST(req: NextRequest) {
     for (const [k, v] of Object.entries(extra)) back.set(k, v);
     return NextResponse.redirect(new URL(`/checkout?${back}`, req.url), 303);
   };
-
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.redirect(
-      new URL(`/login?callbackUrl=${encodeURIComponent(`/checkout?${back}`)}`, req.url),
-      303,
-    );
-  }
-
-  const limited = await enforceRateLimit("payment", req, session.user.id);
-  if (limited) return bounce({ payment: "failed", reason: "Too many attempts — try again shortly" });
 
   let form: FormData;
   try {
@@ -54,16 +44,30 @@ export async function POST(req: NextRequest) {
   const errorDescription = field("error[description]") ?? field("error[reason]");
   const paymentId = field("razorpay_payment_id");
   const signature = field("razorpay_signature");
+  const subscriptionId = field("razorpay_subscription_id");
+  const orderId = field("razorpay_order_id");
   if (!paymentId || !signature) {
     return bounce({ payment: "failed", reason: errorDescription ?? "Payment was not completed" });
   }
 
+  const limited = await enforceRateLimit("payment", req, paymentId);
+  if (limited) return bounce({ payment: "failed", reason: "Too many attempts — try again shortly" });
+
+  // Resolve the paying user from our own record of the gateway id.
+  const userId = await findSubscriptionOwner({
+    razorpaySubscriptionId: subscriptionId,
+    razorpayOrderId: orderId,
+  });
+  if (!userId) return bounce({ payment: "failed", reason: "Subscription not found" });
+
+  const profile = await getUserCheckout(userId).catch(() => null);
+
   const result = await activateVerifiedPayment({
-    userId: session.user.id,
-    userEmail: session.user.email ?? null,
-    userName: session.user.name ?? null,
-    razorpayOrderId: field("razorpay_order_id"),
-    razorpaySubscriptionId: field("razorpay_subscription_id"),
+    userId,
+    userEmail: profile?.email ?? null,
+    userName: profile?.name ?? null,
+    razorpayOrderId: orderId,
+    razorpaySubscriptionId: subscriptionId,
     razorpayPaymentId: paymentId,
     razorpaySignature: signature,
   });

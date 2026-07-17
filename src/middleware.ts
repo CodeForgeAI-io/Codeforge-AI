@@ -33,6 +33,7 @@ const PUBLIC_PREFIXES = [
   "/beta",
   "/api/beta",
   "/api/subscription/webhook", // Razorpay webhook — verified by signature, no session
+  "/api/subscription/callback", // Razorpay hosted-checkout return POST — cross-site, cookie-less (SameSite), HMAC-verified
   "/.well-known", // security.txt and other public well-known resources
   "/_next",
   "/favicon",
