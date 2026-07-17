@@ -8,8 +8,10 @@ import { cn } from "@/lib/utils";
 
 type Health = "operational" | "degraded" | "down" | "not_configured";
 
+interface DayBar { date: string; status: Health | "no_data"; uptime: number | null }
 interface ServiceStatus {
   name: string; description: string; status: Health; latencyMs: number | null; detail?: string;
+  days: DayBar[]; uptime30d: number | null;
 }
 interface FeatureStatus {
   id: string; label: string; description: string; group: string;
@@ -32,6 +34,48 @@ function StatusIcon({ status, className }: { status: Health; className?: string 
   if (status === "degraded") return <AlertTriangle className={cn(cls, "text-warning")} />;
   if (status === "down") return <XCircle className={cn(cls, "text-destructive")} />;
   return <Circle className={cn(cls, "text-muted-foreground")} />;
+}
+
+const BAR: Record<DayBar["status"], string> = {
+  operational: "bg-easy",
+  degraded: "bg-warning",
+  down: "bg-destructive",
+  not_configured: "bg-muted",
+  no_data: "bg-muted",
+};
+
+/** Statuspage-style uptime grid: one bar per day, oldest → newest. */
+function UptimeBars({ days, uptime }: { days: DayBar[]; uptime: number | null }) {
+  if (!days.length) return null;
+  const first = days[0]?.date;
+  return (
+    <div className="mt-2.5">
+      <div className="flex h-7 items-stretch gap-0.5">
+        {days.map((d) => (
+          <span
+            key={d.date}
+            title={
+              d.status === "no_data"
+                ? `${d.date} · no data`
+                : `${d.date} · ${d.uptime}% uptime (${LABEL[d.status as Health]})`
+            }
+            className={cn(
+              "flex-1 rounded-[2px] transition-opacity hover:opacity-70",
+              BAR[d.status],
+              d.status === "no_data" && "opacity-50",
+            )}
+          />
+        ))}
+      </div>
+      <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+        <span>{first}</span>
+        <span className="font-medium">
+          {uptime === null ? "No data yet" : `${uptime}% uptime`}
+        </span>
+        <span>Today</span>
+      </div>
+    </div>
+  );
 }
 
 export function StatusView() {
@@ -75,18 +119,21 @@ export function StatusView() {
         <Card>
           <CardContent className="divide-y p-0">
             {data.services.map((s) => (
-              <div key={s.name} className="flex items-center gap-3 px-4 py-3">
-                <StatusIcon status={s.status} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{s.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {s.detail ? `${s.description} · ${s.detail}` : s.description}
-                  </p>
+              <div key={s.name} className="px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <StatusIcon status={s.status} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">{s.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {s.detail ? `${s.description} · ${s.detail}` : s.description}
+                    </p>
+                  </div>
+                  {s.latencyMs !== null && s.status !== "not_configured" && (
+                    <span className="hidden text-xs tabular-nums text-muted-foreground sm:inline">{s.latencyMs}ms</span>
+                  )}
+                  <span className="shrink-0 text-xs font-medium text-muted-foreground">{LABEL[s.status]}</span>
                 </div>
-                {s.latencyMs !== null && s.status !== "not_configured" && (
-                  <span className="hidden text-xs tabular-nums text-muted-foreground sm:inline">{s.latencyMs}ms</span>
-                )}
-                <span className="shrink-0 text-xs font-medium text-muted-foreground">{LABEL[s.status]}</span>
+                <UptimeBars days={s.days} uptime={s.uptime30d} />
               </div>
             ))}
           </CardContent>

@@ -14,12 +14,24 @@ import { FEATURE_CATALOG } from "@/lib/feature-catalog";
 
 export type Health = "operational" | "degraded" | "down" | "not_configured";
 
+/** One bar in the uptime grid — a single day's rolled-up result. */
+export interface DayBar {
+  date: string;
+  status: Health | "no_data";
+  /** % of that day's samples that were operational (null = never sampled). */
+  uptime: number | null;
+}
+
 export interface ServiceStatus {
   name: string;
   description: string;
   status: Health;
   latencyMs: number | null;
   detail?: string;
+  /** Oldest → newest, one entry per day (see HIST_DAYS). */
+  days: DayBar[];
+  /** Average uptime across the sampled days, or null if never sampled. */
+  uptime30d: number | null;
 }
 
 export interface FeatureStatus {
@@ -41,6 +53,9 @@ export interface SystemStatus {
 }
 
 const TIMEOUT = 4000;
+/** Days shown in the uptime grid. */
+const HIST_DAYS = 30;
+const dayStr = (t: number) => new Date(t).toISOString().slice(0, 10);
 
 /** Run a check, timing it, converting any failure into a "down" result. */
 async function check(
@@ -49,21 +64,79 @@ async function check(
   fn: () => Promise<{ status: Health; detail?: string }>,
 ): Promise<ServiceStatus> {
   const started = Date.now();
+  const base = { name, description, days: [] as DayBar[], uptime30d: null };
   try {
     const out = await Promise.race([
       fn(),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timed out")), TIMEOUT)),
     ]);
-    return { name, description, status: out.status, latencyMs: Date.now() - started, detail: out.detail };
+    return { ...base, status: out.status, latencyMs: Date.now() - started, detail: out.detail };
   } catch (e) {
     return {
-      name,
-      description,
+      ...base,
       status: "down",
       latencyMs: Date.now() - started,
       detail: e instanceof Error ? e.message : "Check failed",
     };
   }
+}
+
+/**
+ * Append this run's results to today's rollup. Best-effort: history is a nice
+ * to have, never a reason to fail the status page. Samples accumulate whenever
+ * the status is computed (at most every 30s, on traffic), so a day with no
+ * visitors simply has no data rather than a false outage.
+ */
+async function recordSamples(services: ServiceStatus[]): Promise<void> {
+  if (!redis) return;
+  try {
+    const key = `status:day:${dayStr(Date.now())}`;
+    const p = redis.pipeline();
+    let wrote = false;
+    for (const s of services) {
+      if (s.status === "not_configured") continue;
+      const bucket = s.status === "operational" ? "op" : s.status === "degraded" ? "dg" : "dn";
+      p.hincrby(key, `${s.name}:${bucket}`, 1);
+      wrote = true;
+    }
+    if (!wrote) return;
+    p.expire(key, (HIST_DAYS + 5) * 86_400);
+    await p.exec();
+  } catch {
+    // ignore
+  }
+}
+
+/** Read the last HIST_DAYS rollups in a single pipeline round-trip. */
+async function readHistory(names: string[]): Promise<Map<string, DayBar[]>> {
+  const out = new Map<string, DayBar[]>(names.map((n) => [n, []]));
+  const dates = Array.from({ length: HIST_DAYS }, (_, i) => dayStr(Date.now() - (HIST_DAYS - 1 - i) * 86_400_000));
+  if (!redis) {
+    for (const n of names) out.set(n, dates.map((date) => ({ date, status: "no_data" as const, uptime: null })));
+    return out;
+  }
+  try {
+    const p = redis.pipeline();
+    for (const d of dates) p.hgetall(`status:day:${d}`);
+    const res = (await p.exec()) as (Record<string, string> | null)[];
+    dates.forEach((date, i) => {
+      const h = res?.[i] ?? null;
+      for (const n of names) {
+        const op = Number(h?.[`${n}:op`] ?? 0);
+        const dg = Number(h?.[`${n}:dg`] ?? 0);
+        const dn = Number(h?.[`${n}:dn`] ?? 0);
+        const total = op + dg + dn;
+        out.get(n)?.push({
+          date,
+          status: total === 0 ? "no_data" : dn > 0 ? "down" : dg > 0 ? "degraded" : "operational",
+          uptime: total === 0 ? null : Math.round((op / total) * 1000) / 10,
+        });
+      }
+    });
+  } catch {
+    for (const n of names) if (!out.get(n)?.length) out.set(n, dates.map((date) => ({ date, status: "no_data" as const, uptime: null })));
+  }
+  return out;
 }
 
 async function checkDatabase() {
@@ -157,7 +230,7 @@ function rollUp(services: ServiceStatus[]): Health {
 }
 
 export async function getSystemStatus(): Promise<SystemStatus> {
-  const services = await Promise.all([
+  const checked = await Promise.all([
     checkDatabase(),
     checkAuth(),
     checkExecution(),
@@ -167,6 +240,18 @@ export async function getSystemStatus(): Promise<SystemStatus> {
     checkPayments(),
     checkEmail(),
   ]);
+
+  // Record this run, then read the rolling window back for the uptime grid.
+  await recordSamples(checked);
+  const history = await readHistory(checked.map((s) => s.name));
+  const services: ServiceStatus[] = checked.map((s) => {
+    const days = history.get(s.name) ?? [];
+    const sampled = days.filter((d) => d.uptime !== null);
+    const uptime30d = sampled.length
+      ? Math.round((sampled.reduce((sum, d) => sum + (d.uptime ?? 0), 0) / sampled.length) * 10) / 10
+      : null;
+    return { ...s, days, uptime30d };
+  });
 
   // Feature/tool availability (admin overrides applied).
   let features: FeatureStatus[] = [];
