@@ -194,7 +194,7 @@ const FOOTER_COLS = [
   { heading: "Platform", links: [{ label: "Problems", href: "/problems" }, { label: "Challenges", href: "/challenges" }, { label: "Contests", href: "/contests" }, { label: "Roadmaps", href: "/roadmaps" }, { label: "Leaderboard", href: "/leaderboard" }] },
   { heading: "AI Tools", links: [{ label: "Learning Coach", href: "/ai-tools" }, { label: "Pair Programmer", href: "/ai-tools" }, { label: "Study Planner", href: "/ai-tools" }, { label: "Resume Analyzer", href: "/ai-tools" }] },
   { heading: "Community", links: [{ label: "Forum", href: "/forum" }, { label: "Discussions", href: "/discuss" }, { label: "Notes", href: "/notes" }, { label: "Company Prep", href: "/companies" }] },
-  { heading: "Legal", links: [{ label: "Terms", href: "/terms" }, { label: "Privacy", href: "/privacy" }, { label: "Changelog", href: "/changelog" }, { label: "Feedback", href: "/feedback" }] },
+  { heading: "Legal", links: [{ label: "Terms", href: "/terms" }, { label: "Privacy", href: "/privacy" }, { label: "Changelog", href: "/changelog" }, { label: "Status", href: "/status" }, { label: "Design", href: "/design-guidelines" }, { label: "Feedback", href: "/feedback" }] },
 ];
 
 /* ── helpers ──────────────────────────────────────────────────────── */
@@ -568,7 +568,7 @@ export function Landing({ problems, totalProblems, featuresByPlan, paymentsEnabl
               </span>
             </Reveal>
 
-            <h1 className={cn("mt-7 text-balance text-4xl font-semibold leading-[1.1] tracking-[-0.03em] sm:text-6xl sm:leading-[1.06]", inkHead)}>
+            <h1 className={cn("font-display mt-7 text-balance text-4xl font-semibold leading-[1.1] tracking-[-0.03em] sm:text-6xl sm:leading-[1.06]", inkHead)}>
               <SplitText
                 text="Master coding"
                 tag="span"

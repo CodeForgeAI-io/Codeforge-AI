@@ -54,7 +54,7 @@ export function JoinView({
             <Badge className="mb-4 w-fit border-[#006bff]/20 bg-[#006bff]/10 text-[#006bff]" variant="secondary">
               <Sparkles className="mr-1 size-3" /> Offer applied · {campaign.code}
             </Badge>
-            <h1 className="text-balance text-4xl font-bold tracking-[-0.03em] sm:text-5xl">
+            <h1 className="font-display text-balance text-4xl font-bold tracking-[-0.03em] sm:text-5xl">
               {campaign.headline}
             </h1>
             <p className="mt-4 max-w-md text-balance text-muted-foreground sm:text-lg">{campaign.blurb}</p>

@@ -179,6 +179,8 @@
   --color-heat-4: var(--heat-4);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* Display face for marketing headlines (font-display utility). */
+  --font-display: var(--font-space-grotesk);
 }
 
 @layer base {

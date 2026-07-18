@@ -93,7 +93,7 @@ export function DesignGuidelinesView({ signedIn }: { signedIn: boolean }) {
         />
         <div className="mx-auto max-w-4xl px-4 pb-10 pt-28 text-center sm:px-6">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#006bff]">Brand & product</p>
-          <h1 className="mt-3 text-4xl font-bold tracking-[-0.03em] sm:text-5xl">Design guidelines</h1>
+          <h1 className="font-display mt-3 text-4xl font-bold tracking-[-0.03em] sm:text-5xl">Design guidelines</h1>
           <p className="mx-auto mt-4 max-w-xl text-balance text-neutral-600 dark:text-neutral-400">
             The system behind {APP_NAME} — logo, typography, color, illustration and motion. Use it to keep
             everything we ship looking and moving like one product.
@@ -138,9 +138,26 @@ export function DesignGuidelinesView({ signedIn }: { signedIn: boolean }) {
         </Section>
 
         {/* ── 2 · Typography ── */}
-        <Section id="typography" no="02" title="Typography" sub="Geist Sans for the interface, Geist Mono for code. Tight tracking on display sizes.">
+        <Section id="typography" no="02" title="Typography" sub="Three faces, three jobs: Space Grotesk for marketing display, Geist Sans for the interface, Geist Mono for code. Tight tracking on display sizes.">
+          <div className="mb-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-black/[0.08] bg-white p-4 dark:border-white/10 dark:bg-white/[0.04]">
+              <p className="font-display text-3xl font-bold tracking-tight">Ag</p>
+              <p className="mt-1.5 text-sm font-semibold">Space Grotesk</p>
+              <p className="font-mono text-[11px] text-neutral-500">font-display · marketing headlines</p>
+            </div>
+            <div className="rounded-2xl border border-black/[0.08] bg-white p-4 dark:border-white/10 dark:bg-white/[0.04]">
+              <p className="text-3xl font-bold tracking-tight">Ag</p>
+              <p className="mt-1.5 text-sm font-semibold">Geist Sans</p>
+              <p className="font-mono text-[11px] text-neutral-500">font-sans · interface & body</p>
+            </div>
+            <div className="rounded-2xl border border-black/[0.08] bg-white p-4 dark:border-white/10 dark:bg-white/[0.04]">
+              <p className="font-mono text-3xl font-medium tracking-tight">Ag</p>
+              <p className="mt-1.5 text-sm font-semibold">Geist Mono</p>
+              <p className="font-mono text-[11px] text-neutral-500">font-mono · code & metadata</p>
+            </div>
+          </div>
           <div className="space-y-5 rounded-2xl border border-black/[0.08] bg-white p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
-            <TypeRow spec="text-5xl · font-bold · tracking-[-0.03em]"><span className="text-4xl font-bold tracking-[-0.03em] sm:text-5xl">Master coding interviews</span></TypeRow>
+            <TypeRow spec="font-display · text-5xl · font-bold · tracking-[-0.03em]"><span className="font-display text-4xl font-bold tracking-[-0.03em] sm:text-5xl">Master coding interviews</span></TypeRow>
             <TypeRow spec="text-2xl · font-bold · tracking-tight"><span className="text-2xl font-bold tracking-tight">Section heading</span></TypeRow>
             <TypeRow spec="text-lg · font-semibold"><span className="text-lg font-semibold">Card title</span></TypeRow>
             <TypeRow spec="text-sm · body"><span className="text-sm">Body copy explains one idea per sentence, in plain language, at 14px.</span></TypeRow>
