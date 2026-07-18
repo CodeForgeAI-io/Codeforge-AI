@@ -1,8 +1,12 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, Loader2, Zap, Crown, Tag as TagIcon } from "@/components/icons";
+import {
+  CheckCircle2, XCircle, Loader2, Zap, Crown, Tag as TagIcon, RotateCcw,
+  Code2, Bot, Trophy, Flame, Search, Settings, Play, Download,
+} from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -55,6 +59,26 @@ const CHARTS = [
   { name: "Chart 5", hex: "#f22782", token: "--chart-5" },
 ];
 
+const HEAT = ["#ebebeb", "#cae7ff", "#94ccff", "#48aeff", "#006bff"];
+
+const NAV = [
+  ["Logo", "#logo"],
+  ["Typography", "#typography"],
+  ["Color", "#color"],
+  ["Illustration", "#illustration"],
+  ["Motion", "#motion"],
+  ["Components", "#components"],
+  ["Voice", "#voice"],
+  ["Assets", "#assets"],
+] as const;
+
+const ASSETS = [
+  { name: "Wordmark · light", file: "/logo.png", download: "codeforge-ai-logo-light.png", meta: "PNG · 774×186", dark: false },
+  { name: "Wordmark · dark", file: "/logo-dark.png", download: "codeforge-ai-logo-dark.png", meta: "PNG · 774×186", dark: true },
+  { name: "App icon · vector", file: "/icon.svg", download: "codeforge-ai-icon.svg", meta: "SVG", dark: false },
+  { name: "App icon · 512", file: "/icon-512.png", download: "codeforge-ai-icon-512.png", meta: "PNG · 512×512", dark: false },
+];
+
 export function DesignGuidelinesView({ signedIn }: { signedIn: boolean }) {
   return (
     <div className={cn("min-h-svh", pageCls)}>
@@ -67,19 +91,32 @@ export function DesignGuidelinesView({ signedIn }: { signedIn: boolean }) {
           className="pointer-events-none absolute inset-0 -z-10"
           style={{ background: "radial-gradient(800px 380px at 50% -10%, rgba(0,107,255,0.14), transparent 70%)" }}
         />
-        <div className="mx-auto max-w-4xl px-4 pb-14 pt-28 text-center sm:px-6">
+        <div className="mx-auto max-w-4xl px-4 pb-10 pt-28 text-center sm:px-6">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#006bff]">Brand & product</p>
           <h1 className="mt-3 text-4xl font-bold tracking-[-0.03em] sm:text-5xl">Design guidelines</h1>
           <p className="mx-auto mt-4 max-w-xl text-balance text-neutral-600 dark:text-neutral-400">
-            The system behind {APP_NAME} — logo, color, type and components. Use it to keep everything
-            we ship (and everything you build with our brand) looking like one product.
+            The system behind {APP_NAME} — logo, typography, color, illustration and motion. Use it to keep
+            everything we ship looking and moving like one product.
           </p>
         </div>
+
+        {/* Section nav */}
+        <nav className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-1.5 px-4 pb-6 sm:px-6">
+          {NAV.map(([label, href]) => (
+            <a
+              key={href}
+              href={href}
+              className="rounded-full border border-black/[0.08] bg-white/70 px-3.5 py-1.5 text-xs font-medium text-neutral-600 transition-colors hover:border-[#006bff]/40 hover:text-[#006bff] dark:border-white/10 dark:bg-white/[0.05] dark:text-neutral-400"
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
       </section>
 
       <div className="mx-auto max-w-4xl space-y-16 px-4 py-14 sm:px-6">
-        {/* ── Logo ── */}
-        <Section title="Logo" sub="The wordmark adapts to its surface; the icon stands alone at small sizes.">
+        {/* ── 1 · Logo ── */}
+        <Section id="logo" no="01" title="Logo" sub="The wordmark adapts to its surface; the icon stands alone at small sizes.">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex h-36 items-center justify-center rounded-2xl border border-black/[0.08] bg-white">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -100,8 +137,24 @@ export function DesignGuidelinesView({ signedIn }: { signedIn: boolean }) {
           </div>
         </Section>
 
-        {/* ── Color ── */}
-        <Section title="Color" sub="Near-black primary actions, one decisive blue accent, honest semantic colors. Click any swatch to copy its hex.">
+        {/* ── 2 · Typography ── */}
+        <Section id="typography" no="02" title="Typography" sub="Geist Sans for the interface, Geist Mono for code. Tight tracking on display sizes.">
+          <div className="space-y-5 rounded-2xl border border-black/[0.08] bg-white p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
+            <TypeRow spec="text-5xl · font-bold · tracking-[-0.03em]"><span className="text-4xl font-bold tracking-[-0.03em] sm:text-5xl">Master coding interviews</span></TypeRow>
+            <TypeRow spec="text-2xl · font-bold · tracking-tight"><span className="text-2xl font-bold tracking-tight">Section heading</span></TypeRow>
+            <TypeRow spec="text-lg · font-semibold"><span className="text-lg font-semibold">Card title</span></TypeRow>
+            <TypeRow spec="text-sm · body"><span className="text-sm">Body copy explains one idea per sentence, in plain language, at 14px.</span></TypeRow>
+            <TypeRow spec="text-xs · muted"><span className="text-xs text-neutral-500">Supporting caption or metadata.</span></TypeRow>
+            <TypeRow spec="font-mono · text-[13px]"><code className="rounded-md bg-black/[0.05] px-1.5 py-0.5 font-mono text-[13px] dark:bg-white/10">const solve = (input: string) =&gt; output;</code></TypeRow>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Rule ok text="Numbers in stats and prices use tabular-nums so they never jitter." />
+            <Rule ok={false} text="Never letter-space body text; tight tracking is for display sizes only." />
+          </div>
+        </Section>
+
+        {/* ── 3 · Color ── */}
+        <Section id="color" no="03" title="Color" sub="Near-black primary actions, one decisive blue accent, honest semantic colors. Click any swatch to copy its hex.">
           <Palette label="Brand blue" items={BRAND} />
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             <Palette label="Neutrals · light" items={NEUTRAL_LIGHT} />
@@ -117,20 +170,62 @@ export function DesignGuidelinesView({ signedIn }: { signedIn: boolean }) {
           </div>
         </Section>
 
-        {/* ── Typography ── */}
-        <Section title="Typography" sub="Geist Sans for the interface, Geist Mono for code. Tight tracking on display sizes.">
-          <div className="space-y-5 rounded-2xl border border-black/[0.08] bg-white p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
-            <TypeRow spec="text-5xl · font-bold · tracking-[-0.03em]"><span className="text-4xl font-bold tracking-[-0.03em] sm:text-5xl">Master coding interviews</span></TypeRow>
-            <TypeRow spec="text-2xl · font-bold · tracking-tight"><span className="text-2xl font-bold tracking-tight">Section heading</span></TypeRow>
-            <TypeRow spec="text-lg · font-semibold"><span className="text-lg font-semibold">Card title</span></TypeRow>
-            <TypeRow spec="text-sm · body"><span className="text-sm">Body copy explains one idea per sentence, in plain language, at 14px.</span></TypeRow>
-            <TypeRow spec="text-xs · muted"><span className="text-xs text-neutral-500">Supporting caption or metadata.</span></TypeRow>
-            <TypeRow spec="font-mono · text-[13px]"><code className="rounded-md bg-black/[0.05] px-1.5 py-0.5 font-mono text-[13px] dark:bg-white/10">const solve = (input: string) =&gt; output;</code></TypeRow>
+        {/* ── 4 · Illustration ── */}
+        <Section id="illustration" no="04" title="Illustration" sub="We don't use stock art. Atmosphere comes from light, glass and data — rendered, never pasted.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <DemoCard label="Radial glow — hero atmosphere">
+              <div className="relative h-36 overflow-hidden rounded-xl border border-black/[0.06] bg-white dark:border-white/[0.07] dark:bg-[#05070d]">
+                <div aria-hidden className="absolute inset-0" style={{ background: "radial-gradient(60% 80% at 50% 0%, rgba(0,107,255,0.22), transparent 70%)" }} />
+                <p className="absolute inset-x-0 bottom-3 text-center font-mono text-[11px] text-neutral-500">radial-gradient · blue at 14–22% alpha</p>
+              </div>
+            </DemoCard>
+            <DemoCard label="Glass surface — floating chrome">
+              <div className="relative h-36 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.07]" style={{ background: "linear-gradient(135deg, #cae7ff, #006bff)" }}>
+                <div className="absolute inset-x-6 top-1/2 flex h-14 -translate-y-1/2 items-center justify-between rounded-2xl border border-white/40 bg-white/70 px-4 backdrop-blur-xl dark:border-white/20 dark:bg-white/10">
+                  <span className="text-sm font-semibold text-neutral-900 dark:text-white">Glass card</span>
+                  <span className="font-mono text-[11px] text-neutral-600 dark:text-neutral-200">backdrop-blur-xl</span>
+                </div>
+              </div>
+            </DemoCard>
+            <DemoCard label="Data as decoration — activity heatmap">
+              <div className="flex h-36 flex-col items-center justify-center gap-3 rounded-xl border border-black/[0.06] bg-white dark:border-white/[0.07] dark:bg-white/[0.03]">
+                <div className="flex gap-1.5">
+                  {Array.from({ length: 24 }).map((_, i) => (
+                    <span key={i} className="size-4 rounded-[4px]" style={{ background: HEAT[(i * 7 + (i % 5)) % 5] }} />
+                  ))}
+                </div>
+                <p className="font-mono text-[11px] text-neutral-500">--heat-0 → --heat-4 · real data, never fake</p>
+              </div>
+            </DemoCard>
+            <DemoCard label="Iconography — one set, filled">
+              <div className="flex h-36 flex-col items-center justify-center gap-4 rounded-xl border border-black/[0.06] bg-white dark:border-white/[0.07] dark:bg-white/[0.03]">
+                <div className="flex items-center gap-5 text-neutral-700 dark:text-neutral-300">
+                  <Code2 className="size-5" /><Bot className="size-5" /><Trophy className="size-5" />
+                  <Flame className="size-5" /><Search className="size-5" /><Settings className="size-5" />
+                  <Play className="size-5 text-[#006bff]" />
+                </div>
+                <p className="font-mono text-[11px] text-neutral-500">Font Awesome solid · 16/20px · currentColor</p>
+              </div>
+            </DemoCard>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Rule ok text="Mock UI, terminals and editors are drawn with real components — screenshots of ourselves, not clipart." />
+            <Rule ok={false} text="No stock photos, 3D blobs, or emoji as UI. One accent color per illustration." />
+          </div>
+        </Section>
+
+        {/* ── 5 · Motion ── */}
+        <Section id="motion" no="05" title="Motion" sub="Fast, purposeful, transform/opacity only. UI feedback ≤ 200ms; entrances 600–800ms; ambient loops are subtle and infinite.">
+          <MotionDemos />
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Rule ok text="Animate transform and opacity only — never width, height or top/left." />
+            <Rule ok text="Entrances rise 30–60px and fade in once; scroll-stacking uses CSS position: sticky, no JS." />
+            <Rule ok={false} text="Nothing bounces for attention. Motion explains hierarchy; it never begs for it." />
           </div>
         </Section>
 
         {/* ── Components ── */}
-        <Section title="Components" sub="Live from the product's UI kit — these are the real components, not pictures.">
+        <Section id="components" no="06" title="Components" sub="Live from the product's UI kit — these are the real components, not pictures.">
           <div className="grid gap-4 md:grid-cols-2">
             <DemoCard label="Buttons">
               <div className="flex flex-wrap items-center gap-2">
@@ -182,12 +277,49 @@ export function DesignGuidelinesView({ signedIn }: { signedIn: boolean }) {
         </Section>
 
         {/* ── Voice ── */}
-        <Section title="Voice" sub="How CodeForge AI talks, everywhere from buttons to billing emails.">
+        <Section id="voice" no="07" title="Voice" sub="How CodeForge AI talks, everywhere from buttons to billing emails.">
           <div className="grid gap-3 sm:grid-cols-2">
             <Rule ok text="Plain and direct: “Run code”, “Start free trial”, “Cancel anytime”." />
             <Rule ok text="Honest about money and terms — the first-charge date is always shown before payment." />
             <Rule ok={false} text="No hype words (“revolutionary”), no guilt-tripping cancel flows, no dark patterns." />
             <Rule ok={false} text="Never spoil a solution — hints guide, they don't solve." />
+          </div>
+        </Section>
+
+        {/* ── Brand assets ── */}
+        <Section id="assets" no="08" title="Brand assets" sub="Official marks, ready to use. Grab individual files or the whole kit with usage notes and colors.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {ASSETS.map((a) => (
+              <div key={a.file} className="overflow-hidden rounded-2xl border border-black/[0.08] dark:border-white/10">
+                <div className={cn("flex h-28 items-center justify-center", a.dark ? "bg-[#0a0a0a]" : "bg-white")}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={a.file} alt={a.name} className={a.file.includes("logo") ? "h-8 w-auto" : "size-14"} />
+                </div>
+                <div className="flex items-center justify-between gap-3 border-t border-black/[0.06] bg-white px-4 py-3 dark:border-white/[0.07] dark:bg-white/[0.04]">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{a.name}</p>
+                    <p className="font-mono text-[11px] text-neutral-500">{a.meta}</p>
+                  </div>
+                  <Button asChild size="sm" variant="outline" className="shrink-0 gap-1.5">
+                    <a href={a.file} download={a.download}>
+                      <Download className="size-3.5" /> Download
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 flex flex-col items-center gap-2 rounded-2xl border border-[#006bff]/25 bg-[#006bff]/5 p-6 text-center">
+            <p className="text-sm font-semibold">Everything in one kit</p>
+            <p className="max-w-md text-xs text-neutral-600 dark:text-neutral-400">
+              Wordmarks, icons (SVG + PNG), maskable icon, plus a README with clear-space rules and the color palette.
+            </p>
+            <Button asChild className="mt-2 gap-2">
+              <a href="/brand/codeforge-ai-brand-assets.zip" download>
+                <Download className="size-4" /> Download brand kit (.zip)
+              </a>
+            </Button>
           </div>
         </Section>
       </div>
@@ -197,12 +329,79 @@ export function DesignGuidelinesView({ signedIn }: { signedIn: boolean }) {
   );
 }
 
+/* ── Motion demos (framer-motion, replayable) ─────────────────────── */
+
+function MotionDemos() {
+  const [runId, setRunId] = useState(0);
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <DemoCard label="Entrance — rise & fade (0.6s ease-out)">
+        <div className="flex h-36 flex-col items-center justify-center gap-3 rounded-xl border border-black/[0.06] bg-white dark:border-white/[0.07] dark:bg-white/[0.03]">
+          <motion.div
+            key={runId}
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="rounded-xl border border-[#006bff]/30 bg-[#006bff]/10 px-5 py-2.5 text-sm font-semibold text-[#006bff]"
+          >
+            Content enters once
+          </motion.div>
+          <Button size="sm" variant="ghost" onClick={() => setRunId((n) => n + 1)} className="gap-1.5 text-xs">
+            <RotateCcw className="size-3.5" /> Replay
+          </Button>
+        </div>
+      </DemoCard>
+
+      <DemoCard label="Feedback — hover, press, focus (≤200ms)">
+        <div className="flex h-36 items-center justify-center gap-3 rounded-xl border border-black/[0.06] bg-white dark:border-white/[0.07] dark:bg-white/[0.03]">
+          <motion.button
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.97 }}
+            className="rounded-xl border border-black/[0.08] bg-white px-5 py-2.5 text-sm font-semibold shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-white/[0.06]"
+          >
+            Hover & press me
+          </motion.button>
+          <span className="font-mono text-[11px] text-neutral-500">transform + shadow only</span>
+        </div>
+      </DemoCard>
+
+      <DemoCard label="Live state — pulse (1.8s loop)">
+        <div className="flex h-36 items-center justify-center gap-6 rounded-xl border border-black/[0.06] bg-white dark:border-white/[0.07] dark:bg-white/[0.03]">
+          <span className="inline-flex items-center gap-2 text-sm font-medium text-[#28a948]">
+            <span className="size-2 animate-pulse rounded-full bg-[#28a948]" /> live
+          </span>
+          <span className="inline-flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+            <Loader2 className="size-4 animate-spin text-[#006bff]" /> verifying…
+          </span>
+        </div>
+      </DemoCard>
+
+      <DemoCard label="Ambient — gentle float (5s infinite)">
+        <div className="relative flex h-36 items-center justify-center overflow-hidden rounded-xl border border-black/[0.06] bg-white dark:border-white/[0.07] dark:bg-[#05070d]">
+          <div aria-hidden className="absolute inset-0" style={{ background: "radial-gradient(50% 70% at 50% 100%, rgba(0,107,255,0.15), transparent 70%)" }} />
+          <motion.div
+            animate={{ y: [-6, 6, -6] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            className="rounded-2xl border border-black/[0.08] bg-white px-5 py-3 text-sm font-semibold shadow-lg dark:border-white/10 dark:bg-white/[0.08]"
+          >
+            Floating card
+          </motion.div>
+        </div>
+      </DemoCard>
+    </div>
+  );
+}
+
 /* ── helpers ─────────────────────────────────────────────────────── */
 
-function Section({ title, sub, children }: { title: string; sub: string; children: ReactNode }) {
+function Section({ id, no, title, sub, children }: { id: string; no: string; title: string; sub: string; children: ReactNode }) {
   return (
-    <section>
-      <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+    <section id={id} className="scroll-mt-24">
+      <div className="flex items-baseline gap-3">
+        <span className="font-mono text-sm font-semibold text-[#006bff]">{no}</span>
+        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+      </div>
       <p className="mt-1.5 max-w-2xl text-sm text-neutral-600 dark:text-neutral-400">{sub}</p>
       <div className="mt-6">{children}</div>
     </section>

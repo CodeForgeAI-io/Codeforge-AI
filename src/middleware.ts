@@ -19,6 +19,7 @@ const PUBLIC_PREFIXES = [
   "/privacy",
   "/changelog",
   "/design-guidelines", // public brand & design-system page
+  "/brand", // downloadable brand-asset kit (.zip isn't excluded by the matcher)
   "/status", // public system-status page + /api/status
   "/api/status",
   "/about",
