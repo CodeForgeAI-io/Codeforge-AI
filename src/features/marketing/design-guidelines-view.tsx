@@ -310,10 +310,27 @@ export function DesignGuidelinesView({ signedIn }: { signedIn: boolean }) {
             ))}
           </div>
 
+          {/* One-page bento poster */}
+          <div className="mt-5 overflow-hidden rounded-2xl border border-black/[0.08] dark:border-white/10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/codeforge-ai-brand-bento.png" alt="The full CodeForge AI brand system on one bento poster" className="w-full" />
+            <div className="flex items-center justify-between gap-3 border-t border-black/[0.06] bg-white px-4 py-3 dark:border-white/[0.07] dark:bg-white/[0.04]">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">The whole system, one poster</p>
+                <p className="font-mono text-[11px] text-neutral-500">PNG · 3200×2000 · bento</p>
+              </div>
+              <Button asChild size="sm" variant="outline" className="shrink-0 gap-1.5">
+                <a href="/brand/codeforge-ai-brand-bento.png" download="codeforge-ai-brand-bento.png">
+                  <Download className="size-3.5" /> Download
+                </a>
+              </Button>
+            </div>
+          </div>
+
           <div className="mt-5 flex flex-col items-center gap-2 rounded-2xl border border-[#006bff]/25 bg-[#006bff]/5 p-6 text-center">
             <p className="text-sm font-semibold">Everything in one kit</p>
             <p className="max-w-md text-xs text-neutral-600 dark:text-neutral-400">
-              Wordmarks, icons (SVG + PNG), maskable icon, plus a README with clear-space rules and the color palette.
+              Wordmarks, icons (SVG + PNG), maskable icon, the bento poster, plus a README with clear-space rules and the color palette.
             </p>
             <Button asChild className="mt-2 gap-2">
               <a href="/brand/codeforge-ai-brand-assets.zip" download>

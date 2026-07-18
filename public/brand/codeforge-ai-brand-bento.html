@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>CodeForge AI — Brand Guidelines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  html, body { background: #0a0a0a; }
+  .canvas {
+    width: 1600px; height: 1000px;
+    font-family: "Geist", -apple-system, system-ui, sans-serif;
+    color: #171717;
+    background:
+      radial-gradient(900px 500px at 20% -10%, rgba(0,107,255,0.28), transparent 65%),
+      radial-gradient(700px 400px at 95% 110%, rgba(11,62,168,0.35), transparent 60%),
+      #0a0a0a;
+    padding: 40px;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: 64px repeat(4, 1fr);
+    gap: 16px;
+  }
+  .mono { font-family: "Geist Mono", monospace; }
+  .tile { border-radius: 24px; padding: 26px; position: relative; overflow: hidden; }
+  .light { background: #ffffff; border: 1px solid #ebebeb; }
+  .dark  { background: #18181b; border: 1px solid rgba(255,255,255,0.12); color: #ededed; }
+  .blue  { background: linear-gradient(150deg, #006bff, #0b3ea8); color: #fff; }
+  .label { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; margin-bottom: 12px; }
+
+  /* header row */
+  .head { grid-column: 1 / 13; display: flex; align-items: center; justify-content: space-between; color: #ededed; padding: 0 6px; }
+  .head img { height: 34px; }
+  .head .mono { font-size: 13px; opacity: 0.65; }
+
+  /* logo hero */
+  .t-logo { grid-column: 1 / 6; grid-row: 2 / 4; display: flex; flex-direction: column; justify-content: space-between; }
+  .t-logo .glow { position: absolute; inset: 0; background: radial-gradient(70% 90% at 50% 0%, rgba(0,107,255,0.35), transparent 70%); }
+  .t-logo img.mark { height: 44px; width: auto; align-self: flex-start; position: relative; }
+  .t-logo h1 { position: relative; font-size: 40px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.06; color: #fff; }
+  .t-logo p { position: relative; font-size: 14px; color: rgba(237,237,237,0.65); margin-top: 10px; max-width: 340px; }
+  .chips { position: relative; display: flex; gap: 8px; margin-top: 16px; }
+  .chip { font-size: 11px; font-weight: 600; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.22); color: #ededed; }
+  .chip.b { background: rgba(0,107,255,0.25); border-color: rgba(0,107,255,0.6); }
+
+  /* color */
+  .t-color { grid-column: 6 / 10; grid-row: 2 / 4; display: flex; flex-direction: column; }
+  .swatches { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .sw { border-radius: 14px; display: flex; align-items: flex-end; padding: 10px; }
+  .sw span { font-size: 10px; font-weight: 600; font-family: "Geist Mono", monospace; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.35); }
+  .sw.light-text span { color: #171717; text-shadow: none; }
+  .semrow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+  .sem { border-radius: 12px; padding: 10px 12px; color: #fff; font-size: 11px; font-weight: 700; }
+  .sem small { display: block; font-weight: 500; font-family: "Geist Mono", monospace; font-size: 9px; opacity: 0.85; margin-top: 2px; }
+
+  /* blue accent tile */
+  .t-blue { grid-column: 10 / 13; grid-row: 2 / 3; display: flex; flex-direction: column; justify-content: space-between; }
+  .t-blue .hex { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; }
+  .t-blue p { font-size: 12px; opacity: 0.85; }
+
+  /* type */
+  .t-type { grid-column: 10 / 13; grid-row: 3 / 5; display: flex; flex-direction: column; }
+  .t-type .aa { font-size: 84px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+  .t-type .aa .m { font-family: "Geist Mono", monospace; font-weight: 500; color: #006bff; }
+  .trow { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid #ebebeb; padding: 9px 0; }
+  .trow:first-of-type { margin-top: 14px; }
+  .trow b { letter-spacing: -0.02em; }
+  .trow span { font-family: "Geist Mono", monospace; font-size: 10px; color: #666; }
+
+  /* components */
+  .t-comp { grid-column: 1 / 6; grid-row: 4 / 6; display: flex; flex-direction: column; }
+  .btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .btn { font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: 10px; }
+  .btn.p { background: #171717; color: #fff; }
+  .btn.o { border: 1px solid #ebebeb; color: #171717; background: #fff; }
+  .btn.blue { background: #006bff; color: #fff; }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .bd { font-size: 11px; font-weight: 700; padding: 5px 11px; border-radius: 999px; }
+  .bd.easy { color: #28a948; background: rgba(40,169,72,0.1); border: 1px solid rgba(40,169,72,0.35); }
+  .bd.med  { color: #d97706; background: rgba(217,119,6,0.1);  border: 1px solid rgba(217,119,6,0.35); }
+  .bd.hard { color: #e5484d; background: rgba(229,72,77,0.1);  border: 1px solid rgba(229,72,77,0.35); }
+  .bd.go   { color: #006bff; background: rgba(0,107,255,0.1);  border: 1px solid rgba(0,107,255,0.35); }
+  .inputmock { border: 1px solid #ebebeb; border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #666;
+    box-shadow: 0 0 0 3px rgba(0,107,255,0.18); max-width: 320px; }
+  .radii { display: flex; gap: 14px; margin-top: auto; align-items: flex-end; }
+  .rad { border: 1.5px dashed #94ccff; background: rgba(0,107,255,0.05); }
+  .rad.r6  { width: 54px; height: 54px; border-radius: 6px; }
+  .rad.r12 { width: 54px; height: 54px; border-radius: 12px; }
+  .rad.r24 { width: 54px; height: 54px; border-radius: 24px; }
+  .radii span { font-family: "Geist Mono", monospace; font-size: 10px; color: #666; }
+
+  /* heat / illustration */
+  .t-heat { grid-column: 6 / 8; grid-row: 4 / 6; display: flex; flex-direction: column; }
+  .heatgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; flex: 1; align-content: center; }
+  .h { aspect-ratio: 1; border-radius: 6px; }
+  .t-heat p { font-family: "Geist Mono", monospace; font-size: 10px; color: rgba(237,237,237,0.55); margin-top: 12px; }
+
+  /* motion + voice */
+  .t-motion { grid-column: 8 / 10; grid-row: 4 / 6; display: flex; flex-direction: column; }
+  .mrow { border-top: 1px solid rgba(255,255,255,0.1); padding: 11px 0; display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; }
+  .mrow:first-of-type { border-top: 0; }
+  .mrow span { font-family: "Geist Mono", monospace; font-size: 10.5px; color: #48aeff; }
+  .dots { display: flex; gap: 6px; margin-top: auto; align-items: center; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #28a948; }
+  .dot.f1 { opacity: 0.35; } .dot.f2 { opacity: 0.6; }
+  .dots em { font-size: 11px; font-style: normal; color: rgba(237,237,237,0.6); margin-left: 6px; }
+
+  .t-voice { grid-column: 10 / 13; grid-row: 5 / 6; }
+  .vrow { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; margin-top: 8px; line-height: 1.45; }
+  .tick { color: #28a948; font-weight: 800; } .cross { color: #e5484d; font-weight: 800; }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <!-- header -->
+  <div class="head">
+    <img src="https://codeforgeai.io/logo-dark.png" alt="CodeForge AI" />
+    <span class="mono">Brand Guidelines · v3.2 · codeforgeai.io/design-guidelines</span>
+  </div>
+
+  <!-- logo hero -->
+  <div class="tile dark t-logo">
+    <div class="glow"></div>
+    <img class="mark" src="https://codeforgeai.io/icon-192.png" alt="icon" style="height:56px;border-radius:14px;" />
+    <div>
+      <h1>One system.<br/>Every surface.</h1>
+      <p>Near-black actions, one decisive blue, honest semantics — from the editor to billing emails.</p>
+      <div class="chips">
+        <span class="chip b">Geist Sans</span>
+        <span class="chip">Geist Mono</span>
+        <span class="chip">Font Awesome</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- color -->
+  <div class="tile light t-color">
+    <div class="label">Color</div>
+    <div class="swatches">
+      <div class="sw light-text" style="background:#cae7ff"><span>#cae7ff</span></div>
+      <div class="sw light-text" style="background:#94ccff"><span>#94ccff</span></div>
+      <div class="sw" style="background:#48aeff"><span>#48aeff</span></div>
+      <div class="sw" style="background:#006bff"><span>#006bff</span></div>
+      <div class="sw" style="background:#0b3ea8"><span>#0b3ea8</span></div>
+    </div>
+    <div class="semrow">
+      <div class="sem" style="background:#28a948">Easy<small>#28a948</small></div>
+      <div class="sem" style="background:#ffae00">Warning<small>#ffae00</small></div>
+      <div class="sem" style="background:#d97706">Medium<small>#d97706</small></div>
+      <div class="sem" style="background:#e5484d">Hard<small>#e5484d</small></div>
+    </div>
+  </div>
+
+  <!-- brand blue -->
+  <div class="tile blue t-blue">
+    <div class="label" style="opacity:0.8">Brand Blue</div>
+    <div class="hex mono">#006bff</div>
+    <p>An accent, not a fill — focus rings, links, active states, key stats.</p>
+  </div>
+
+  <!-- typography -->
+  <div class="tile light t-type">
+    <div class="label">Typography</div>
+    <div class="aa">Aa<span class="m">0</span></div>
+    <div style="margin-top:auto">
+      <div class="trow"><b style="font-size:22px">Display 800</b><span>-0.03em</span></div>
+      <div class="trow"><b style="font-size:16px;font-weight:600">Heading 600</b><span>tight</span></div>
+      <div class="trow"><b style="font-size:13px;font-weight:400">Body 400 · 14px</b><span>1.6</span></div>
+      <div class="trow"><b class="mono" style="font-size:12px;font-weight:500">code · mono 13px</b><span>tabular</span></div>
+    </div>
+  </div>
+
+  <!-- components -->
+  <div class="tile light t-comp">
+    <div class="label">Components</div>
+    <div class="btnrow">
+      <span class="btn p">Primary</span>
+      <span class="btn o">Outline</span>
+      <span class="btn blue">Start free trial</span>
+    </div>
+    <div class="badges">
+      <span class="bd easy">Easy</span><span class="bd med">Medium</span><span class="bd hard">Hard</span>
+      <span class="bd go">⚡ GO</span><span class="bd go" style="color:#a000f8;background:rgba(160,0,248,0.08);border-color:rgba(160,0,248,0.3)">♛ PLUS</span>
+    </div>
+    <div class="inputmock">you@example.com — focus ring in brand blue</div>
+    <div class="radii">
+      <div><div class="rad r6"></div><span>6px controls</span></div>
+      <div><div class="rad r12"></div><span>12px cards</span></div>
+      <div><div class="rad r24"></div><span>24px marketing</span></div>
+    </div>
+  </div>
+
+  <!-- heatmap -->
+  <div class="tile dark t-heat">
+    <div class="label" style="opacity:0.5">Illustration</div>
+    <div class="heatgrid">
+      <div class="h" style="background:#1d1d20"></div><div class="h" style="background:#cae7ff"></div><div class="h" style="background:#006bff"></div><div class="h" style="background:#48aeff"></div><div class="h" style="background:#94ccff"></div>
+      <div class="h" style="background:#48aeff"></div><div class="h" style="background:#006bff"></div><div class="h" style="background:#1d1d20"></div><div class="h" style="background:#94ccff"></div><div class="h" style="background:#006bff"></div>
+      <div class="h" style="background:#94ccff"></div><div class="h" style="background:#1d1d20"></div><div class="h" style="background:#48aeff"></div><div class="h" style="background:#006bff"></div><div class="h" style="background:#cae7ff"></div>
+      <div class="h" style="background:#006bff"></div><div class="h" style="background:#94ccff"></div><div class="h" style="background:#cae7ff"></div><div class="h" style="background:#48aeff"></div><div class="h" style="background:#1d1d20"></div>
+    </div>
+    <p>Data as decoration — glows, glass & heatmaps. No stock art.</p>
+  </div>
+
+  <!-- motion -->
+  <div class="tile dark t-motion">
+    <div class="label" style="opacity:0.5">Motion</div>
+    <div class="mrow">Feedback <span>≤ 200ms</span></div>
+    <div class="mrow">Entrances <span>600–800ms</span></div>
+    <div class="mrow">Rise & fade <span>y: 32 → 0</span></div>
+    <div class="mrow">Ambient loops <span>subtle · ∞</span></div>
+    <div class="dots"><i class="dot f1"></i><i class="dot f2"></i><i class="dot"></i><em>transform + opacity only</em></div>
+  </div>
+
+  <!-- voice -->
+  <div class="tile light t-voice">
+    <div class="label">Voice</div>
+    <div class="vrow"><span class="tick">✓</span> Plain & honest — “Cancel anytime”, first charge always shown.</div>
+    <div class="vrow"><span class="cross">✕</span> No hype, no dark patterns, never spoil a solution.</div>
+  </div>
+</div>
+</body>
+</html>
