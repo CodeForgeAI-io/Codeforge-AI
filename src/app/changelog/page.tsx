@@ -16,6 +16,8 @@ const RELEASES: Release[] = [
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
     changes: {
       new: [
+        "Google One Tap sign-in — one tap in the corner logs you in with Google anywhere on the site, and returning users are signed back in automatically",
+        "A redesigned multi-step checkout — billing details, a clear review screen with the exact auto-pay terms, live payment verification and an animated receipt with your payment reference",
         "Live System Status page at /status — real health checks for the website, database, auth, code execution, AI mentor, cache, storage, payments and email, plus every feature and AI tool, with 30-day uptime bars and auto-refresh",
         "Join offer page at /join — claim a full month of Go free with auto-pay: ₹1 refundable authorisation today, ₹0 for 30 days, cancel anytime; sign up and checkout on one page",
         "Admin Live Insights — realtime PostHog analytics in the admin panel: active users, sessions, pageview trends, top pages/events, referrers, countries, browsers and devices",
@@ -23,10 +25,13 @@ const RELEASES: Release[] = [
       ],
       improved: [
         "Much stronger SEO — per-content-type XML sitemaps (problems, blog, forum, help, careers) that update automatically, IndexNow pings on new content, rich structured data on problems and forum threads, and a smarter llms.txt for AI assistants",
-        "Admins can see which users joined through an offer link with a campaign badge on the Users page",
+        "/join now matches the homepage — same header, footer and stacked-cards feature walkthrough, full width on mobile and desktop",
+        "Signing up from /join goes straight to checkout, then into onboarding after payment — the offer is never lost along the way",
+        "Admin User Details got a full upgrade — quick actions (open profile, email, copy ID), flexible plan grants (Go/Plus for 7 days to lifetime), trial extend/reset controls, and a campaign badge showing who joined through an offer link",
       ],
       fixed: [
         "Sitemaps previously redirected crawlers to the login page, making Google report “Sitemap is HTML” — they now serve pure XML",
+        "Brand-new accounts were bounced to onboarding before they could finish paying — checkout now completes first",
       ],
     },
   },
