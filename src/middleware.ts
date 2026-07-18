@@ -18,6 +18,7 @@ const PUBLIC_PREFIXES = [
   "/terms",
   "/privacy",
   "/changelog",
+  "/design-guidelines", // public brand & design-system page
   "/status", // public system-status page + /api/status
   "/api/status",
   "/about",
