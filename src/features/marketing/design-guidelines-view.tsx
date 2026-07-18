@@ -371,15 +371,15 @@ function MotionDemos() {
       </DemoCard>
 
       <DemoCard label="Feedback — hover, press, focus (≤200ms)">
-        <div className="flex h-36 items-center justify-center gap-3 rounded-xl border border-black/[0.06] bg-white dark:border-white/[0.07] dark:bg-white/[0.03]">
+        <div className="flex h-36 flex-col items-center justify-center gap-2.5 rounded-xl border border-black/[0.06] bg-white px-4 dark:border-white/[0.07] dark:bg-white/[0.03] sm:flex-row sm:gap-3">
           <motion.button
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.97 }}
-            className="rounded-xl border border-black/[0.08] bg-white px-5 py-2.5 text-sm font-semibold shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-white/[0.06]"
+            className="whitespace-nowrap rounded-xl border border-black/[0.08] bg-white px-5 py-2.5 text-sm font-semibold shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-white/[0.06]"
           >
             Hover & press me
           </motion.button>
-          <span className="font-mono text-[11px] text-neutral-500">transform + shadow only</span>
+          <span className="text-center font-mono text-[11px] text-neutral-500">transform + shadow only</span>
         </div>
       </DemoCard>
 
