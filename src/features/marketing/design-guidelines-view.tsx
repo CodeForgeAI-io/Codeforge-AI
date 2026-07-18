@@ -188,13 +188,13 @@ export function DesignGuidelinesView({ signedIn }: { signedIn: boolean }) {
               </div>
             </DemoCard>
             <DemoCard label="Data as decoration — activity heatmap">
-              <div className="flex h-36 flex-col items-center justify-center gap-3 rounded-xl border border-black/[0.06] bg-white dark:border-white/[0.07] dark:bg-white/[0.03]">
-                <div className="flex gap-1.5">
+              <div className="flex h-36 flex-col items-center justify-center gap-3 rounded-xl border border-black/[0.06] bg-white px-6 dark:border-white/[0.07] dark:bg-white/[0.03]">
+                <div className="grid w-full max-w-[280px] grid-cols-12 gap-1.5">
                   {Array.from({ length: 24 }).map((_, i) => (
-                    <span key={i} className="size-4 rounded-[4px]" style={{ background: HEAT[(i * 7 + (i % 5)) % 5] }} />
+                    <span key={i} className="aspect-square w-full rounded-[4px]" style={{ background: HEAT[(i * 7 + (i % 5)) % 5] }} />
                   ))}
                 </div>
-                <p className="font-mono text-[11px] text-neutral-500">--heat-0 → --heat-4 · real data, never fake</p>
+                <p className="text-center font-mono text-[11px] text-neutral-500">--heat-0 → --heat-4 · real data, never fake</p>
               </div>
             </DemoCard>
             <DemoCard label="Iconography — one set, filled">

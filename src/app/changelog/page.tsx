@@ -16,6 +16,8 @@ const RELEASES: Release[] = [
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
     changes: {
       new: [
+        "Design Guidelines at /design-guidelines — the full brand system (logo, typography, color, illustration, motion, live component demos and voice) with click-to-copy color swatches",
+        "Brand assets — download official wordmarks and icons individually, as a one-page bento poster, or as a complete .zip kit with usage notes",
         "Google One Tap sign-in — one tap in the corner logs you in with Google anywhere on the site, and returning users are signed back in automatically",
         "A redesigned multi-step checkout — billing details, a clear review screen with the exact auto-pay terms, live payment verification and an animated receipt with your payment reference",
         "Live System Status page at /status — real health checks for the website, database, auth, code execution, AI mentor, cache, storage, payments and email, plus every feature and AI tool, with 30-day uptime bars and auto-refresh",
