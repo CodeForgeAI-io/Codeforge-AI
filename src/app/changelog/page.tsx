@@ -10,10 +10,26 @@ export const metadata = {
 
 const RELEASES: Release[] = [
   {
-    version: "3.2.0",
-    date: "July 17, 2026",
+    version: "3.3.0",
+    date: "July 20, 2026",
     tag: "Latest",
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
+    changes: {
+      new: [
+        "Video tutorials in every problem's Editorial tab — pick from 8 languages (English, Hindi, Tamil, Telugu, Kannada, Bengali, Spanish, Portuguese), browse community YouTube explanations and watch them inline without leaving the workspace",
+      ],
+      improved: [
+        "Editorial tab pairs the written editorial with videos — and problems you generate with AI get the same tutorials automatically",
+        "Privacy-enhanced playback (youtube-nocookie) and heavy caching so the tab stays fast",
+      ],
+      fixed: [],
+    },
+  },
+  {
+    version: "3.2.0",
+    date: "July 17, 2026",
+    tag: "Stable",
+    tagColor: "bg-blue-500/15 text-blue-500 border-blue-500/30",
     changes: {
       new: [
         "Design Guidelines at /design-guidelines — the full brand system (logo, typography, color, illustration, motion, live component demos and voice) with click-to-copy color swatches",
