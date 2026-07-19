@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EditorialVideos } from "@/features/workspace/editorial-videos";
 import { cn } from "@/lib/utils";
 import type { QuestionDetail } from "@/services/questions";
 
@@ -91,15 +92,16 @@ export function QuestionPanel({ question }: { question: QuestionDetail }) {
 
       <TabsContent value="editorial" className="min-h-0 flex-1">
         <ScrollArea className="h-full">
-          <div className="p-4 pt-2">
+          <div className="space-y-5 p-4 pt-2">
             {question.editorial ? (
               <Markdown>{question.editorial}</Markdown>
             ) : (
-              <p className="py-10 text-center text-sm text-muted-foreground">
-                No editorial available for this question yet. Ask the AI mentor
-                to explain the approach!
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                No written editorial for this question yet. Ask the AI mentor to
+                explain the approach — or learn it from a video below.
               </p>
             )}
+            <EditorialVideos slug={question.slug} title={question.title} />
           </div>
         </ScrollArea>
       </TabsContent>
