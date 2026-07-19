@@ -40,6 +40,8 @@ const DEFAULT_LANGS = [
 export function EditorialVideos({ slug, title }: { slug: string; title: string }) {
   const [lang, setLang] = useState("en");
   const [playing, setPlaying] = useState<TutorialVideo | null>(null);
+  // One video by default; "Show more" reveals the rest.
+  const [expanded, setExpanded] = useState(false);
 
   const { data, isLoading } = useQuery<VideosResponse>({
     queryKey: ["editorial-videos", slug, lang],
@@ -74,6 +76,7 @@ export function EditorialVideos({ slug, title }: { slug: string; title: string }
             onClick={() => {
               setLang(l.code);
               setPlaying(null);
+              setExpanded(false);
             }}
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
@@ -136,8 +139,9 @@ export function EditorialVideos({ slug, title }: { slug: string; title: string }
           </Button>
         </div>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {data.videos.map((v) => (
+        <>
+        <ul className={cn("grid gap-3", expanded && "sm:grid-cols-2")}>
+          {(expanded ? data.videos : data.videos.slice(0, 1)).map((v) => (
             <li key={v.id}>
               <button
                 type="button"
@@ -168,6 +172,18 @@ export function EditorialVideos({ slug, title }: { slug: string; title: string }
             </li>
           ))}
         </ul>
+        {data.videos.length > 1 && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-3 w-full gap-1.5"
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? "Show less" : `Show ${data.videos.length - 1} more videos`}
+          </Button>
+        )}
+        </>
       )}
 
       <p className="mt-3 text-[11px] text-muted-foreground">
