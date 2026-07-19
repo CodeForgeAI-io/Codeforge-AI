@@ -16,11 +16,12 @@ const RELEASES: Release[] = [
     tagColor: "bg-green-500/15 text-green-500 border-green-500/30",
     changes: {
       new: [
-        "Video tutorials in every problem's Editorial tab — pick from 8 languages (English, Hindi, Tamil, Telugu, Kannada, Bengali, Spanish, Portuguese), browse community YouTube explanations and watch them inline without leaving the workspace",
+        "Video tutorials in every problem's Editorial tab — a custom player with the language switcher built in: Tamil first, plus English, Hindi, Telugu, Kannada, Bengali, Spanish and Portuguese",
+        "Tutorial playlist — the best video loads front and centre with a tap-to-play poster; switch videos from the playlist or reveal more with one tap",
       ],
       improved: [
         "Editorial tab pairs the written editorial with videos — and problems you generate with AI get the same tutorials automatically",
-        "Privacy-enhanced playback (youtube-nocookie) and heavy caching so the tab stays fast",
+        "Privacy-enhanced playback (youtube-nocookie) that only loads YouTube when you press play, with heavy caching so the tab stays fast",
       ],
       fixed: [],
     },
