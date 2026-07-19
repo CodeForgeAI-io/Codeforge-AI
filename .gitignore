@@ -45,6 +45,8 @@ next-env.d.ts
 
 # instagram assets
 /instagram/
+/public/brand
+/codeforge-ai-pitch-deck
 .env.local
 
 # local scratch screenshots / scripts
