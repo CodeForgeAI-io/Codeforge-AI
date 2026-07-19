@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Play, ExternalLink, MonitorPlay } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -21,11 +21,11 @@ interface VideosResponse {
   langs: { code: string; label: string }[];
 }
 
-/** Fallback pills when the API hasn't answered yet. */
+/** Fallback pills before the API answers. Tamil first — priority audience. */
 const DEFAULT_LANGS = [
+  { code: "ta", label: "Tamil" },
   { code: "en", label: "English" },
   { code: "hi", label: "Hindi" },
-  { code: "ta", label: "Tamil" },
   { code: "te", label: "Telugu" },
   { code: "kn", label: "Kannada" },
   { code: "bn", label: "Bengali" },
@@ -34,13 +34,14 @@ const DEFAULT_LANGS = [
 ];
 
 /**
- * Video tutorials for the Editorial tab — pick a spoken language, browse
- * YouTube explanations, watch inline (privacy-enhanced youtube-nocookie embed).
+ * Custom tutorial player for the Editorial tab. Tamil-first language switcher,
+ * poster-first playback (the heavy YouTube iframe only loads on play, via the
+ * privacy-enhanced youtube-nocookie embed) and a playlist of alternates.
  */
 export function EditorialVideos({ slug, title }: { slug: string; title: string }) {
-  const [lang, setLang] = useState("en");
-  const [playing, setPlaying] = useState<TutorialVideo | null>(null);
-  // One video by default; "Show more" reveals the rest.
+  const [lang, setLang] = useState("ta");
+  const [current, setCurrent] = useState<TutorialVideo | null>(null);
+  const [started, setStarted] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   const { data, isLoading } = useQuery<VideosResponse>({
@@ -53,12 +54,26 @@ export function EditorialVideos({ slug, title }: { slug: string; title: string }
     staleTime: 60 * 60 * 1000,
   });
 
+  // New language, new playlist: lead with its first video, paused on a poster.
+  useEffect(() => {
+    setCurrent(data?.videos[0] ?? null);
+    setStarted(false);
+    setExpanded(false);
+  }, [data]);
+
   const langs = data?.langs ?? DEFAULT_LANGS;
+  const playlist = (data?.videos ?? []).filter((v) => v.id !== current?.id);
+  const visiblePlaylist = expanded ? playlist : playlist.slice(0, 0);
+
   const searchUrl = (code: string) => {
     const label = langs.find((l) => l.code === code)?.label ?? "";
     const q = `${title} coding problem solution ${code === "en" ? "explained" : label}`;
     return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
   };
+
+  function switchLang(code: string) {
+    setLang(code);
+  }
 
   return (
     <section className="border-t pt-5">
@@ -67,60 +82,11 @@ export function EditorialVideos({ slug, title }: { slug: string; title: string }
         <h3 className="text-sm font-semibold">Video tutorials</h3>
       </div>
 
-      {/* Language pills */}
-      <div className="mb-4 flex flex-wrap gap-1.5">
-        {langs.map((l) => (
-          <button
-            key={l.code}
-            type="button"
-            onClick={() => {
-              setLang(l.code);
-              setPlaying(null);
-              setExpanded(false);
-            }}
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-              lang === l.code
-                ? "border-primary/40 bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
-            )}
-          >
-            {l.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Inline player */}
-      {playing && (
-        <div className="mb-4 overflow-hidden rounded-xl border">
-          <div className="aspect-video w-full">
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${playing.id}?autoplay=1&rel=0`}
-              title={playing.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              className="size-full"
-            />
-          </div>
-          <div className="flex items-center justify-between gap-3 border-t bg-muted/30 px-3 py-2">
-            <p className="min-w-0 truncate text-xs font-medium">{playing.title}</p>
-            <button
-              type="button"
-              onClick={() => setPlaying(null)}
-              className="shrink-0 text-xs text-muted-foreground hover:text-foreground"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
       {isLoading ? (
         <div className="flex items-center justify-center py-10">
           <Loader2 className="size-5 animate-spin text-muted-foreground" />
         </div>
       ) : !data?.configured ? (
-        // No API key on this deployment — still useful: hand off to YouTube.
         <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
           <p>Video search isn&apos;t enabled on this deployment yet.</p>
           <Button asChild size="sm" variant="outline" className="mt-2.5 gap-1.5">
@@ -129,61 +95,131 @@ export function EditorialVideos({ slug, title }: { slug: string; title: string }
             </a>
           </Button>
         </div>
-      ) : data.videos.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-          <p>No {langs.find((l) => l.code === lang)?.label} tutorials found for this problem.</p>
-          <Button asChild size="sm" variant="outline" className="mt-2.5 gap-1.5">
-            <a href={searchUrl(lang)} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="size-3.5" /> Search on YouTube
-            </a>
-          </Button>
-        </div>
       ) : (
-        <>
-        <ul className={cn("grid gap-3", expanded && "sm:grid-cols-2")}>
-          {(expanded ? data.videos : data.videos.slice(0, 1)).map((v) => (
-            <li key={v.id}>
+        <div className="overflow-hidden rounded-xl border">
+          {/* Player header: language switcher lives inside the player */}
+          <div className="flex flex-wrap items-center gap-1.5 border-b bg-muted/40 px-3 py-2">
+            {langs.map((l) => (
               <button
+                key={l.code}
                 type="button"
-                onClick={() => setPlaying(v)}
-                className="group w-full overflow-hidden rounded-xl border text-left transition-colors hover:border-primary/40"
+                onClick={() => switchLang(l.code)}
+                className={cn(
+                  "rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors",
+                  lang === l.code
+                    ? "border-primary/40 bg-primary/10 text-primary"
+                    : "border-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                )}
               >
-                <div className="relative aspect-video w-full overflow-hidden bg-muted">
-                  {v.thumbnail && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={v.thumbnail}
-                      alt=""
-                      loading="lazy"
-                      className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                    />
-                  )}
-                  <span className="absolute inset-0 flex items-center justify-center">
-                    <span className="flex size-10 items-center justify-center rounded-full bg-black/60 text-white opacity-90 transition-transform group-hover:scale-110">
-                      <Play className="ml-0.5 size-4" />
-                    </span>
-                  </span>
-                </div>
-                <div className="p-2.5">
-                  <p className="line-clamp-2 text-xs font-medium leading-snug">{v.title}</p>
-                  <p className="mt-1 truncate text-[11px] text-muted-foreground">{v.channel}</p>
-                </div>
+                {l.label}
               </button>
-            </li>
-          ))}
-        </ul>
-        {data.videos.length > 1 && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-3 w-full gap-1.5"
-            onClick={() => setExpanded((v) => !v)}
-          >
-            {expanded ? "Show less" : `Show ${data.videos.length - 1} more videos`}
-          </Button>
-        )}
-        </>
+            ))}
+          </div>
+
+          {current ? (
+            <>
+              {/* Stage: poster until play, then the nocookie embed */}
+              <div className="relative aspect-video w-full bg-black">
+                {started ? (
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${current.id}?autoplay=1&rel=0`}
+                    title={current.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="size-full"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setStarted(true)}
+                    className="group relative size-full"
+                    aria-label={`Play: ${current.title}`}
+                  >
+                    {current.thumbnail && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={current.thumbnail.replace("mqdefault", "hqdefault")}
+                        alt=""
+                        className="size-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
+                      />
+                    )}
+                    <span className="absolute inset-0 flex items-center justify-center bg-linear-to-t from-black/50 via-transparent to-transparent">
+                      <span className="flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform group-hover:scale-110">
+                        <Play className="ml-0.5 size-6" />
+                      </span>
+                    </span>
+                  </button>
+                )}
+              </div>
+
+              {/* Now playing bar */}
+              <div className="flex items-center justify-between gap-3 border-b px-3 py-2.5">
+                <div className="min-w-0">
+                  <p className="line-clamp-1 text-xs font-semibold">{current.title}</p>
+                  <p className="truncate text-[11px] text-muted-foreground">{current.channel}</p>
+                </div>
+                <a
+                  href={`https://www.youtube.com/watch?v=${current.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+                >
+                  <ExternalLink className="size-3" /> YouTube
+                </a>
+              </div>
+
+              {/* Playlist */}
+              {visiblePlaylist.length > 0 && (
+                <ul className="divide-y">
+                  {visiblePlaylist.map((v) => (
+                    <li key={v.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCurrent(v);
+                          setStarted(true);
+                        }}
+                        className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-accent/50"
+                      >
+                        <span className="relative aspect-video w-24 shrink-0 overflow-hidden rounded-md bg-muted">
+                          {v.thumbnail && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={v.thumbnail} alt="" loading="lazy" className="size-full object-cover" />
+                          )}
+                          <span className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity hover:opacity-100">
+                            <Play className="size-4 text-white drop-shadow" />
+                          </span>
+                        </span>
+                        <span className="min-w-0">
+                          <span className="line-clamp-2 text-xs font-medium leading-snug">{v.title}</span>
+                          <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">{v.channel}</span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {playlist.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setExpanded((v) => !v)}
+                  className="block w-full border-t px-3 py-2 text-center text-xs font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
+                >
+                  {expanded ? "Show less" : `Show ${playlist.length} more videos`}
+                </button>
+              )}
+            </>
+          ) : (
+            <div className="p-4 text-sm text-muted-foreground">
+              <p>No {langs.find((l) => l.code === lang)?.label} tutorials found for this problem.</p>
+              <Button asChild size="sm" variant="outline" className="mt-2.5 gap-1.5">
+                <a href={searchUrl(lang)} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="size-3.5" /> Search on YouTube
+                </a>
+              </Button>
+            </div>
+          )}
+        </div>
       )}
 
       <p className="mt-3 text-[11px] text-muted-foreground">

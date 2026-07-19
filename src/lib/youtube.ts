@@ -23,11 +23,12 @@ export interface TutorialSearchResult {
   videos: TutorialVideo[];
 }
 
-/** Spoken languages we offer tutorial searches in. */
+/** Spoken languages we offer tutorial searches in. Tamil first — it's the
+ *  priority audience and the player's default. */
 export const TUTORIAL_LANGS = [
+  { code: "ta", label: "Tamil" },
   { code: "en", label: "English" },
   { code: "hi", label: "Hindi" },
-  { code: "ta", label: "Tamil" },
   { code: "te", label: "Telugu" },
   { code: "kn", label: "Kannada" },
   { code: "bn", label: "Bengali" },
