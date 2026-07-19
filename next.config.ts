@@ -32,7 +32,8 @@ const CSP = [
   // Sandpack (compiler Web mode + frontend challenges) runs its bundler and
   // Node runtime in iframes served from *.codesandbox.io.
   // Google ad units render inside doubleclick/googlesyndication iframes.
-  `frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.codesandbox.io https://www.google.com https://accounts.google.com ${ADS_FRAME_SRC}`,
+  // youtube-nocookie: privacy-enhanced player for Editorial video tutorials.
+  `frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.codesandbox.io https://www.google.com https://accounts.google.com https://www.youtube-nocookie.com ${ADS_FRAME_SRC}`,
   // We still refuse to BE framed (clickjacking) regardless of the above.
   "frame-ancestors 'none'",
   "base-uri 'self'",
