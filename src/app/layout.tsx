@@ -88,7 +88,9 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `${name} — Master Coding Interviews`,
       description: desc,
       site: cfg.twitterHandle ? `@${cfg.twitterHandle.replace(/^@/, "")}` : undefined,
-      images: ogImg ? [ogImg] : ["/opengraph-image"],
+      // Leave images unset when there's no custom override so each route's
+      // opengraph-image.tsx (per-page card) drives the Twitter/X card too.
+      images: ogImg ? [ogImg] : undefined,
     },
     robots: {
       index: true,

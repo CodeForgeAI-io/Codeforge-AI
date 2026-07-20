@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-/** Shared social-share card, rendered by both opengraph-image and twitter-image. */
+/** Shared social-share card, rendered by every route's opengraph-image. */
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_ALT = "CodeForge AI — Master coding interviews with AI";
 export const OG_CONTENT_TYPE = "image/png";
@@ -13,7 +13,38 @@ const MARK = `data:image/svg+xml,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none"><rect width="512" height="512" rx="112" fill="#006bff"/><g transform="translate(121.6 102.4) scale(0.6)"><path fill="#ffffff" d="${FIRE}"/></g></svg>`,
 )}`;
 
-export function renderOgCard() {
+export interface OgCardOptions {
+  /** Small colored label above the title, e.g. a difficulty or section. */
+  eyebrow?: string;
+  eyebrowColor?: string;
+  /** Main headline. Defaults to the homepage message. */
+  title?: string;
+  /** Optional trailing accent word rendered in brand blue after the title. */
+  titleAccent?: string;
+  /** One line of supporting copy under the title. */
+  subtitle?: string;
+  /** Footer chips (rendered blue, dot-separated). */
+  tags?: string[];
+}
+
+/** Fit the title font to its length so long problem names don't overflow. */
+function titleSize(text: string): number {
+  const len = text.length;
+  if (len <= 22) return 76;
+  if (len <= 34) return 64;
+  if (len <= 48) return 54;
+  if (len <= 66) return 46;
+  return 40;
+}
+
+export function renderOgCard(opts: OgCardOptions = {}) {
+  const title = opts.title ?? "Master coding interviews with";
+  const titleAccent = opts.titleAccent ?? (opts.title ? undefined : "AI.");
+  const subtitle =
+    opts.subtitle ?? "LeetCode-style problems · instant online compiler · AI pair programming";
+  const tags = opts.tags ?? ["27+ features", "12 languages", "100% free"];
+  const fontSize = opts.title ? titleSize(title) : 74;
+
   return new ImageResponse(
     (
       <div
@@ -26,45 +57,66 @@ export function renderOgCard() {
           background: "#ffffff",
           padding: "72px",
           fontFamily: "sans-serif",
+          // subtle brand glow in the corner
+          backgroundImage:
+            "radial-gradient(900px 480px at 100% 0%, rgba(0,107,255,0.12), transparent 60%)",
         }}
       >
         {/* wordmark */}
         <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={MARK} width={64} height={64} alt="" />
-          <div style={{ fontSize: 30, fontWeight: 600, color: "#171717" }}>
-            CodeForge AI
-          </div>
+          <div style={{ fontSize: 30, fontWeight: 600, color: "#171717" }}>CodeForge AI</div>
         </div>
 
         {/* headline */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          {opts.eyebrow && (
+            <div
+              style={{
+                display: "flex",
+                fontSize: 26,
+                fontWeight: 700,
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+                color: opts.eyebrowColor ?? "#006bff",
+              }}
+            >
+              {opts.eyebrow}
+            </div>
+          )}
           <div
             style={{
               display: "flex",
               flexWrap: "wrap",
-              fontSize: 74,
+              fontSize,
               fontWeight: 600,
-              letterSpacing: "-3px",
-              lineHeight: 1.05,
-              maxWidth: "940px",
+              letterSpacing: "-2px",
+              lineHeight: 1.04,
+              maxWidth: "1000px",
             }}
           >
-            <span style={{ color: "#171717" }}>Master coding interviews with&nbsp;</span>
-            <span style={{ color: "#006bff" }}>AI.</span>
+            <span style={{ color: "#171717" }}>
+              {title}
+              {titleAccent ? " " : ""}
+            </span>
+            {titleAccent && <span style={{ color: "#006bff" }}>{titleAccent}</span>}
           </div>
-          <div style={{ fontSize: 30, color: "#666666" }}>
-            LeetCode-style problems · instant online compiler · AI pair programming
-          </div>
+          {subtitle && (
+            <div style={{ display: "flex", fontSize: 29, color: "#666666", maxWidth: "1000px" }}>
+              {subtitle}
+            </div>
+          )}
         </div>
 
         {/* footer tags */}
         <div style={{ display: "flex", gap: "14px", fontSize: 24, fontWeight: 500, color: "#006bff" }}>
-          <span>27+ features</span>
-          <span style={{ color: "#cccccc" }}>·</span>
-          <span>12 languages</span>
-          <span style={{ color: "#cccccc" }}>·</span>
-          <span>100% free</span>
+          {tags.map((t, i) => (
+            <div key={i} style={{ display: "flex", gap: "14px" }}>
+              {i > 0 && <span style={{ color: "#cccccc" }}>·</span>}
+              <span>{t}</span>
+            </div>
+          ))}
         </div>
       </div>
     ),
